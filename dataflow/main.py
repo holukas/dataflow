@@ -10,15 +10,12 @@ import argparse
 import pandas as pd
 from single_source import get_version
 
-import datascanner
+import datascanner as ds
+import filereader as fr
+
 import logger
-import datascanner.filereader as filereader
-from datascanner.datascanner import DataScanner
-
-# from datascanner.datascanner import DataScanner
-
-# from .datascanner import filereader
-# from .datascanner.datascanner import DataScanner
+# from scanner import datascanner as ds
+# from scanner import filereader as fr
 
 pd.set_option('display.width', 1000)
 pd.set_option('display.max_columns', 15)
@@ -98,10 +95,10 @@ class DataFlow:
         file_dbconf = self.dirconf / 'dbconf.yaml'
 
         # Read configs
-        conf_filetypes = filereader.get_conf_filetypes(dir=dir_filegroups)
-        conf_unitmapper = filereader.read_configfile(config_file=file_unitmapper)
-        conf_dirs = filereader.read_configfile(config_file=file_dirs)
-        conf_db = filereader.read_configfile(config_file=file_dbconf)
+        conf_filetypes = fr.get_conf_filetypes(dir=dir_filegroups)
+        conf_unitmapper = fr.read_configfile(config_file=file_unitmapper)
+        conf_dirs = fr.read_configfile(config_file=file_dirs)
+        conf_db = fr.read_configfile(config_file=file_dbconf)
         return conf_filetypes, conf_unitmapper, conf_dirs, conf_db
 
     def _create_dir(self, subdir: str):
@@ -131,19 +128,19 @@ class DataFlow:
     def _datascanner(self):
         """Call DataScanner"""
         self.logger.info(f"Calling DataScanner ...")
-        datascanner = DataScanner(run_id=self.run_id,
-                                  dir_source=self.dir_source,
-                                  dir_out_run=self.dir_out_run_logs,
-                                  dir_out_html=self.dir_out_run_html,
-                                  conf_filetypes=self.conf_filetypes,
-                                  conf_unitmapper=self.conf_unitmapper,
-                                  conf_db=self.conf_db,
-                                  logger=self.logger,
-                                  filegroup=self.filegroup,
-                                  mode=self.mode,
-                                  site=self.site,
-                                  filelimit=self.filelimit,
-                                  newestfiles=self.newestfiles)
+        datascanner = ds.DataScanner(run_id=self.run_id,
+                                     dir_source=self.dir_source,
+                                     dir_out_run=self.dir_out_run_logs,
+                                     dir_out_html=self.dir_out_run_html,
+                                     conf_filetypes=self.conf_filetypes,
+                                     conf_unitmapper=self.conf_unitmapper,
+                                     conf_db=self.conf_db,
+                                     logger=self.logger,
+                                     filegroup=self.filegroup,
+                                     mode=self.mode,
+                                     site=self.site,
+                                     filelimit=self.filelimit,
+                                     newestfiles=self.newestfiles)
         datascanner.run()
         return datascanner.get_results()
 
