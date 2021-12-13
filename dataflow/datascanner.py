@@ -10,8 +10,8 @@ Find files and variables
 from pathlib import Path
 
 import pandas as pd
-
-from html_pagebuilder import pagebuilder as html
+import html_pagebuilder.pagebuilder as html
+# from html_pagebuilder import pagebuilder as html
 # import html_pagebuilder.pagebuilder as html
 from filescanner import FileScanner
 from varscanner import VarScanner
