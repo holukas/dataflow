@@ -10,8 +10,8 @@ from pathlib import Path
 import pandas as pd
 from single_source import get_version
 
-from datascanner.datascanner import DataScanner
-from datascanner import filereader
+from .datascanner.datascanner import DataScanner
+from .datascanner import filereader
 
 import logger
 
