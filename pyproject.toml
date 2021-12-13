@@ -16,7 +16,7 @@ single-source = "^0.2.0"
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.scripts]
-dataflow = "dataflow.main:main"
+dataflow = "dataflow:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
