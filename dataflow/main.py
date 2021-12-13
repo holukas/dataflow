@@ -10,9 +10,9 @@ import argparse
 import pandas as pd
 from single_source import get_version
 
-import logger
-import datascanner.datascanner as ds
 import datascanner.filereader as filereader
+import logger
+from datascanner.datascanner import DataScanner
 
 # from datascanner.datascanner import DataScanner
 
@@ -130,7 +130,7 @@ class DataFlow:
     def _datascanner(self):
         """Call DataScanner"""
         self.logger.info(f"Calling DataScanner ...")
-        datascanner = ds.DataScanner(run_id=self.run_id,
+        datascanner = DataScanner(run_id=self.run_id,
                                   dir_source=self.dir_source,
                                   dir_out_run=self.dir_out_run_logs,
                                   dir_out_html=self.dir_out_run_html,
