@@ -3,17 +3,21 @@
 # https://www.influxdata.com/blog/getting-started-with-python-and-influxdb-v2-0/
 # https://github.com/influxdata/influxdb-client-python
 # https://docs.influxdata.com/influxdb/cloud/tools/client-libraries/python/#query-data-from-influxdb-with-python
-import argparse
 import datetime as dt
 from pathlib import Path
 
+import argparse
 import pandas as pd
 from single_source import get_version
 
-from .datascanner.datascanner import DataScanner
-from .datascanner import filereader
-
 import logger
+import datascanner.datascanner as ds
+import datascanner.filereader as filereader
+
+# from datascanner.datascanner import DataScanner
+
+# from .datascanner import filereader
+# from .datascanner.datascanner import DataScanner
 
 pd.set_option('display.width', 1000)
 pd.set_option('display.max_columns', 15)
@@ -126,7 +130,7 @@ class DataFlow:
     def _datascanner(self):
         """Call DataScanner"""
         self.logger.info(f"Calling DataScanner ...")
-        datascanner = DataScanner(run_id=self.run_id,
+        datascanner = ds.DataScanner(run_id=self.run_id,
                                   dir_source=self.dir_source,
                                   dir_out_run=self.dir_out_run_logs,
                                   dir_out_html=self.dir_out_run_html,
@@ -261,11 +265,9 @@ def main():
              filelimit=args.filelimit,
              newestfiles=args.newestfiles)
 
+
 if __name__ == '__main__':
     main()
-
-
-
 
     # args = dict(site='ch-dav', datatype='raw', filegroup='11_meteo_hut', mode=3,
     #             year=2021, month=11, filelimit=0, newestfiles=0)

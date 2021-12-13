@@ -2,6 +2,8 @@
 from pathlib import Path
 from single_source import get_version
 
+# from . import datascanner
+
 # from datascanner import filescanner
 # from datascanner import filereader
 # from . import datascanner
