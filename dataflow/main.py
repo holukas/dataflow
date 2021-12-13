@@ -10,7 +10,7 @@ from pathlib import Path
 import pandas as pd
 from single_source import get_version
 
-import logger
+from . import logger
 from datascanner import DataScanner, filereader
 
 pd.set_option('display.width', 1000)
