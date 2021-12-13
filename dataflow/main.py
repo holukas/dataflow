@@ -10,8 +10,10 @@ from pathlib import Path
 import pandas as pd
 from single_source import get_version
 
-from . import logger
-from .datascanner import DataScanner, filereader
+from datascanner.datascanner import DataScanner
+from datascanner import filereader
+
+import logger
 
 pd.set_option('display.width', 1000)
 pd.set_option('display.max_columns', 15)
