@@ -1,3 +1,3 @@
-from datascanner.datascanner import DataScanner
+from .datascanner import DataScanner
 
 
