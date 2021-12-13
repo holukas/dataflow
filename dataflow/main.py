@@ -10,6 +10,7 @@ import argparse
 import pandas as pd
 from single_source import get_version
 
+import datascanner
 import logger
 import datascanner.filereader as filereader
 from datascanner.datascanner import DataScanner
