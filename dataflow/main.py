@@ -10,13 +10,11 @@ import argparse
 import pandas as pd
 from single_source import get_version
 
-# from . import datascanner as ds
-
-from datascanner import DataScanner
-
 # import datascanner as ds
-import filereader as fr
-import logger
+from modules import logger, filereader
+from modules.datascanner import DataScanner
+
+# from . import datascanner as ds
 
 # from scanner import datascanner as ds
 # from scanner import filereader as fr
@@ -99,10 +97,10 @@ class DataFlow:
         file_dbconf = self.dirconf / 'dbconf.yaml'
 
         # Read configs
-        conf_filetypes = fr.get_conf_filetypes(dir=dir_filegroups)
-        conf_unitmapper = fr.read_configfile(config_file=file_unitmapper)
-        conf_dirs = fr.read_configfile(config_file=file_dirs)
-        conf_db = fr.read_configfile(config_file=file_dbconf)
+        conf_filetypes = filereader.get_conf_filetypes(dir=dir_filegroups)
+        conf_unitmapper = filereader.read_configfile(config_file=file_unitmapper)
+        conf_dirs = filereader.read_configfile(config_file=file_dirs)
+        conf_db = filereader.read_configfile(config_file=file_dbconf)
         return conf_filetypes, conf_unitmapper, conf_dirs, conf_db
 
     def _create_dir(self, subdir: str):
@@ -133,18 +131,18 @@ class DataFlow:
         """Call DataScanner"""
         self.logger.info(f"Calling DataScanner ...")
         datascanner = DataScanner(run_id=self.run_id,
-                                     dir_source=self.dir_source,
-                                     dir_out_run=self.dir_out_run_logs,
-                                     dir_out_html=self.dir_out_run_html,
-                                     conf_filetypes=self.conf_filetypes,
-                                     conf_unitmapper=self.conf_unitmapper,
-                                     conf_db=self.conf_db,
-                                     logger=self.logger,
-                                     filegroup=self.filegroup,
-                                     mode=self.mode,
-                                     site=self.site,
-                                     filelimit=self.filelimit,
-                                     newestfiles=self.newestfiles)
+                                  dir_source=self.dir_source,
+                                  dir_out_run=self.dir_out_run_logs,
+                                  dir_out_html=self.dir_out_run_html,
+                                  conf_filetypes=self.conf_filetypes,
+                                  conf_unitmapper=self.conf_unitmapper,
+                                  conf_db=self.conf_db,
+                                  logger=self.logger,
+                                  filegroup=self.filegroup,
+                                  mode=self.mode,
+                                  site=self.site,
+                                  filelimit=self.filelimit,
+                                  newestfiles=self.newestfiles)
         datascanner.run()
         return datascanner.get_results()
 
@@ -241,7 +239,7 @@ class DataFlow:
 
 
 def main():
-    import cli
+    from modules import cli
 
     # args = cli.get_args()
     # args = cli.validate_args(args)

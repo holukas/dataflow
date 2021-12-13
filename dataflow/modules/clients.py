@@ -3,7 +3,7 @@
 from influxdb_client import InfluxDBClient
 from influxdb_client import WriteOptions
 
-import filereader
+from modules import filereader
 
 
 def get_write_client(conf_db: dict):
@@ -15,7 +15,7 @@ def get_write_client(conf_db: dict):
 
 
 def get_query_client():
-    dbconf = filereader.read_configfile(config_file='../../configs/dbconf.yaml')
+    dbconf = filereader.read_configfile(config_file='../../../configs/dbconf.yaml')
     client = InfluxDBClient(url=dbconf['url'], token=dbconf['token'], org=dbconf['org'])
     query_client = client.query_api()
     return client, query_client

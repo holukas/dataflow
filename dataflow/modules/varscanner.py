@@ -1,7 +1,7 @@
 import pandas as pd
 from numpy import arange
 
-from filereader import FileReader
+from modules.filereader import FileReader
 
 
 class VarScanner:
@@ -23,7 +23,7 @@ class VarScanner:
         self.conf_filetypes=conf_filetypes
 
         if self.mode > 2:
-            import clients
+            from modules import clients
             self.client, self.write_client = clients.get_write_client(conf_db=conf_db)
 
         self.varscanner_df = self._init_varscanner_df()

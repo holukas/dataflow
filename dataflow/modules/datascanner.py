@@ -10,11 +10,14 @@ Find files and variables
 from pathlib import Path
 
 import pandas as pd
+
+import modules.pagebuilder as html
+# from modules import pagebuilder as html
+# import pagebuilder as html
 # from html_pagebuilder import pagebuilder as html
 # import html_pagebuilder.pagebuilder as html
-from filescanner import FileScanner
-from varscanner import VarScanner
-import pagebuilder as html
+from modules.filescanner import FileScanner
+from modules.varscanner import VarScanner
 
 
 class DataScanner:
@@ -32,8 +35,8 @@ class DataScanner:
             mode: int,
             site: str,
             filegroup: str,
-            filelimit:int,
-            newestfiles:int,
+            filelimit: int,
+            newestfiles: int,
             logger
     ):
         self.run_id = run_id
