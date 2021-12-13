@@ -18,7 +18,7 @@ class PageBuilderWriter:
         PATH = os.path.dirname(os.path.abspath(__file__))
         TEMPLATE_ENVIRONMENT = Environment(
             autoescape=False,
-            loader=FileSystemLoader(os.path.join(PATH, 'templates')),
+            loader=FileSystemLoader(os.path.join(PATH, 'html_pagebuilder/templates')),
             trim_blocks=False)
         return TEMPLATE_ENVIRONMENT
 
