@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8"/>
+
+    <!--STYLE-->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,700" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="../../../../inc/style.css">
+
+    <!--FANCYBOX CSS-->
+    <link href="../inc/js/fancybox/dist/jquery.fancybox.min.css" rel="stylesheet">
+
+    <!--SORTABLE TABLE CSS and JS-->
+    <!--see: https://www.cssscript.com/html-table-sortable/-->
+    <link href="../inc/sort-table/sort-table.css" rel="stylesheet">
+    <script src="../inc/sort-table/sort-table.js"></script>
+
+
+    <title>QuickViews</title>
+
+</head>
+
+<body>
+
+    <div class="left_sidebar">
+        <h1><span class="bold">{% block title %}{% endblock title %}</span></h1>
+
+        {% block _site_left_menu %}
+            {% include '_site_left_menu.html' %}
+        {% endblock _site_left_menu %}
+
+    </div>
+
+<div class="container">
+
+    <div class="grid" data-masonry>
+
+        {% block grid_boxes %}{% endblock grid_boxes %}
+
+    </div>
+</div>
+
+<!--FANCYBOX JS-->
+<!--from: http://fancyapps.com/fancybox/3/-->
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="../js/fancybox/dist/jquery.fancybox.js"></script>
+
+<!--MASONRY JS-->
+<!--from: https://masonry.desandro.com/-->
+<script src="../js/masonry/masonry.pkgd.js"></script>
+
+<script>
+
+    $(document).ready(function () {
+
+        var $container = $(".container");
+
+        var $make_grid = $('.grid').masonry({
+          itemSelector: '.grid-item',
+          columnWidth: 320
+          });
+
+        $container.imagesLoaded(function () {
+            $make_grid;});
+
+    });
+
+    $(".close").click(function() {
+        $(this).parent().fadeOut("normal", function() {
+            $(this).hide();
+            var $grid = $('.grid').masonry({
+                itemSelector: '.grid-item',
+                columnWidth: 320
+                });
+                });
+                });
+
+</script>
+
+</body>
+</html>

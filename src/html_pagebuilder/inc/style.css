@@ -1,0 +1,129 @@
+* { box-sizing: border-box; }
+
+/*
+--------------------------
+	RESET CSS
+--------------------------
+*/
+
+/* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+
+/* TAGS */
+body {background-color: #f0f0f0; font-family: 'Roboto', sans-serif; color: #393939; font-size: 14px; margin: 0;}
+html, body {width: 100%; height: 100%;}
+h1 {padding: 10px 0 10px 10px; margin: 0; font-size: 30px; font-weight: 300; display: block;}
+h2 {padding: 20px 0 30px 20px; text-align: left; font-size: 24px; font-weight: 700; background-color: white; color: #415a71;}
+h3 {padding: 18px 12px 6px 12px; font-size: 16px; font-weight: 700; color: #3b5e78;}
+p, ul  {padding: 12px;}
+
+/*figure {text-align: center; margin-bottom: 10px;}*/
+/*figcaption {margin: 0; padding: 5px;}*/
+
+/* CONTAINER */
+.container {margin-left: 10%; width: 90%;}
+
+
+/* LEFT SIDEBAR */
+.left_sidebar {background-color: #2d3e4e; color: #a3afbb; width: 10%; padding: 0; margin: 0; height: 100%; float: left;}
+.left_menu {margin: 0; padding: 0;}
+.left_menu ul {margin-left: 10px;padding: 0;}
+.left_menu a {width: 100%; text-decoration: none; display: block; font-size: 14px; padding: 10px; line-height: 20px; color: #a3afbb; margin: 0;}
+.left_menu a:hover {background-color: #eceff1; color: #2d3e4e;}
+.left_menu a:active {background-color: #cfd8dc;}
+.left_menu a img {vertical-align: middle; border-right: 120px;}
+
+	
+/* GRID */
+.grid {max-width: 100%;}
+.grid:after {content: ''; display: block; clear: both;}  /* clearfix */
+.grid-item {width: 50%; min-height: 60px; float: left; background: white; padding: 10px; margin: 20px 0 0 20px; box-shadow: 0px 0px 15px #cccccc;}
+.grid-item--width2 { width: 100%; }
+
+
+/* TABLE */
+table {text-align: left; border-collapse: collapse; border: 1px solid white; width: 100%; font-size: 12px;}
+th {background-color: #98b7cd; color: white; font-weight: 700;}
+th, td {border: 1px solid white; padding: 10px; text-align: left; border-bottom: 1px solid #ddd;}
+tr:hover {background-color: #f5f5f5;}
+tr:nth-child(even) {background-color: #f2f2f2;}
+
+
+/* CLASSES */
+.no-background-color {background: none; box-shadow: none; color: #37474f; display: block;}
+.status_ok {background-color: #9ccc65; font-size: 24px; color: white; font-weight: 700; padding: 10px;}
+.status_warning {}
+.bold {font-weight: 700;}
+.large {font-size: 24px;}
+.float_left {float: left;}
+.float_right {float: right;}
+.float_left:after {content: ''; display: block; clear: both;}  /* clearfix */
+.float_right:after {content: ''; display: block; clear: both;}  /* clearfix */
+
+
+/* COLORS */
+.cyan-500 {color: #00bcd4;}
+.blue1 {color: #3b5e78;}
+.deep-orange-500 {color: #ff5722;}
+.light-green-400 {color: #9ccc65;}
+
+
+/*
+--------------------------
+SECTION BOX
+--------------------------
+*/
+
+/*
+	div.section_box figure {
+		text-align: center;
+		text-indent: 0;
+		}
+*/

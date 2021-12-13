@@ -1,0 +1,13 @@
+<!--FILE LIST-->
+<div class="left_menu">
+    {% for link in links_to_file_reports_html -%}
+    <ul>
+        <li>
+            <a href={{link}}>
+                <img src="../img/file_icon2.png">
+                {{link}}
+            </a>
+        </li>
+    </ul>
+    {% endfor -%}
+</div>

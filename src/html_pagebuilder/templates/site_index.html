@@ -1,0 +1,25 @@
+{% extends "_site_base.html" %}
+
+
+{% block title %}
+{{ site }}
+{% endblock title %}
+
+
+{% block _left_menu %}
+{{ super() }}
+{% endblock _left_menu %}
+
+{% block grid_boxes %}
+
+<div class="grid-item">
+    <h2>Welcome</h2>
+    {% for page in links_to_measurement_pages -%}
+    <a class="blocklink" href="{{ page }}">
+        {{ page }}
+    </a>
+    {% endfor -%}
+    <img alt="" class="close float_right" src="../inc/img/close_1-512.png" width="20px">
+</div>
+
+{% endblock grid_boxes %}

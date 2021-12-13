@@ -1,0 +1,85 @@
+{% extends "_site_base.html" %}
+
+
+{% block title %}
+{{ site }}
+{% endblock title %}
+
+
+{% block _site_left_menu %}
+{{ super() }}
+{% endblock _site_left_menu %}
+
+
+{% block grid_boxes %}
+
+<div class="grid">
+
+    <!--HEADER-->
+    <!--    <div class="grid-item grid-item&#45;&#45;width2 no-background-color">-->
+    <h1 class="bold">{{ measurement }}</h1>
+    <!--    </div>-->
+
+    <!--STATS-->
+    <div class="grid-item grid-item--width20">
+        <h2>Page Update</h2>
+        <p><span class="bg-light-green-400">{{ buildtime }}</span></p>
+
+        <h2>Number Of Files</h2>
+        <p><span class="bg-orange-400">{{ numfoundfiles }}</span></p>
+
+        <h2>Unique Filetypes</h2>
+        <ol>
+
+            {% for filetype, values in unique_filetypes.items() -%}
+            <li>
+                <span class="bold blue-grey-700">{{ filetype }}</span>
+                {% for key2, value2 in unique_filetypes[filetype].items() -%}
+                <ul class="blue-grey-600">{{ key2 }}: {{ value2 }}</ul>
+                {% endfor -%}
+            </li>
+            {% endfor -%}
+
+        </ol>
+
+        <h2>Newest Files</h2>
+        <p>Sorted by modification time</p>
+        <ol>
+            {% for file in newest_files -%}
+            <li class="blue-grey-700">{{ file }}</li>
+            {% endfor -%}
+        </ol>
+
+        <h2>Oldest Files</h2>
+        <p>Sorted by modification time</p>
+        <ol>
+            {% for file in oldest_files -%}
+            <li class="blue-grey-700">{{ file }}</li>
+            {% endfor -%}
+        </ol>
+
+        <img class="close float_right" src="../../../../inc/img/close_1-512.png" width="20px">
+    </div>
+
+    <!--TABLE-->
+    <div class="grid-item">
+        <h2>Variable List</h2>
+        <p>Unique variables detected by DataScanner/Filescanner.</p>
+        <p>List showing all found variables in alphabetical order of raw_varname.</p>
+        {{ table_varscanner }}
+        <img class="close float_right" src="../../../../inc/img/close_1-512.png" width="20px">
+    </div>
+
+    <!--TABLE-->
+    <div class="grid-item grid-item--width95">
+        <h2>File List</h2>
+        <p>Files found by DataScanner/FileScanner. File info has been extended with results from DataScanner/VarScanner.</p>
+        <p>Results sorted by filename.</p>
+        {{ table_filescanner }}
+        <img class="close float_right" src="../../../../inc/img/close_1-512.png" width="20px">
+    </div>
+
+
+</div>
+
+{% endblock grid_boxes %}

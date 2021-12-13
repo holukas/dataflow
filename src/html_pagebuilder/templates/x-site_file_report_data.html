@@ -1,0 +1,118 @@
+{% extends "_site_base.html" %}
+
+
+{% block title %}
+    {{ site }}
+{% endblock title %}
+
+
+{% block _site_left_menu %}
+    {{ super() }}
+{% endblock _site_left_menu %}
+
+
+{% block grid_boxes %}
+
+<div class="grid">
+
+    <!--HEADER-->
+    <div class="grid-item grid-item--width2 no-background-color">
+        <h1 class="bold">{{ header }}</h1>
+    </div>
+
+    <!--TABLE-->
+    <div class="grid-item grid-item--width2">
+        <h2>Table</h2>
+        {{ table }}
+<!--        <img class="close float_right" src="../img/close_1-512.png" width="20px">-->
+    </div>
+
+    <!--&lt;!&ndash;DESCRIPTION &ndash;&gt;-->
+    <!--<div class="grid-item">-->
+        <!--<h2>Description</h2>-->
+        <!--<p>{{ description }}</p>-->
+    <!--</div>-->
+
+<!--    &lt;!&ndash;NEWEST FILE&ndash;&gt;-->
+<!--    <div class="grid-item">-->
+<!--        <h2>Script Execution Date</h2>-->
+<!--        <p class="float_right">{{ pretty_file_start_datetime }}</p>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash;NEWEST FILE STATUS&ndash;&gt;-->
+<!--    <div class="grid-item">-->
+<!--        <h2>Newest File Age</h2>-->
+<!--        <p class="float_right"><span class="{{ status_css_class }}">{{ age_status }}</span></p>-->
+<!--        <p class="float_left"><span class="{{ status_css_class }}">{{ age_of_newest_file }}</span> hrs old</p>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash;PLOT: FILE AVAILABILITY: FILESIZE&ndash;&gt;-->
+<!--    <div class="grid-item grid-item&#45;&#45;width2">-->
+<!--        <h2>File Availability - File Sizes</h2>-->
+<!--        <figure class="plot">-->
+<!--            <a data-fancybox="gallery"-->
+<!--               data-type="image"-->
+<!--               data-caption="<b>FIGURE:</b> Square colors show filesize."-->
+<!--               href="{{pfa_filesize_relative_path}}">-->
+<!--                <img src="{{pfa_filesize_relative_path}}" width="100%">-->
+<!--            </a>-->
+<!--            <p><span class="bold blue1">FIGURE:</span> Red squares show file sizes.</p>-->
+<!--        </figure>-->
+<!--        <img class="close float_right" src="../img/close_1-512.png" width="20px">-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash;TABLE: NEWEST FILES&ndash;&gt;-->
+<!--    <div class="grid-item grid-item&#45;&#45;width2">-->
+<!--        <h2>Newest Files on the ETH Server</h2>-->
+<!--        {{ newest_files_df_html }}-->
+<!--        <img class="close float_right" src="../img/close_1-512.png" width="20px">-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash;PLOT: FILE AVAILABILITY: YES / NO&ndash;&gt;-->
+<!--    <div class="grid-item grid-item&#45;&#45;width2">-->
+<!--        <h2>File Availability - Yes/No</h2>-->
+<!--        <figure class="plot">-->
+<!--            <a data-fancybox="gallery"-->
+<!--               data-type="image"-->
+<!--               data-caption="<b>FIGURE:</b> Green squares show available files."-->
+<!--               href="{{pfa_bool_relative_path}}">-->
+<!--                <img src="{{pfa_bool_relative_path}}" width="100%">-->
+<!--            </a>-->
+<!--            <p><span class="bold blue1">FIGURE:</span> Green squares show available files.</p>-->
+<!--        </figure>-->
+<!--        <img class="close float_right" src="../img/close_1-512.png" width="20px">-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash;FILE SETTINGS&ndash;&gt;-->
+<!--    <div class="grid-item">-->
+<!--        <h2>File Settings</h2>-->
+<!--        <ul>-->
+<!--            {% for key, value in f_settings.items() -%}-->
+<!--            <li><span class="bold blue1">{{ key }}:</span> {{ value }}</li>-->
+<!--            {% endfor -%}-->
+<!--        </ul>-->
+<!--        <img class="close float_right" src="../img/close_1-512.png" width="20px">-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash;SCRIPT INFO &ndash;&gt;-->
+<!--    <div class="grid-item">-->
+<!--        <h2>Script Info</h2>-->
+<!--        <p>-->
+<!--            <span class="bold blue1">File Start Time:</span> {{ file_start_dt }} <br>-->
+<!--            <span class="bold blue1">File End Time:</span> {{ file_end_dt }} <br>-->
+<!--            <span class="bold blue1">File Runtime (sec):</span> {{ file_runtime }} <br>-->
+<!--            <span class="bold blue1">Run ID:</span> {{ run_id }}-->
+<!--        </p>-->
+<!--        <img class="close float_right" src="../img/close_1-512.png" width="20px">-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash;TABLE: SEARCH STATS&ndash;&gt;-->
+<!--    <div class="grid-item">-->
+<!--        <h2>Search Stats</h2>-->
+<!--        {{ search_stats_df_html }}-->
+<!--        <img class="close float_right" src="../img/close_1-512.png" width="20px">-->
+<!--    </div>-->
+
+</div>
+
+{% endblock grid_boxes %}
