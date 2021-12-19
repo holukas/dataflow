@@ -307,21 +307,6 @@ class DataFlow:
 
 def main():
     args = cli.get_args()
-
-    # # test -->
-    # # Call FILESCANNER
-    # args = dict(
-    #     script='filescanner',
-    #     site='ch-dav',
-    #     datatype='raw',
-    #     access='server',
-    #     filegroup='10_meteo',
-    #     dirconf=r'L:\Dropbox\luhk_work\20 - CODING\22 - DATAFLOW\configs',
-    #     year=2021, month=12, filelimit=0, newestfiles=3
-    # )
-    # args = argparse.Namespace(**args)  # Convert dict to Namespace
-    # # <-- test
-
     args = cli.validate_args(args)
     DataFlow(script=args.script,
              site=args.site,
@@ -334,14 +319,37 @@ def main():
              filelimit=args.filelimit,
              newestfiles=args.newestfiles)
 
-    # # test -->
-    # # Call VARSCANNER
+    # # test FILESCANNER start ----------------------------------->
+    # import argparse
+    # args = dict(script='filescanner',
+    #             site='ch-dav',
+    #             datatype='raw',
+    #             access='server',
+    #             filegroup='12_meteo_forestfloor',
+    #             dirconf=r'L:\Dropbox\luhk_work\20 - CODING\22 - DATAFLOW\configs',
+    #             year=2021, month=12, filelimit=0, newestfiles=10)
+    # args = argparse.Namespace(**args)  # Convert dict to Namespace
+    # args = cli.validate_args(args)
+    # DataFlow(script=args.script,
+    #          site=args.site,
+    #          datatype=args.datatype,
+    #          access=args.access,
+    #          filegroup=args.filegroup,
+    #          dirconf=args.dirconf,
+    #          year=args.year,
+    #          month=args.month,
+    #          filelimit=args.filelimit,
+    #          newestfiles=args.newestfiles)
+    # # <--------------------------------------- test FILESCANNER end
+
+    # # # test VARSCANNER start ----------------------------------->
+    # import argparse
     # args = dict(
     #     script='varscanner',
     #     site='ch-dav',
     #     datatype='raw',
     #     access='server',
-    #     filegroup='10_meteo',
+    #     filegroup='12_meteo_forestfloor',
     #     dirconf=r'L:\Dropbox\luhk_work\20 - CODING\22 - DATAFLOW\configs')
     # args = argparse.Namespace(**args)  # Convert dict to Namespace
     # args = cli.validate_args(args)
@@ -352,7 +360,7 @@ def main():
     #          access=args.access,
     #          filegroup=args.filegroup,
     #          dirconf=args.dirconf)
-    # # <-- test
+    # # # <--------------------------------------- test VARSCANNER end
 
 
 if __name__ == '__main__':
