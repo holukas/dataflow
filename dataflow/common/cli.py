@@ -4,6 +4,9 @@ import argparse
 def validate_args(args):
     """Check validity of optional args"""
 
+    if args.script not in ['filescanner', 'varscanner']:
+        raise argparse.ArgumentTypeError("SCRIPT must be 'filescanner', 'varscanner' or 'XXX'.")
+
     if not isinstance(args.site, str):
         raise argparse.ArgumentTypeError("SITE must be of type string.")
 
@@ -16,11 +19,11 @@ def validate_args(args):
     if not isinstance(args.filegroup, str):
         raise argparse.ArgumentTypeError("FILEGROUP must be of type string.")
 
-    if not isinstance(args.mode, int):
-        raise argparse.ArgumentTypeError("MODE must be of type integer.")
+    # if not isinstance(args.mode, int):
+    #     raise argparse.ArgumentTypeError("MODE must be of type integer.")
 
-    if (args.mode < 1) | (args.mode > 3):
-        raise argparse.ArgumentTypeError("MODE must be an integer (1, 2 or 3).")
+    # if (args.mode < 1) | (args.mode > 3):
+    #     raise argparse.ArgumentTypeError("MODE must be an integer (1, 2 or 3).")
 
     if not isinstance(args.dirconf, str):
         raise argparse.ArgumentTypeError("DIRCONF must be of type string.")
@@ -49,6 +52,8 @@ def get_args():
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Positional args
+    parser.add_argument('script', type=str,
+                        help="Script that is executed: 'filescanner', 'varscanner', 'XXX' XXX")
     parser.add_argument('site', type=str,
                         help="Site abbreviation, e.g. ch-dav, ch-lae")
     parser.add_argument('datatype', type=str,
@@ -58,11 +63,11 @@ def get_args():
                              "'mount' path (e.g. on gl-calcs)")
     parser.add_argument('filegroup', type=str,
                         help="Data group, e.g. '10_meteo'")
-    parser.add_argument('mode', type=int, default='1',
-                        help="Options:\n"
-                             "  1: Run FileScanner (search files)\n"
-                             "  2: Run FileScanner and VarScanner (search variables)\n"
-                             "  3: Run FileScanner, VarScanner and dbIngest (upload files to database)")
+    # parser.add_argument('mode', type=int, default='1',
+    #                     help="Options:\n"
+    #                          "  1: Run FileScanner (search files)\n"
+    #                          "  2: Run FileScanner and VarScanner (search variables)\n"
+    #                          "  3: Run FileScanner, VarScanner and dbIngest (upload files to database)")
     parser.add_argument('dirconf', type=str,
                         help="Path to folder with configuration settings")
 

@@ -3,10 +3,10 @@ import sys
 from pathlib import Path
 
 
-def setup_logger(run_id, dir_out_run):
+def setup_logger(run_id:str, dir_out_run:Path, name:str):
     logfile_name = f"{run_id}.log"
     logfile_path = dir_out_run / logfile_name
-    logger = create_logger(logfile_path=logfile_path, name='SFN-DATAFLOW')
+    logger = create_logger(logfile_path=logfile_path, name=name)
     return logger
 
 
@@ -41,7 +41,7 @@ def create_logger(name: str, logfile_path: Path = None):
     if not logger.hasHandlers():
         logger.setLevel(logging.DEBUG)
 
-        formatter = logging.Formatter('%(asctime)s:%(name)s:  %(message)s')
+        formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s  %(message)s')
 
         file_handler = logging.FileHandler(logfile_path)
         file_handler.setLevel(logging.DEBUG)

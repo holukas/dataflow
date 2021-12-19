@@ -11,8 +11,12 @@ from pathlib import Path
 import pandas as pd
 from numpy import arange
 
-
-# from filescanner.filereader import FileReader
+try:
+    # For CLI
+    from ..common import logblocks
+except:
+    # For BOX
+    from common import logblocks
 
 
 class FileScanner:
@@ -20,7 +24,7 @@ class FileScanner:
     Find files in folders and subfolders
     """
 
-    class_id = "[DATASCANNER/FILESCANNER]"
+    class_id = "[FILESCANNER]"
 
     # Start strings of config_filetype, identifying special formats
     special_formats = ['-ICOSSEQ-']
@@ -43,6 +47,7 @@ class FileScanner:
         self.filelimit = filelimit if filelimit > 0 else None
         self.newestfiles = newestfiles if newestfiles >= 0 else 0
         self.logger = logger
+        logblocks._log_start(logger=self.logger, class_id=self.class_id)
 
         self.filescanner_df = self._init_df()
 
@@ -168,6 +173,8 @@ class FileScanner:
         self.logger.info(f"{self.class_id} Files:")
         for ix, row in self.filescanner_df.iterrows():
             self.logger.info(f"{self.class_id}  File #{ix}: {dict(row)}.")
+
+        logblocks._log_end(logger=self.logger, class_id=self.class_id)
 
     def _mtime(self, filepath) -> str:
         """File modification time"""

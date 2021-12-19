@@ -6,18 +6,19 @@
 import datetime as dt
 from pathlib import Path
 
-import argparse
 import pandas as pd
 from single_source import get_version
 
-# import datascanner as ds
-from modules import logger, filereader
-from modules.datascanner import DataScanner
-
-# from . import datascanner as ds
-
-# from scanner import datascanner as ds
-# from scanner import filereader as fr
+try:
+    # For CLI
+    from .filescanner.filescanner import FileScanner
+    from .varscanner.varscanner import VarScanner
+    from .common import filereader, logger, cli
+except ImportError:
+    # For local machine
+    from filescanner.filescanner import FileScanner
+    from varscanner.varscanner import VarScanner
+    from common import filereader, logger, cli
 
 pd.set_option('display.width', 1000)
 pd.set_option('display.max_columns', 15)
@@ -28,11 +29,11 @@ class DataFlow:
 
     def __init__(
             self,
+            script: str,
             site: str,
             datatype: str,
             access: str,
             filegroup: str,
-            mode: int,
             dirconf: str,
             year: int = None,
             month: int = None,
@@ -41,11 +42,11 @@ class DataFlow:
     ):
 
         # Args
+        self.script = script
         self.site = site
         self.datatype = datatype
         self.access = access
         self.filegroup = filegroup
-        self.mode = mode
         self.dirconf = Path(dirconf)
         self.year = year
         self.month = month
@@ -58,33 +59,37 @@ class DataFlow:
         self.conf_dirs, \
         self.conf_db = self._read_configs()
 
-        # Run ID
-        self.run_id = self._make_run_id(prefix=f'DF')
-
-        # Set directories
-        self.dir_out_run_logs, \
-        self.dir_out_run_html, \
-        self.dir_source = self._setdirs()
-
-        # self.args = args
-
-        # New vars
-        self.filescanner_df = None
-        self.varscanner_df = None
-
         # Logger
-        self.logger = logger.setup_logger(run_id=self.run_id, dir_out_run=self.dir_out_run_logs)
-        self.version = get_version(__name__, Path(__file__).parent.parent)  # Single source of truth for version
-        self._log_start()
+        # Logfiles are started when filescanner is run
+        if self.script == 'filescanner':
+            # Run ID
+            self.run_id = self._make_run_id(prefix="DF")
+
+            # Set directories
+            self.dir_out_run, \
+            self.dir_source = self._setdirs()
+            self.logger = logger.setup_logger(run_id=f"{self.run_id}", dir_out_run=self.dir_out_run, name=self.run_id)
+            self.version = get_version(__name__, Path(__file__).parent.parent)  # Single source of truth for version
+            self._log_start()
 
         self.run()
 
+    def _set_outdir(self) -> Path:
+        """Set the output folder for run results"""
+        if self.access == 'mount':
+            _key = 'out_dataflow_mount'
+        elif self.access == 'mount':
+            _key = 'out_dataflow'
+        else:
+            _key = 'out_dataflow'
+        return Path(self.conf_dirs[_key]) / 'runs'
+
     def _setdirs(self):
-        # Dirs
-        dir_out_run_logs = self._create_dir(subdir=self.conf_dirs['out_run_logs'])
-        dir_out_run_html = self._create_dir(subdir=self.conf_dirs['out_run_html'])
+        """Set source dir (raw data) and output dir (results, logs)"""
+        dir_out_runs = self._set_outdir()
+        dir_out_run = self._create_outdir_run(rootdir=dir_out_runs)
         dir_source = self._set_source_dir()
-        return dir_out_run_logs, dir_out_run_html, dir_source
+        return dir_out_run, dir_source
 
     def _read_configs(self):
         # # Folder with configuration settings
@@ -103,50 +108,116 @@ class DataFlow:
         conf_db = filereader.read_configfile(config_file=file_dbconf)
         return conf_filetypes, conf_unitmapper, conf_dirs, conf_db
 
-    def _create_dir(self, subdir: str):
-        path = Path(subdir) / self.site / self.datatype / self.filegroup / f"{self.run_id}"
+    def _create_outdir_run(self, rootdir: Path) -> Path:
+        """Create output dir for current run"""
+        path = Path(rootdir) / self.site / self.datatype / self.filegroup / f"{self.run_id}"
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     def run(self):
-        # Mode 1: Run FileScanner only
-        # Mode 2: Run FileScanner and VarScanner
-        # Mode 3: Run FileScanner, VarScanner and dbIngest
 
-        self.filescanner_df, \
-        self.varscanner_df = \
-            self._datascanner()
+        if self.script == 'filescanner':
+            filescanner_df = self._filescanner()
 
-        # if self.args.mode >= 3:
-        #     self._dbingest()
+        if self.script == 'varscanner':
+            self._varscanner()
 
-    # def _dbingest(self):
-    #     """Call dbIngest"""
-    #     self.logger.info(f"Calling dbIngest ...")
-    #     dbIngest(filescanner_df=self.filescanner_df,
-    #              unitmapper=self.conf_unitmapper,
-    #              logger=self.logger)
+    def _varscanner(self):
+        """Call VarScanner"""
 
-    def _datascanner(self):
-        """Call DataScanner"""
-        self.logger.info(f"Calling DataScanner ...")
-        datascanner = DataScanner(run_id=self.run_id,
-                                  dir_source=self.dir_source,
-                                  dir_out_run=self.dir_out_run_logs,
-                                  dir_out_html=self.dir_out_run_html,
-                                  conf_filetypes=self.conf_filetypes,
-                                  conf_unitmapper=self.conf_unitmapper,
-                                  conf_db=self.conf_db,
-                                  logger=self.logger,
-                                  filegroup=self.filegroup,
-                                  mode=self.mode,
+        # Path for file search of previous VarScanner results
+        # General output path for run results
+        dir_out_dataflow_runs = self._set_outdir()  # Path with /runs at end of path
+        # self.dir_out_dataflow = Path(self.conf_dirs['out_dataflow'])
+        searchpath = dir_out_dataflow_runs / self.site / self.datatype / self.filegroup
+
+        import os
+        for root, dirs, files in os.walk(str(searchpath)):
+            foundfoldername = Path(root).stem
+            if not foundfoldername.startswith('DF-'): continue
+
+            if dt.datetime.strptime(foundfoldername, 'DF-%Y%m%d-%H%M%S'):
+                found_run_id = foundfoldername
+                _logger = logger.setup_logger(run_id=found_run_id, dir_out_run=Path(root), name=found_run_id)
+                _logger.info(f"Calling VarScanner ...")
+
+                _required_filescanner_csv = f"{found_run_id}_filescanner.csv"
+                if not _required_filescanner_csv in files:
+                    _logger.warning(f"    ### (!)WARNING: FILE MISSING ###:")
+                    _logger.warning(f"    ### Required file {_required_filescanner_csv} is missing in "
+                                    f"folder: {root}  -->  Skipping folder")
+                    continue
+
+                #                 self.logger.info(f"### (!)STRING WARNING ###:")
+                #             self.logger.info(f"### {_num_dtype_string} column(s) were classified "
+                #                              f"as dtype 'string': {_dtype_str_colnames}")
+                #             self.logger.info(f"### If this is expected you can ignore this warning.")
+
+                _required_filescanner_log = f"{found_run_id}.log"
+                if not _required_filescanner_log in files:
+                    _logger.warning(f"    ### (!)WARNING: FILE MISSING ###:")
+                    _logger.warning(f"    ### Required file {_required_filescanner_log} is missing in "
+                                    f"folder: {root}  -->  Skipping folder")
+                    continue
+
+                # Check whether VARSCANNER has already worked on this folder
+
+                import fnmatch
+                _seen_by_vs = f"__varscanner-was-here-*__.txt"
+                matching = fnmatch.filter(files, _seen_by_vs)
+                if matching:
+                    _logger.warning(f"    ### (!)WARNING: VARSCANNER RESULTS ALREADY AVAILABLE ###:")
+                    _logger.warning(f"    ### The file {_seen_by_vs} indicates that the "
+                                    f"folder: {root} was already visited by VARSCANNER --> Skipping folder")
+                    continue
+
+                _logger.info(f"    Preparing VarScanner: found required files from previous FileScanner run:")
+                _logger.info(f"    * {_required_filescanner_csv}")
+                _logger.info(f"    * {_required_filescanner_log}")
+
+                filepath = Path(root) / _required_filescanner_csv
+                filescanner_df = pd.read_csv(filepath)
+
+                varscanner = VarScanner(filescanner_df=filescanner_df,
+                                        conf_unitmapper=self.conf_unitmapper,
+                                        conf_filetypes=self.conf_filetypes,
+                                        conf_db=self.conf_db,
+                                        logger=_logger)
+                varscanner.run()
+                filescanner_df, varscanner_df = varscanner.get_results()
+
+                outfile = Path(root) / f"{found_run_id}_filescanner_varscanner.csv"
+                filescanner_df.to_csv(outfile, index=False)
+
+                outfile = Path(root) / f"{found_run_id}_varscanner.csv"
+                varscanner_df.to_csv(outfile, index=False)
+
+                now_time_str = dt.datetime.now().strftime("%Y%m%d%H%M%S")
+                outfile = Path(root) / f"__varscanner-was-here-{now_time_str}__.txt"
+                f = open(outfile, "w")
+                f.write(f"This folder was visited by DATAFLOW / FILESCANNER on "
+                        f"{dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.")
+                f.close()
+
+                # return varscanner_df
+
+    def _filescanner(self) -> pd.DataFrame:
+        """Call FileScanner"""
+        self.logger.info(f"Calling FileScanner ...")
+        filescanner = FileScanner(dir_src=self.dir_source,
                                   site=self.site,
+                                  filegroup=self.filegroup,
                                   filelimit=self.filelimit,
-                                  newestfiles=self.newestfiles)
-        datascanner.run()
-        return datascanner.get_results()
+                                  newestfiles=self.newestfiles,
+                                  conf_filetypes=self.conf_filetypes,
+                                  logger=self.logger)
+        filescanner.run()
+        filescanner_df = filescanner.get_results()
+        outfile = self.dir_out_run / f"{self.run_id}_filescanner.csv"
+        filescanner_df.to_csv(outfile, index=False)
+        return filescanner_df
 
-    def _make_run_id(self, prefix: str = False) -> str:
+    def _make_run_id(self, prefix: str = None) -> str:
         """Make run identifier based on current datetime"""
         now_time_dt = dt.datetime.now()
         now_time_str = now_time_dt.strftime("%Y%m%d-%H%M%S")
@@ -156,16 +227,11 @@ class DataFlow:
 
     def _set_source_dir(self):
         """Set source dir"""
-
-        # todo hier weiter...
         dir_base = f"{self.datatype}_{self.access}"
         dir_source = Path(self.conf_dirs[dir_base]) \
                      / Path(self.conf_dirs[self.site]) \
                      / self.filegroup
 
-        # dir_source = Path(self.conf_dirs[self.args.datatype]) \
-        #              / Path(self.conf_dirs[self.args.site]) \
-        #              / str(self.args.filegroup)
         if self.year:
             dir_source = dir_source / str(self.year)
             if self.month:
@@ -179,15 +245,16 @@ class DataFlow:
         self.logger.info(f"============")
         self.logger.info(f"     script version:  {self.version}")
         self.logger.info(f"     run id:  {self.run_id}")
-        self.logger.info(f"     run output directory (logs):  {self.dir_out_run_logs}")
-        self.logger.info(f"     run output directory (html):  {self.dir_out_run_logs}")
+        self.logger.info(f"     run output directory (logs):  {self.dir_out_run}")
+        self.logger.info(f"     run output directory (html):  {self.dir_out_run}")
         self.logger.info(f"     source directory:  {self.dir_source}")
         self.logger.info(f"     script args:")
+        self.logger.info(f"         script: {self.script}")
         self.logger.info(f"         site: {self.site}")
         self.logger.info(f"         datatype: {self.datatype}")
         self.logger.info(f"         access: {self.access}")
         self.logger.info(f"         filegroup: {self.filegroup}")
-        self.logger.info(f"         mode: {self.mode}")
+        # self.logger.info(f"         mode: {self.mode}")
         self.logger.info(f"         dirconf: {self.dirconf}")
         self.logger.info(f"         year: {self.year}")
         self.logger.info(f"         month: {self.month}")
@@ -239,31 +306,53 @@ class DataFlow:
 
 
 def main():
-    from modules import cli
+    args = cli.get_args()
 
-    # args = cli.get_args()
-    # args = cli.validate_args(args)
+    # # test -->
+    # # Call FILESCANNER
+    # args = dict(
+    #     script='filescanner',
+    #     site='ch-dav',
+    #     datatype='raw',
+    #     access='server',
+    #     filegroup='10_meteo',
+    #     dirconf=r'L:\Dropbox\luhk_work\20 - CODING\22 - DATAFLOW\configs',
+    #     year=2021, month=12, filelimit=0, newestfiles=3
+    # )
+    # args = argparse.Namespace(**args)  # Convert dict to Namespace
+    # # <-- test
 
-    # # To test CLI execution in Terminal:
-    # # python main.py ch-dav raw server 10_meteo 3 "L:\Dropbox\luhk_work\20 - CODING\22 - SFN-DATAFLOW\configs" -y 2021 -m 12 -l 3 -n 0
-
-    args = dict(site='ch-dav', datatype='raw', access='server',
-                filegroup='10_meteo', mode=3,
-                dirconf=r'L:\Dropbox\luhk_work\20 - CODING\22 - DATAFLOW\configs',
-                year=2021, month=12, filelimit=0, newestfiles=0)
-    args = argparse.Namespace(**args)  # Convert dict to Namespace
     args = cli.validate_args(args)
-
-    DataFlow(site=args.site,
+    DataFlow(script=args.script,
+             site=args.site,
              datatype=args.datatype,
              access=args.access,
              filegroup=args.filegroup,
-             mode=args.mode,
              dirconf=args.dirconf,
              year=args.year,
              month=args.month,
              filelimit=args.filelimit,
              newestfiles=args.newestfiles)
+
+    # # test -->
+    # # Call VARSCANNER
+    # args = dict(
+    #     script='varscanner',
+    #     site='ch-dav',
+    #     datatype='raw',
+    #     access='server',
+    #     filegroup='10_meteo',
+    #     dirconf=r'L:\Dropbox\luhk_work\20 - CODING\22 - DATAFLOW\configs')
+    # args = argparse.Namespace(**args)  # Convert dict to Namespace
+    # args = cli.validate_args(args)
+    #
+    # DataFlow(script=args.script,
+    #          site=args.site,
+    #          datatype=args.datatype,
+    #          access=args.access,
+    #          filegroup=args.filegroup,
+    #          dirconf=args.dirconf)
+    # # <-- test
 
 
 if __name__ == '__main__':
@@ -318,3 +407,6 @@ if __name__ == '__main__':
     # args = dict(site='ch-dav', datatype='proc', filegroup='20_ec_fluxes', mode=3)
     # args = argparse.Namespace(**args)  # Convert dict to Namespace
     # DataFlow(args)
+
+    # # To test CLI execution in Terminal:
+    # # python main.py ch-dav raw server 10_meteo 3 "L:\Dropbox\luhk_work\20 - CODING\22 - SFN-DATAFLOW\configs" -y 2021 -m 12 -l 3 -n 0

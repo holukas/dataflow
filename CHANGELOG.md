@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.0.2 | 19 Dec 2021
+
+### Refactoring
+
+- Changed: `filescanner` and `varscanner` can now be executed independently
+  - `filescanner` scans the server for data files and outputs results to `dataflow` output folder 
+  - `varscanner` scans the `dataflow` output folder for **all** `filescanner` results
+- Changed the way required subpackages are imported: included a `try-except` clause that first tries to
+import subpackages with relative imports (needed for CLI execution of the script on the server
+after `pipx` installation of the script), then, if the relative imports failed, absolute imports are  
+called (needed for script execution without `pipx` installation). In short, after the script was installed
+using `pipx` it needed relative imports, while absolute imports were needed when the script was directly
+executed e.g. from the environment.
+- Removed: `html_pagebuilder` is no longer executed together with `filescanner` and `varsvanner`.  
+Instead, it will be in a separate script.
+
 ## v0.0.1 | 13 Dec 2021
 
 ### Initial Release

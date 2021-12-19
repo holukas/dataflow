@@ -1,11 +1,20 @@
 import pandas as pd
 from numpy import arange
 
-from modules.filereader import FileReader
+try:
+    # For CLI
+    from ..common import logblocks
+    from ..common.filereader import FileReader
+    from ..db.dbclients import get_write_client
+except:
+    # For BOX
+    from common import logblocks
+    from common.filereader import FileReader
+    from db.dbclients import get_write_client
 
 
 class VarScanner:
-    class_id = "[DATASCANNER] [VARSCANNER]"
+    class_id = "[VARSCANNER]"
 
     def __init__(
             self,
@@ -13,18 +22,16 @@ class VarScanner:
             conf_unitmapper,
             conf_filetypes,
             logger,
-            mode,
             conf_db
     ):
         self.filescanner_df = filescanner_df
         self.conf_unitmapper = conf_unitmapper
+        self.conf_filetypes = conf_filetypes
         self.logger = logger
-        self.mode = mode
-        self.conf_filetypes=conf_filetypes
+        logblocks._log_start(logger=self.logger, class_id=self.class_id)
 
-        if self.mode > 2:
-            from modules import clients
-            self.client, self.write_client = clients.get_write_client(conf_db=conf_db)
+        # if self.mode > 2:
+        self.client, self.write_client = get_write_client(conf_db=conf_db)
 
         self.varscanner_df = self._init_varscanner_df()
 
@@ -40,6 +47,7 @@ class VarScanner:
         for ix, file in self.varscanner_df.iterrows():
             self.logger.info(f"     Var #{ix}: {dict(file)}")
         self.logger.info(f"     Found {self.varscanner_df.__len__()} unique variables across all files.")
+        logblocks._log_end(logger=self.logger, class_id=self.class_id)
 
     def get_results(self):
         return self.filescanner_df, self.varscanner_df
@@ -87,10 +95,10 @@ class VarScanner:
             self._loopvars(df=df, fileinfo=fs_fileinfo, filetypeconf=filetypeconf,
                            freq=freq, freqfrom=freqfrom, file_ix=fs_file_ix)
 
-        if self.mode > 2:
-            self.logger.info(f"{self.class_id} Finished writing variables.")
-            self.write_client.__del__()
-            self.client.__del__()
+        # if self.mode > 2:
+        self.logger.info(f"{self.class_id} Finished writing variables.")
+        self.write_client.__del__()
+        self.client.__del__()
 
     def _loopvars(self, df, fileinfo, filetypeconf, freq, freqfrom, file_ix):
         """Loop over vars in file"""
@@ -127,17 +135,18 @@ class VarScanner:
                 self._log_not_greenlit(newvar=newvar, fileinfo=fileinfo)
 
             # Ingest var into database
-            elif self.mode > 2 and is_greenlit:
+            elif is_greenlit:
+                # elif self.mode > 2 and is_greenlit:
                 self._ingest(df=df, newvar=newvar, file_ix=file_ix)
 
     def _log_no_data(self, var):
-        self.logger.info(f"### (!)VARIABLE WARNING: NO DATA ###:")
-        self.logger.info(f"### Variable {var} is empty and will be skipped.")
+        self.logger.warning(f"### (!)VARIABLE WARNING: NO DATA ###:")
+        self.logger.warning(f"### Variable {var} is empty and will be skipped.")
 
     def _log_not_greenlit(self, newvar, fileinfo):
-        self.logger.info(f"### (!)VARIABLE WARNING: NOT GREENLIT ###:")
-        self.logger.info(f"### Variable {newvar['raw_varname']} is not defined in "
-                         f"filetype {fileinfo['config_filetype']}")
+        self.logger.warning(f"### (!)VARIABLE WARNING: NOT GREENLIT ###:")
+        self.logger.warning(f"### Variable {newvar['raw_varname']} is not defined in "
+                            f"filetype {fileinfo['config_filetype']}")
 
         if newvar['special_format']:
             self.logger.info(f"### Note that filetype {fileinfo['config_filetype']} is a special format "
