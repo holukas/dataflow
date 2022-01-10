@@ -186,11 +186,17 @@ class DataFlow:
                 varscanner.run()
                 filescanner_df, varscanner_df = varscanner.get_results()
 
+                # Output expanded filescanner results
                 outfile = Path(root) / f"{found_run_id}_filescanner_varscanner.csv"
                 filescanner_df.to_csv(outfile, index=False)
 
-                outfile = Path(root) / f"{found_run_id}_varscanner.csv"
+                # Output found unique variables
+                outfile = Path(root) / f"{found_run_id}_varscanner_vars_unique.csv"
                 varscanner_df.to_csv(outfile, index=False)
+
+                # Output variables that were not greenlit (not defined in configs)
+                outfile = Path(root) / f"{found_run_id}_varscanner_vars_not_greenlit.csv"
+                varscanner_df.loc[varscanner_df['measurement'] == '-not-greenlit-', :].to_csv(outfile, index=False)
 
                 now_time_str = dt.datetime.now().strftime("%Y%m%d%H%M%S")
                 outfile = Path(root) / f"__varscanner-was-here-{now_time_str}__.txt"
@@ -215,6 +221,8 @@ class DataFlow:
         filescanner_df = filescanner.get_results()
         outfile = self.dir_out_run / f"{self.run_id}_filescanner.csv"
         filescanner_df.to_csv(outfile, index=False)
+        outfile = self.dir_out_run / f"{self.run_id}_filescanner_filetype_not_defined.csv"
+        filescanner_df.loc[filescanner_df['config_filetype'] == '-not-defined-', :].to_csv(outfile, index=False)
         return filescanner_df
 
     def _make_run_id(self, prefix: str = None) -> str:
@@ -319,102 +327,62 @@ def main():
              filelimit=args.filelimit,
              newestfiles=args.newestfiles)
 
-    # # test FILESCANNER start ----------------------------------->
-    # import argparse
-    # args = dict(script='filescanner',
-    #             site='ch-dav',
-    #             datatype='raw',
-    #             access='server',
-    #             filegroup='12_meteo_forestfloor',
-    #             dirconf=r'L:\Dropbox\luhk_work\20 - CODING\22 - DATAFLOW\configs',
-    #             year=2021, month=12, filelimit=0, newestfiles=10)
-    # args = argparse.Namespace(**args)  # Convert dict to Namespace
-    # args = cli.validate_args(args)
-    # DataFlow(script=args.script,
-    #          site=args.site,
-    #          datatype=args.datatype,
-    #          access=args.access,
-    #          filegroup=args.filegroup,
-    #          dirconf=args.dirconf,
-    #          year=args.year,
-    #          month=args.month,
-    #          filelimit=args.filelimit,
-    #          newestfiles=args.newestfiles)
-    # # <--------------------------------------- test FILESCANNER end
-
-    # # # test VARSCANNER start ----------------------------------->
-    # import argparse
-    # args = dict(
-    #     script='varscanner',
-    #     site='ch-dav',
-    #     datatype='raw',
-    #     access='server',
-    #     filegroup='12_meteo_forestfloor',
-    #     dirconf=r'L:\Dropbox\luhk_work\20 - CODING\22 - DATAFLOW\configs')
-    # args = argparse.Namespace(**args)  # Convert dict to Namespace
-    # args = cli.validate_args(args)
+    # testrun = 2
     #
-    # DataFlow(script=args.script,
-    #          site=args.site,
-    #          datatype=args.datatype,
-    #          access=args.access,
-    #          filegroup=args.filegroup,
-    #          dirconf=args.dirconf)
-    # # # <--------------------------------------- test VARSCANNER end
+    # # Test settings
+    # site = 'ch-dav'
+    # datatype = 'raw'
+    # access = 'server'
+    # filegroup = '13_meteo_nabel'
+    # dirconf = r'L:\Dropbox\luhk_work\20 - CODING\22 - DATAFLOW\configs'
+    #
+    # if testrun == 1:
+    #     # test FILESCANNER start ----------------------------------->
+    #     import argparse
+    #     args = dict(script='filescanner',
+    #                 site=site,
+    #                 datatype=datatype,
+    #                 access=access,
+    #                 filegroup=filegroup,
+    #                 dirconf=dirconf,
+    #                 year=2021, month=None, filelimit=0, newestfiles=0
+    #                 )
+    #     args = argparse.Namespace(**args)  # Convert dict to Namespace
+    #     args = cli.validate_args(args)
+    #     DataFlow(script=args.script,
+    #              site=args.site,
+    #              datatype=args.datatype,
+    #              access=args.access,
+    #              filegroup=args.filegroup,
+    #              dirconf=args.dirconf,
+    #              year=args.year,
+    #              month=args.month,
+    #              filelimit=args.filelimit,
+    #              newestfiles=args.newestfiles)
+    #     # <--------------------------------------- test FILESCANNER end
+    #
+    # if testrun == 2:
+    #     # test VARSCANNER start ----------------------------------->
+    #     import argparse
+    #     args = dict(script='varscanner',
+    #                 site=site,
+    #                 datatype=datatype,
+    #                 access=access,
+    #                 filegroup=filegroup,
+    #                 dirconf=dirconf)
+    #     args = argparse.Namespace(**args)  # Convert dict to Namespace
+    #     args = cli.validate_args(args)
+    #
+    #     DataFlow(script=args.script,
+    #              site=args.site,
+    #              datatype=args.datatype,
+    #              access=args.access,
+    #              filegroup=args.filegroup,
+    #              dirconf=args.dirconf)
+    #     # <--------------------------------------- test VARSCANNER end
 
 
 if __name__ == '__main__':
     main()
 
-    # args = dict(site='ch-dav', datatype='raw', filegroup='11_meteo_hut', mode=3,
-    #             year=2021, month=11, filelimit=0, newestfiles=0)
-    # args = argparse.Namespace(**args)  # Convert dict to Namespace
-    # DataFlow(args)
-    #
-    # args = dict(site='ch-dav', datatype='raw', filegroup='12_meteo_forestfloor', mode=3,
-    #             year=2021, month=11, filelimit=0, newestfiles=0)
-    # args = argparse.Namespace(**args)  # Convert dict to Namespace
-    # DataFlow(args)
-    #
-    # args = dict(site='ch-dav', datatype='raw', filegroup='13_meteo_backup_eth', mode=3,
-    #              year=2021, month=11, filelimit=0, newestfiles=0)
-    # args = argparse.Namespace(**args)  # Convert dict to Namespace
-    # DataFlow(args)
-    #
-    # args = dict(site='ch-dav', datatype='raw', filegroup='13_meteo_nabel', mode=3,
-    #              year=2021, month=11, filelimit=0, newestfiles=0)
-    # args = argparse.Namespace(**args)  # Convert dict to Namespace
-    # DataFlow(args)
-    #
-    # args = dict(site='ch-dav', datatype='raw', filegroup='15_meteo_snowheight', mode=3,
-    #              year=2021, month=11, filelimit=0, newestfiles=0)
-    # args = argparse.Namespace(**args)  # Convert dict to Namespace
-    # DataFlow(args)
-    #
-    # args = dict(site='ch-dav', datatype='raw', filegroup='17_meteo_profile', mode=3,
-    #              year=2021, month=11, filelimit=0, newestfiles=0)
-    # args = argparse.Namespace(**args)  # Convert dict to Namespace
-    # DataFlow(args)
-    #
-    # args = dict(site='ch-dav', datatype='raw', filegroup='30_profile_ghg', mode=3,
-    #              year=2021, month=11, filelimit=0, newestfiles=0)
-    # args = argparse.Namespace(**args)  # Convert dict to Namespace
-    # DataFlow(args)
-    #
-    # args = dict(site='ch-dav', datatype='raw', filegroup='40_chambers_ghg', mode=3,
-    #             dataid='raw', year=2021, month=11, filelimit=0, newestfiles=0)
-    # args = argparse.Namespace(**args)  # Convert dict to Namespace
-    # DataFlow(args)
-
     # # todo Testing proc
-    #
-    # # sfn-dataflow  ch-dav  raw     40_chambers_ghg     3
-    # # sfn-dataflow  ch-dav  proc    40_chambers_ghg     3
-    #
-    #
-    # args = dict(site='ch-dav', datatype='proc', filegroup='20_ec_fluxes', mode=3)
-    # args = argparse.Namespace(**args)  # Convert dict to Namespace
-    # DataFlow(args)
-
-    # # To test CLI execution in Terminal:
-    # # python main.py ch-dav raw server 10_meteo 3 "L:\Dropbox\luhk_work\20 - CODING\22 - SFN-DATAFLOW\configs" -y 2021 -m 12 -l 3 -n 0

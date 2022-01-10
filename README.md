@@ -13,9 +13,9 @@ due to security reasons.
 ## Current data
 The first step is to make sure `dataflow` works with 2021 data onwards. filetypes for
 the following sites are finished:
-- [ todo ] CH-AWS (current data)
-- [ todo ] CH-CHA (current data)
-- [ todo ] CH-FRU (current data)
+- [ in progress ] CH-AWS (current data)
+- [ in progress ] CH-CHA (current data)
+- [ in progress ] CH-FRU (current data)
 - [ in progress ] CH-DAV (current data), FF2-5 still missing 
 - [ todo ] CH-DAS (current data)
 - [ todo ] CH-LAE (current data)
@@ -23,9 +23,21 @@ the following sites are finished:
 - [ todo ] CH-OE2 (current data)
 
 
-## List of currently defined filetypes
-Overview of the different filetypes currently defined for each site (e.g. CH-DAV) and
-filegroup (e.g. 10_meteo).
+## List of currently defined filetypes for *current* data
+Overview of the different filetypes currently defined in external `configs` folder,
+for each site (e.g. CH-DAV) and filegroup (e.g. 10_meteo).
+> NEWLY ADDED
+
+### CH-AWS
+#### 10_meteo
+- > CH-AWS > raw_10_meteo > AWS10-RAW-TOA5-DAT-TBL1-1MIN-201701260236.yaml
+#### 15_meteo_snowheight
+- > CH-AWS > raw_15_meteo_snowheight > AWS15-RAW-TOA5-DAT-TBL1-1MIN-202011130000.yaml
+
+### CH-CHA
+#### 10_meteo
+- CH-CHA > raw_10_meteo > DAV10-RAW-TOA5-DAT-TBL1-10S-201802281101.yaml
+- ... TBL2
 
 ### CH-DAV
 #### 10_meteo
@@ -42,7 +54,7 @@ filegroup (e.g. 10_meteo).
 - FF3
 - FF4
 - FF5
-- > NEWLY ADDED: CH-DAV > raw_12_meteo_forestfloor > DAV12-RAW-FF6-TOA5-DAT-TBL1-1MIN-202110221616.yaml
+- CH-DAV > raw_12_meteo_forestfloor > DAV12-RAW-FF6-TOA5-DAT-TBL1-1MIN-202110221616.yaml
 ### 13_meteo_backup_eth
 - CH-DAV > raw_13_meteo_backup_eth > DAV13-RAW-TOA5-DAT-TBL1-10S-201809271725.yaml
 ### 13_meteo_nabel
@@ -57,3 +69,7 @@ filegroup (e.g. 10_meteo).
 ### 40_chambers_ghg
 - CH-DAV > raw_40_chambers_ghg > DAV40-RAW-ICOSSEQ-CMB-DAT-1S-20190410.yaml
 - CH-DAV > raw_40_chambers_ghg > DAV40-RAW-ICOSSEQ-CMB-QCL-DAT-1S-20191024.yaml
+
+## CH-FRU
+### 10_meteo
+- CH-FRU > raw_10_meteo > FRU10-RAW-TOA5-DAT-TBL1-1MIN-201711201643.yaml
