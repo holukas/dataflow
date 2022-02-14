@@ -1,6 +1,26 @@
 # Changelog
 
 
+## v0.0.7 | 14 Feb 2022
+- ADDED: List of ignored extensions, currently part of `filescanner`
+
+
+## v0.0.6 | 28 Jan 2022
+- ADDED: Support for EddyPro full output files
+- ADDED: The variable name stored as `_field` is now also stored as tag `varname`
+to make it accessible via tag filters.
+- CHANGED: Instead of the full filepath of the source file, the database now only 
+stores the filename in tag `srcfile`. Main reason is that depending on from where
+the file is ingested, the full filepath can be different (e.g. if the raw data server
+is mounted differently on a machine), which then results in a different tag
+entry. In such case the variable is uploaded again (because tags are different),
+even though it is already present in the db.  
+- CHANGED: Auxiliary variable info are now collected in separate `measurement` containers
+`_SD` (standard deviations), `_RAW` (uncorrected) and `IU` (instrument units). This
+change did not affect the `dataflow` source code, but was done via the `configs` 
+(which is a folder separate from the source code).
+
+
 ## v0.0.5 | 10 Jan 2022
 - Added 'if testrun' option in main for testing the script locally
 

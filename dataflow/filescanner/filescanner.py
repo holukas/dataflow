@@ -1,6 +1,7 @@
 """
 FILESCANNER
 """
+import datetime
 import datetime as dt
 import fnmatch
 import os
@@ -80,10 +81,16 @@ class FileScanner:
             if fnmatch.fnmatch(newfile['filename'], filetypeconf['filetype_id']):
 
                 # Check if file conforms to defined filedate format
-                try:
-                    filedate = dt.datetime.strptime(newfile['filename'], filetypeconf['filetype_dateparser'])
-                except ValueError:
-                    continue
+                if filetypeconf['filetype_dateparser']:
+                    # If a 'filetype_parser' is given, try to parse datetime from filename
+                    try:
+                        filedate = dt.datetime.strptime(newfile['filename'], filetypeconf['filetype_dateparser'])
+                    except ValueError:
+                        continue
+                else:
+                    # In case the datetime is not parsed directly from the filename (e.g. for
+                    # EddyPro full output files), the file modification datetime is used instead
+                    filedate = datetime.datetime.strptime(newfile['filemtime'], '%Y-%m-%d %H:%M:%S')
 
                 # Check date: file must be within defined date range for this filetype
                 if (filedate >= filetypeconf['filetype_valid_from']) \
@@ -93,6 +100,24 @@ class FileScanner:
                     newfile['config_filetype'] = filetype
                     newfile['db_bucket'] = filetypeconf['db_bucket']
                     newfile['id'] = filetypeconf['filetype_id']
+
+                    # Detect data version
+
+                    # For raw data, the data version is always 'raw'
+                    if filetypeconf['data_version'] == 'raw':
+                        pass
+
+                    # For eddy covariance data, there exist different processing levels
+                    # Level-0 data is in a 'Level-0' subfolder, therefore this
+                    # subfolder must be in 'filepath'
+                    elif (filetypeconf['data_version'] == 'Level-0') \
+                            & ('Level-0' in newfile['filepath'].parts):
+                        pass
+
+                    # In case no option is valid, try next filetype
+                    else:
+                        continue
+
                     newfile['data_version'] = filetypeconf['data_version']
 
                     # Detect if file has special format that needs formatting
@@ -131,6 +156,18 @@ class FileScanner:
                 if self.filelimit:
                     if filenum > self.filelimit:
                         break
+
+                # Ignore files with certain extensions, v0.0.7
+                ignore_exts = ['.png', '.dll', '.log', '.exe', '.metadata', '.eddypro',
+                               '.gz', '.settings', '.settingsOld', '.jpg', '.JPG', '.jpeg', '.JPEG',
+                               '.gif']
+                if Path(filename).suffix in ignore_exts:
+                    continue
+
+                # if self.filegroup == '20_ec_fluxes':
+
+
+                # if fnmatch.fnmatch(filename, f'*.{ext}'):
 
                 self.logger.info(f"{self.class_id} Found file #{filenum}: {filename}")
 

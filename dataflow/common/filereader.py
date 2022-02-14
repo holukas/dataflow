@@ -71,7 +71,12 @@ class FileReader():
         self.delimiter = filetypeconf['data_delimiter']
         self.mangle_dupe_cols = filetypeconf['data_mangle_dupe_cols']
         self.keep_date_col = filetypeconf['data_keep_date_col']
-        self.parse_dates = filetypeconf['data_parse_dates']
+
+        self.parse_dates = self._convert_timestamp_idx_col(var=filetypeconf['data_parse_dates'])
+        parsed_index_col = ('TIMESTAMP', '-')
+        # self.parse_dates = filetypeconf['data_parse_dates']
+        self.parse_dates = {parsed_index_col: self.parse_dates}
+
         self.build_timestamp = filetypeconf['data_build_timestamp']
         self.data_encoding = filetypeconf['data_encoding']
         self.special_format = fileinfo['special_format']
@@ -85,6 +90,78 @@ class FileReader():
         # self.is_special_format = True if any(f in self.config_filetype for f in self.special_formats) else False
 
         self.run()
+
+    def run(self):
+        self.data_df = self._readfile()
+
+        # In case the timestamp was built from multiple columns with 'parse_dates',
+        # e.g. in EddyPro full output files from the 'date' and 'time' columns,
+        # the parsed column has to be set as the timestamp index
+        if isinstance(self.parse_dates, dict):
+            try:
+                self.data_df.set_index(('TIMESTAMP', '-'), inplace=True)
+            except KeyError:
+                pass
+
+        # Convert each column to best possible data format, e.g. float64, string
+        # NaNs are not converted to string, they are still recognized as missing
+        # after this step.
+        self.data_df = self.data_df.convert_dtypes(convert_boolean=False, convert_integer=False)
+
+        _found_dtypes = self.data_df.dtypes
+        _is_dtype_string = _found_dtypes == 'string'
+        _num_dtype_string = _is_dtype_string.sum()
+        _dtype_str_colnames = _found_dtypes[_is_dtype_string].index.to_list()
+        _dtype_other_colnames = _found_dtypes[~_is_dtype_string].index.to_list()
+
+        self.logger.info(f"     Found dtypes: {_found_dtypes.to_dict()}")
+
+        if _num_dtype_string > 0:
+            self.logger.info(f"### (!)STRING WARNING ###:")
+            self.logger.info(f"### {_num_dtype_string} column(s) were classified "
+                             f"as dtype 'string': {_dtype_str_colnames}")
+            self.logger.info(f"### If this is expected you can ignore this warning.")
+
+        # Convert special data structures
+        if self.special_format:
+            self._special_data_formats()
+
+        # Filter data
+        if self.goodrows_id:
+            self._filter_data()
+
+        # Timestamp
+        if self.build_timestamp:
+            self.data_df = self._build_timestamp()
+        self._sort_timestamp()
+        self._remove_index_duplicates()
+
+        # Units
+        self._add_units_row()
+        self._rename_unnamed_units()
+
+        # Columns
+        self._remove_unnamed_cols()
+
+        # # todo Numeric data only
+        # self._to_numeric()
+
+    def _convert_timestamp_idx_col(self, var):
+        """Convert to list of tuples if needed
+
+        Since YAML is not good at processing list of tuples,
+        they are given as list of lists,
+            e.g. [ [ "date", "[yyyy-mm-dd]" ], [ "time", "[HH:MM]" ] ].
+        In this case, convert to list of tuples,
+            e.g.  [ ( "date", "[yyyy-mm-dd]" ), ( "time", "[HH:MM]" ) ].
+        """
+        new = var
+        if isinstance(var[0], int):
+            pass
+        elif isinstance(var[0], list):
+            for idx, c in enumerate(var):
+                new[idx] = (c[0], c[1])
+        return new
 
     def _filter_data(self):
         """Keep good data rows only, needed for irregular formats"""
@@ -169,52 +246,6 @@ class FileReader():
 
         # Set the collected and converted data as main data
         self.data_df = locations_df
-
-    def run(self):
-        self.data_df = self._readfile()
-
-        # Convert each column to best possible data format, e.g. float64, string
-        # NaNs are not converted to string, they still recognized as missing
-        # after this step.
-        self.data_df = self.data_df.convert_dtypes(convert_boolean=False, convert_integer=False)
-
-        _found_dtypes = self.data_df.dtypes
-        _is_dtype_string = _found_dtypes == 'string'
-        _num_dtype_string = _is_dtype_string.sum()
-        _dtype_str_colnames = _found_dtypes[_is_dtype_string].index.to_list()
-        _dtype_other_colnames = _found_dtypes[~_is_dtype_string].index.to_list()
-
-        self.logger.info(f"     Found dtypes: {_found_dtypes.to_dict()}")
-
-        if _num_dtype_string > 0:
-            self.logger.info(f"### (!)STRING WARNING ###:")
-            self.logger.info(f"### {_num_dtype_string} column(s) were classified "
-                             f"as dtype 'string': {_dtype_str_colnames}")
-            self.logger.info(f"### If this is expected you can ignore this warning.")
-
-        # Convert special data structures
-        if self.special_format:
-            self._special_data_formats()
-
-        # Filter data
-        if self.goodrows_id:
-            self._filter_data()
-
-        # Timestamp
-        if self.build_timestamp:
-            self.data_df = self._build_timestamp()
-        self._sort_timestamp()
-        self._remove_index_duplicates()
-
-        # Units
-        self._add_units_row()
-        self._rename_unnamed_units()
-
-        # Columns
-        self._remove_unnamed_cols()
-
-        # # todo Numeric data only
-        # self._to_numeric()
 
     def _remove_index_duplicates(self):
         self.data_df = self.data_df[~self.data_df.index.duplicated(keep='first')]

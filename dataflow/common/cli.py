@@ -4,13 +4,13 @@ import argparse
 def validate_args(args):
     """Check validity of optional args"""
 
-    if args.script not in ['filescanner', 'varscanner']:
+    if args.script not in ['filescanner', 'varscanner', 'dbscanner']:
         raise argparse.ArgumentTypeError("SCRIPT must be 'filescanner', 'varscanner' or 'XXX'.")
 
     if not isinstance(args.site, str):
         raise argparse.ArgumentTypeError("SITE must be of type string.")
 
-    if args.datatype not in ['raw', 'proc']:
+    if args.datatype not in ['raw', 'processing']:
         raise argparse.ArgumentTypeError("DATATYPE must be 'raw' or 'proc'.")
 
     if args.access not in ['server', 'mount']:
@@ -48,12 +48,12 @@ def validate_args(args):
 
 def get_args():
     """Get args from CLI input"""
-    parser = argparse.ArgumentParser(description="SFN-DATAFLOW",
+    parser = argparse.ArgumentParser(description="dataflow",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Positional args
     parser.add_argument('script', type=str,
-                        help="Script that is executed: 'filescanner', 'varscanner', 'XXX' XXX")
+                        help="Script that is executed: 'filescanner', 'varscanner', 'dbscanner'")
     parser.add_argument('site', type=str,
                         help="Site abbreviation, e.g. ch-dav, ch-lae")
     parser.add_argument('datatype', type=str,

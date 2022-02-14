@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 from numpy import arange
 
@@ -172,7 +174,10 @@ class VarScanner:
         #     original units ('raw_units') in df.
         varcol = 'raw_varname' if not newvar['special_format'] else 'field'
         varcol = (newvar[varcol], newvar['raw_units'])  # Column name to access var in df
-        var_df = pd.DataFrame(index=df.index, data=df[varcol])
+        try:
+            var_df = pd.DataFrame(index=df.index, data=df[varcol])
+        except:
+            print("Error 123")
         var_df.columns = var_df.columns.droplevel(1)  # Remove units row
 
         # 'var_df' currently has only one column containing the variable data.
@@ -183,6 +188,7 @@ class VarScanner:
         var_df.dropna(inplace=True)
 
         # Tags: add as columns
+        var_df['varname'] = newvar['field']  # Store 'field' ('_field' in influxdb) also as tag
         var_df['units'] = newvar['units']
         var_df['raw_varname'] = newvar['raw_varname']
         var_df['raw_units'] = newvar['raw_units']
@@ -198,7 +204,7 @@ class VarScanner:
         var_df['data_version'] = newvar['data_version']
 
         # Define which columns should be stored as tags in the database
-        tags = ['units', 'raw_varname', 'raw_units', 'hpos', 'vpos', 'repl',
+        tags = ['varname', 'units', 'raw_varname', 'raw_units', 'hpos', 'vpos', 'repl',
                 'data_raw_freq', 'freq', 'freqfrom',
                 'filegroup', 'config_filetype', 'srcfile', 'data_version']
 
@@ -219,15 +225,15 @@ class VarScanner:
         Collects the following varinfo:
             - raw_varname, raw_units
             - config_filetype, filetypeconf
-            - measurement, field, units
+            - measurement, field, varname (= same as field), units
             - hpos, vpos, repl
 
         """
 
-        # Collect varinfo in dict
+        # Collect varinfo as tags in dict
         newvar = dict(
             config_filetype=fileinfo['config_filetype'],
-            srcfile=fileinfo['filepath'],
+            srcfile=Path(fileinfo['filepath']).name,  # Only filename with extension
             filegroup=fileinfo['filegroup'],
             data_version=fileinfo['data_version'],
             special_format=fileinfo['special_format'],
@@ -237,8 +243,9 @@ class VarScanner:
             freqfrom=freqfrom,
             raw_units=rawvar[1],
             raw_varname='',
-            measurement='',
-            field='',
+            measurement='',  # Not a tag, stored as _measurement in db
+            field='',  # Not a tag, stored as _field in db
+            varname='',  # Same as field, but is stored additionally as tag so the varname can be accessed via tags
             units='',
             hpos='',
             vpos='',
@@ -293,6 +300,7 @@ class VarScanner:
             _varinfo_not_greenlit = dict(raw_varname=rawvar[0],
                                          measurement='-not-greenlit-',
                                          field='-not-greenlit-',
+                                         varname='-not-greenlit-',
                                          units='-not-greenlit-',
                                          hpos='-not-greenlit-',
                                          vpos='-not-greenlit-',
@@ -308,9 +316,16 @@ class VarScanner:
             conf_unitmapper=self.conf_unitmapper)
 
         # Position indices from field (the name of the variable)
-        newvar['hpos'] = newvar['field'].split('_')[-3]
-        newvar['vpos'] = newvar['field'].split('_')[-2]
-        newvar['repl'] = newvar['field'].split('_')[-1]
+        try:
+            newvar['hpos'] = newvar['field'].split('_')[-3]
+            newvar['vpos'] = newvar['field'].split('_')[-2]
+            newvar['repl'] = newvar['field'].split('_')[-1]
+        except:
+            # For e.g. eddy covariance variables the indices are not
+            # given in the yaml filetype settings, leave empty
+            newvar['hpos'] = ''
+            newvar['vpos'] = ''
+            newvar['repl'] = ''
 
         # Return dict
         return newvar, is_greenlit

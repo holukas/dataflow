@@ -1,4 +1,6 @@
 # https://influxdb-python.readthedocs.io/en/latest/api-documentation.html#influxdbclient
+# https://github.com/influxdata/influxdb-client-python/blob/master/examples/query.py
+# https://www.influxdata.com/blog/getting-started-with-influxdb-and-pandas/
 
 from influxdb_client import InfluxDBClient
 from influxdb_client import WriteOptions
@@ -15,8 +17,8 @@ def get_write_client(conf_db: dict):
     return client, write_client
 
 
-# def get_query_client():
-#     dbconf = filereader.read_configfile(config_file='../../../configs/dbconf.yaml')
-#     client = InfluxDBClient(url=dbconf['url'], token=dbconf['token'], org=dbconf['org'])
-#     query_client = client.query_api()
-#     return client, query_client
+def get_query_client(conf_db: dict):
+    # dbconf = filereader.read_configfile(config_file='../../../configs/dbconf.yaml')
+    client = InfluxDBClient(url=conf_db['url'], token=conf_db['token'], org=conf_db['org'])
+    query_client = client.query_api()
+    return client, query_client
