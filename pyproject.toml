@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dataflow"
-version = "0.0.7"
+version = "0.0.8"
 description = ""
 authors = ["Lukas Hörtnagl <holukas@ethz.ch>"]
 
@@ -12,6 +12,7 @@ Flask = "^2.0.2"
 argparse = "^1.4.0"
 influxdb-client = "^1.23.0"
 single-source = "^0.2.0"
+wcmatch = "^8.3"
 
 [tool.poetry.dev-dependencies]
 

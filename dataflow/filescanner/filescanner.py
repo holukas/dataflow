@@ -12,6 +12,8 @@ from pathlib import Path
 import pandas as pd
 from numpy import arange
 
+# from wcmatch import fnmatch
+
 try:
     # For CLI
     from ..common import logblocks
@@ -78,19 +80,57 @@ class FileScanner:
             # and must fall within the defined filetype date range.
 
             # Check id: check if current file matches filetype_id
-            if fnmatch.fnmatch(newfile['filename'], filetypeconf['filetype_id']):
+            # Needs to be list
+            # Multiple ids can be defined in a list
+            if not isinstance(filetypeconf['filetype_id'], list):
+                filetypeconf['filetype_id'] = filetypeconf['filetype_id'].split()  # Converts to list w/ one element
 
-                # Check if file conforms to defined filedate format
+            # Check if filename matches with one of the search patterns
+            fnmatch_success = False
+            for filetype_id in filetypeconf['filetype_id']:
+                if fnmatch.fnmatch(newfile['filename'], filetype_id):
+                    filetypeconf['filetype_id'] = filetype_id
+                    fnmatch_success = True
+                    break
+
+            # Continue if match was found
+            if fnmatch_success:
+
+                # Check if file conforms to one of the defined filedate formats
+                filedate = None
                 if filetypeconf['filetype_dateparser']:
                     # If a 'filetype_parser' is given, try to parse datetime from filename
-                    try:
-                        filedate = dt.datetime.strptime(newfile['filename'], filetypeconf['filetype_dateparser'])
-                    except ValueError:
-                        continue
+                    # Multiple formats can be defined in a list
+                    if not isinstance(filetypeconf['filetype_dateparser'], list):
+                        filetypeconf['filetype_dateparser'] = filetypeconf['filetype_dateparser'].split()
+                    # Check if filedate can be parsed with one of the patterns
+                    for dateparser in filetypeconf['filetype_dateparser']:
+                        try:
+                            # Parse the filename for filedate, based on the length of the provided
+                            # dateparser string. Necessary to account for incremental numbers
+                            # at the end of the filename. This way only part of the filename
+                            # is used to check for filedate. Necessary b/c strptime does not
+                            # seem to accept wildcards to ignore e.g. the end of the filename
+                            # during parsing.
+                            #   Example setting where filename is parsed only partly:
+                            #       DAV11-RAW 'Davos10Min-%Y%m%d-'
+                            #       (ideally this could be parsed with 'Davos10Min-%Y%m%d-*.dat',
+                            #       but this is not possible b/c wildcard cannot be used)
+                            #   Example where filename is parsed in full, including file extension:
+                            #       'CH-DAV_iDL_H1_0_1_TBL1_%Y_%m_%d_%H%M.dat'
+                            length = len(dateparser) + 1
+                            filedate = dt.datetime.strptime(newfile['filename'][0:length+1], dateparser)
+                            break
+                        except ValueError:
+                            continue
                 else:
                     # In case the datetime is not parsed directly from the filename (e.g. for
                     # EddyPro full output files), the file modification datetime is used instead
                     filedate = datetime.datetime.strptime(newfile['filemtime'], '%Y-%m-%d %H:%M:%S')
+
+                # Continue with next filetype if no filedate could be parsed
+                if not filedate:
+                    continue
 
                 # Check date: file must be within defined date range for this filetype
                 if (filedate >= filetypeconf['filetype_valid_from']) \
@@ -165,7 +205,6 @@ class FileScanner:
                     continue
 
                 # if self.filegroup == '20_ec_fluxes':
-
 
                 # if fnmatch.fnmatch(filename, f'*.{ext}'):
 

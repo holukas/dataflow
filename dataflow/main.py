@@ -11,20 +11,20 @@ from pathlib import Path
 import pandas as pd
 from single_source import get_version
 
-from common.times import _make_run_id
-
 try:
     # For CLI
     from .filescanner.filescanner import FileScanner
     from .varscanner.varscanner import VarScanner
     from .db.dbscanner import dbScanner
     from .common import filereader, logger, cli
+    from .common.times import _make_run_id
 except ImportError:
     # For local machine
     from filescanner.filescanner import FileScanner
     from varscanner.varscanner import VarScanner
     from db.dbscanner import dbScanner
     from common import filereader, logger, cli
+    from common.times import _make_run_id
 
 pd.set_option('display.width', 1000)
 pd.set_option('display.max_columns', 15)
@@ -165,6 +165,13 @@ class DataFlow:
                     _logger.warning(f"    ### The file {_seen_by_vs} indicates that the "
                                     f"folder: {root} was already visited by VARSCANNER --> Skipping folder")
                     continue
+                else:
+                    now_time_str = dt.datetime.now().strftime("%Y%m%d%H%M%S")
+                    outfile = Path(root) / f"__varscanner-was-here-{now_time_str}__.txt"
+                    f = open(outfile, "w")
+                    f.write(f"This folder was visited by DATAFLOW / FILESCANNER on "
+                            f"{dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.")
+                    f.close()
 
                 _logger.info(f"    Preparing VarScanner: found required files from previous FileScanner run:")
                 _logger.info(f"    * {_required_filescanner_csv}")
@@ -193,12 +200,7 @@ class DataFlow:
                 outfile = Path(root) / f"{found_run_id}_varscanner_vars_not_greenlit.csv"
                 varscanner_df.loc[varscanner_df['measurement'] == '-not-greenlit-', :].to_csv(outfile, index=False)
 
-                now_time_str = dt.datetime.now().strftime("%Y%m%d%H%M%S")
-                outfile = Path(root) / f"__varscanner-was-here-{now_time_str}__.txt"
-                f = open(outfile, "w")
-                f.write(f"This folder was visited by DATAFLOW / FILESCANNER on "
-                        f"{dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.")
-                f.close()
+
 
                 # return varscanner_df
 
@@ -339,15 +341,23 @@ def main():
              filelimit=args.filelimit,
              newestfiles=args.newestfiles)
 
-    # testrun = 2
-    #
+
+
     # # Local test settings
-    # site = 'ch-fru'
-    # # datatype = 'raw'
-    # datatype = 'processing'
+    # # site = 'ch-oe2'
+    # site = 'ch-dav'
+    # datatype = 'raw'
+    # # datatype = 'processing'
     # access = 'server'
-    # filegroup = '20_ec_fluxes'
+    # # filegroup = '11_meteo_hut'
+    # # filegroup = '10_meteo'
+    # # filegroup = '30_profile_ghg'
+    # # filegroup = '20_ec_fluxes'
+    # filegroup = '12_meteo_forestfloor'
     # dirconf = r'L:\Dropbox\luhk_work\20 - CODING\22 - DATAFLOW\configs'
+    #
+    # testrun = 2
+    # month = 4
     #
     # if testrun == 1:
     #     # test FILESCANNER start ----------------------------------->
@@ -358,8 +368,7 @@ def main():
     #                 access=access,
     #                 filegroup=filegroup,
     #                 dirconf=dirconf,
-    #                 year=2022, month=None, filelimit=0, newestfiles=0
-    #                 )
+    #                 year=2022, month=month, filelimit=0, newestfiles=0)
     #     args = argparse.Namespace(**args)  # Convert dict to Namespace
     #     args = cli.validate_args(args)
     #     DataFlow(script=args.script,

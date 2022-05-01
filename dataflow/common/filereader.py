@@ -342,6 +342,7 @@ class FileReader():
 
         # Try to read with args
         try:
+            # todo read header separately like in diive
             df = pd.read_csv(**args)
         except ValueError:
             # Found to occur when the first row is empty and the

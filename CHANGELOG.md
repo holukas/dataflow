@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.0.8 | 2 May 2022
+- The "filescanner-was-here" file is now generated in the folder as soon as `varscanner`
+is working in the respective folder (before file was generated after `varscanner` finished).
+This allows the parallel execution of the script because it avoids that two parallel
+`varscanner` runs interfere in the same folder.
+- For each variable, a gain can now be specified in the filetype. If no gain is given, then
+gain is set to 1. If gain is set, then the raw data values are multiplied by gain before
+ingestion to the database.
+- In the filetype configurations, the keys `filetype_id` and `filetype_dateparser` now
+accept lists where multiple values can be defined. This is useful if the file naming
+changed, but the data format remained the same, e.g. `DAV11-RAW` files.
+- Added [wcmatch](https://facelessuser.github.io/wcmatch/) library for extended pattern matching
+  (not used at the moment)
+- In the filetype configurations, `filetype_dateparser` can now be given as part of the 
+filename, e.g. in `DAV11-RAW`. The filename is now parsed for the filedate based on 
+the length of the provided `filetype_dateparser` strings.
+
+
+## v0.0.7.1 | 14 Feb 2022
+- FIXED: Import error when using CLI
+
 
 ## v0.0.7 | 14 Feb 2022
 - ADDED: List of ignored extensions, currently part of `filescanner`

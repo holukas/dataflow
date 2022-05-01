@@ -174,11 +174,13 @@ class VarScanner:
         #     original units ('raw_units') in df.
         varcol = 'raw_varname' if not newvar['special_format'] else 'field'
         varcol = (newvar[varcol], newvar['raw_units'])  # Column name to access var in df
-        try:
-            var_df = pd.DataFrame(index=df.index, data=df[varcol])
-        except:
-            print("Error 123")
-        var_df.columns = var_df.columns.droplevel(1)  # Remove units row
+        var_df = pd.DataFrame(index=df.index, data=df[varcol])
+
+        # Apply gain (gain = 1 if no gain is specified in filetype settings)
+        var_df[varcol] = var_df[varcol].multiply(newvar['gain'])
+
+        # Remove units row (units stored as tag)
+        var_df.columns = var_df.columns.droplevel(1)
 
         # 'var_df' currently has only one column containing the variable data.
         # Get name of the column so we can rename it
@@ -202,11 +204,12 @@ class VarScanner:
         var_df['config_filetype'] = newvar['config_filetype']
         var_df['srcfile'] = newvar['srcfile']
         var_df['data_version'] = newvar['data_version']
+        var_df['gain'] = newvar['gain']
 
         # Define which columns should be stored as tags in the database
         tags = ['varname', 'units', 'raw_varname', 'raw_units', 'hpos', 'vpos', 'repl',
                 'data_raw_freq', 'freq', 'freqfrom',
-                'filegroup', 'config_filetype', 'srcfile', 'data_version']
+                'filegroup', 'config_filetype', 'srcfile', 'data_version', 'gain']
 
         # Write to db
         self.logger.info(f"     Writing to database from file #{file_ix}: "
@@ -219,18 +222,7 @@ class VarScanner:
                                 data_frame_measurement_name=newvar['measurement'],
                                 data_frame_tag_columns=tags)
 
-    def create_varentry(self, rawvar, fileinfo, filetypeconf, freq, freqfrom):
-        """Loop through variables in file and collect info for each var
-
-        Collects the following varinfo:
-            - raw_varname, raw_units
-            - config_filetype, filetypeconf
-            - measurement, field, varname (= same as field), units
-            - hpos, vpos, repl
-
-        """
-
-        # Collect varinfo as tags in dict
+    def _init_varentry(self, fileinfo, filetypeconf, freq, freqfrom, rawvar):
         newvar = dict(
             config_filetype=fileinfo['config_filetype'],
             srcfile=Path(fileinfo['filepath']).name,  # Only filename with extension
@@ -249,30 +241,38 @@ class VarScanner:
             units='',
             hpos='',
             vpos='',
-            repl=''
+            repl='',
+            gain=''
         )
+        return newvar
+
+    def create_varentry(self, rawvar, fileinfo, filetypeconf, freq, freqfrom):
+        """Loop through variables in file and collect info for each var
+
+        Collects the following varinfo:
+            - raw_varname, raw_units
+            - config_filetype, filetypeconf
+            - measurement, field, varname (= same as field), units
+            - hpos, vpos, repl
+
+        """
 
         assigned_units = None
+        gain = None
         is_greenlit = False
+
+        # Collect varinfo as tags in dict
+        newvar = \
+            self._init_varentry(fileinfo=fileinfo, filetypeconf=filetypeconf,
+                                freq=freq, freqfrom=freqfrom, rawvar=rawvar)
 
         # Get var settings from configuration
         if rawvar[0] in filetypeconf['data_vars'].keys():
-            # If rawvar is given as variable in data_vars
-            newvar['raw_varname'] = rawvar[0]
-            newvar['measurement'] = filetypeconf['data_vars'][rawvar[0]]['measurement']
+            # Variable name in file data is the same as given in settings
+            newvar, assigned_units, gain, is_greenlit = \
+                self._match_exact_name(newvar=newvar, filetypeconf=filetypeconf, rawvar=rawvar)
 
-            # Naming convention: variable name
-            newvar['field'] = self.get_varname_naming_convention(
-                raw_varname=newvar['raw_varname'],
-                filetypeconf=filetypeconf)
-
-            # Assigned units from config file
-            assigned_units = filetypeconf['data_vars'][rawvar[0]]['units']
-
-            # Indicate that var was found in config file
-            is_greenlit = True
-
-        else:
+        elif fileinfo['special_format'] == '-ICOSSEQ-':
             # If rawvar is *not* given with the exact name in data_vars
             #
             # This is the case with e.g. ICOSSEQ files that store measurements
@@ -290,9 +290,17 @@ class VarScanner:
                     newvar['measurement'] = filetypeconf['data_vars'][dv]['measurement']
                     newvar['field'] = rawvar[0]  # Already correct name
                     assigned_units = filetypeconf['data_vars'][dv]['units']
+
+                    # TODO gain? Should work like this
+                    # Gain from config file if provided, else set to 1
+                    gain = filetypeconf['data_vars'][dv]['gain'] \
+                        if 'gain' in filetypeconf['data_vars'][dv] else 1
+
                     # Indicate that var was found in config file
                     is_greenlit = True
                     break
+        else:
+            pass
 
         if not is_greenlit:
             # If script arrives here, no valid entry for current var
@@ -304,7 +312,8 @@ class VarScanner:
                                          units='-not-greenlit-',
                                          hpos='-not-greenlit-',
                                          vpos='-not-greenlit-',
-                                         repl='-not-greenlit-')
+                                         repl='-not-greenlit-',
+                                         gain='-not-greenlit-')
             for k in _varinfo_not_greenlit.keys():
                 newvar[k] = _varinfo_not_greenlit[k]
             return newvar, is_greenlit
@@ -327,8 +336,33 @@ class VarScanner:
             newvar['vpos'] = ''
             newvar['repl'] = ''
 
+        newvar['gain'] = gain
+
         # Return dict
         return newvar, is_greenlit
+
+    def _match_exact_name(self, newvar, filetypeconf, rawvar):
+        """Match variable name from data with variable name from settings ('data_vars')"""
+        # If rawvar is given as variable in data_vars
+        newvar['raw_varname'] = rawvar[0]
+        newvar['measurement'] = filetypeconf['data_vars'][rawvar[0]]['measurement']
+
+        # Naming convention: variable name
+        newvar['field'] = self.get_varname_naming_convention(
+            raw_varname=newvar['raw_varname'],
+            filetypeconf=filetypeconf)
+
+        # Assigned units from config file
+        assigned_units = filetypeconf['data_vars'][rawvar[0]]['units']
+
+        # Gain from config file if provided, else set to 1
+        gain = filetypeconf['data_vars'][rawvar[0]]['gain'] \
+            if 'gain' in filetypeconf['data_vars'][rawvar[0]] else 1
+
+        # Indicate that var was found in config file
+        is_greenlit = True
+
+        return newvar, assigned_units, gain, is_greenlit
 
     @staticmethod
     def get_varname_naming_convention(raw_varname, filetypeconf) -> str:
