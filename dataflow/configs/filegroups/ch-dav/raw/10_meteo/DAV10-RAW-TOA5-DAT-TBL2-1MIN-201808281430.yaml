@@ -1,0 +1,31 @@
+# CH-DAV
+# 10_meteo
+
+
+DAV10-RAW-TOA5-DAT-TBL2-1MIN-201808281430:
+  # TOA5
+  # First file: CH-DAV_iDL_T1_35_1_TBL2_2018_08_28_1430.dat (the very first CH-DAV_iDL_T1_35_1_TBL2_*.dat file)
+  # Last file:  *currently running*
+  filetype_valid_from: 2018-08-28 14:30:00
+  filetype_valid_to: 2099-08-28 14:30:00
+  filetype_id: CH-DAV_iDL_T1_35_1_TBL2_*.dat
+  filetype_dateparser: CH-DAV_iDL_T1_35_1_TBL2_%Y_%m_%d_%H%M.dat
+  filetype_gzip: false
+  db_bucket: ch-dav_raw
+  filegroup: 10_meteo
+  data_raw_freq: T
+  data_skiprows: [ 0, 3 ]
+  data_headerrows: [ 0, 1 ]
+  data_index_col: 0
+  data_parse_dates: [ 0 ]
+  data_date_parser: '%Y-%m-%d %H:%M:%S'
+  data_build_timestamp: false
+  data_keep_good_rows: false
+  data_na_values: [ -9999, nan, NaN, NAN, -6999, '-' ]
+  data_encoding: utf-8
+  data_delimiter: ','
+  data_mangle_dupe_cols: true
+  data_keep_date_col: false
+  data_version: raw
+  data_vars:
+    HEAT_HS50_T1B1_35_1_FLAG: { field: HEAT_HS50_LOWRES_T1_35_1, units: false, measurement: _instrumentmetrics }

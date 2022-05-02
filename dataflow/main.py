@@ -200,8 +200,6 @@ class DataFlow:
                 outfile = Path(root) / f"{found_run_id}_varscanner_vars_not_greenlit.csv"
                 varscanner_df.loc[varscanner_df['measurement'] == '-not-greenlit-', :].to_csv(outfile, index=False)
 
-
-
                 # return varscanner_df
 
     def _set_outdir(self) -> Path:
@@ -225,17 +223,23 @@ class DataFlow:
         # # Folder with configuration settings
         # dirconf = Path(dirconf)
 
+        # Search in this file's folder
+        _dir_main = Path(__file__).parent.resolve()
+
         # Assemble paths to configs
-        dir_filegroups = self.dirconf / 'filegroups' / self.site / self.datatype / self.filegroup
-        file_unitmapper = self.dirconf / 'units.yaml'
-        file_dirs = self.dirconf / 'dirs.yaml'
-        file_dbconf = self.dirconf / 'dbconf.yaml'
+        _dir_filegroups = _dir_main / 'configs' / 'filegroups' / self.site / self.datatype / self.filegroup
+        _file_unitmapper = _dir_main / 'configs' / 'units.yaml'
+        _file_dirs = _dir_main / 'configs' / 'dirs.yaml'
+        _file_dbconf = self.dirconf / 'dbconf.yaml'
+        # dir_filegroups = self.dirconf / 'filegroups' / self.site / self.datatype / self.filegroup
+        # file_unitmapper = self.dirconf / 'units.yaml'
+        # file_dirs = self.dirconf / 'dirs.yaml'
 
         # Read configs
-        conf_filetypes = filereader.get_conf_filetypes(dir=dir_filegroups)
-        conf_unitmapper = filereader.read_configfile(config_file=file_unitmapper)
-        conf_dirs = filereader.read_configfile(config_file=file_dirs)
-        conf_db = filereader.read_configfile(config_file=file_dbconf)
+        conf_filetypes = filereader.get_conf_filetypes(dir=_dir_filegroups)
+        conf_unitmapper = filereader.read_configfile(config_file=_file_unitmapper)
+        conf_dirs = filereader.read_configfile(config_file=_file_dirs)
+        conf_db = filereader.read_configfile(config_file=_file_dbconf)
         return conf_filetypes, conf_unitmapper, conf_dirs, conf_db
 
     def _create_outdir_run(self, rootdir: Path) -> Path:
@@ -328,105 +332,103 @@ class DataFlow:
 
 
 def main():
-    args = cli.get_args()
-    args = cli.validate_args(args)
-    DataFlow(script=args.script,
-             site=args.site,
-             datatype=args.datatype,
-             access=args.access,
-             filegroup=args.filegroup,
-             dirconf=args.dirconf,
-             year=args.year,
-             month=args.month,
-             filelimit=args.filelimit,
-             newestfiles=args.newestfiles)
+    # args = cli.get_args()
+    # args = cli.validate_args(args)
+    # DataFlow(script=args.script,
+    #          site=args.site,
+    #          datatype=args.datatype,
+    #          access=args.access,
+    #          filegroup=args.filegroup,
+    #          dirconf=args.dirconf,
+    #          year=args.year,
+    #          month=args.month,
+    #          filelimit=args.filelimit,
+    #          newestfiles=args.newestfiles)
 
-
-
-    # # Local test settings
-    # # site = 'ch-oe2'
-    # site = 'ch-dav'
-    # datatype = 'raw'
-    # # datatype = 'processing'
-    # access = 'server'
-    # # filegroup = '11_meteo_hut'
-    # # filegroup = '10_meteo'
-    # # filegroup = '30_profile_ghg'
-    # # filegroup = '20_ec_fluxes'
+    # Local test settings
+    # site = 'ch-oe2'
+    site = 'ch-dav'
+    datatype = 'raw'
+    # datatype = 'processing'
+    access = 'server'
+    # filegroup = '11_meteo_hut'
+    filegroup = '10_meteo'
+    # filegroup = '30_profile_ghg'
+    # filegroup = '20_ec_fluxes'
     # filegroup = '12_meteo_forestfloor'
-    # dirconf = r'L:\Dropbox\luhk_work\20 - CODING\22 - DATAFLOW\configs'
-    #
-    # testrun = 2
-    # month = 4
-    #
-    # if testrun == 1:
-    #     # test FILESCANNER start ----------------------------------->
-    #     import argparse
-    #     args = dict(script='filescanner',
-    #                 site=site,
-    #                 datatype=datatype,
-    #                 access=access,
-    #                 filegroup=filegroup,
-    #                 dirconf=dirconf,
-    #                 year=2022, month=month, filelimit=0, newestfiles=0)
-    #     args = argparse.Namespace(**args)  # Convert dict to Namespace
-    #     args = cli.validate_args(args)
-    #     DataFlow(script=args.script,
-    #              site=args.site,
-    #              datatype=args.datatype,
-    #              access=args.access,
-    #              filegroup=args.filegroup,
-    #              dirconf=args.dirconf,
-    #              year=args.year,
-    #              month=args.month,
-    #              filelimit=args.filelimit,
-    #              newestfiles=args.newestfiles)
-    #     # <--------------------------------------- test FILESCANNER end
-    #
-    # if testrun == 2:
-    #     # test VARSCANNER start ----------------------------------->
-    #     import argparse
-    #     args = dict(script='varscanner',
-    #                 site=site,
-    #                 datatype=datatype,
-    #                 access=access,
-    #                 filegroup=filegroup,
-    #                 dirconf=dirconf)
-    #     args = argparse.Namespace(**args)  # Convert dict to Namespace
-    #     args = cli.validate_args(args)
-    #
-    #     DataFlow(script=args.script,
-    #              site=args.site,
-    #              datatype=args.datatype,
-    #              access=args.access,
-    #              filegroup=args.filegroup,
-    #              dirconf=args.dirconf)
-    #     # <--------------------------------------- test VARSCANNER end
-    #
-    # if testrun == 3:
-    #     # test DBSCANNER start ----------------------------------->
-    #     import argparse
-    #     args = dict(script='dbscanner',
-    #                 site=site,
-    #                 datatype=datatype,
-    #                 access=access,
-    #                 filegroup=filegroup,
-    #                 dirconf=dirconf,
-    #                 year=2022, month=None, filelimit=0, newestfiles=0
-    #                 )
-    #     args = argparse.Namespace(**args)  # Convert dict to Namespace
-    #     args = cli.validate_args(args)
-    #     DataFlow(script=args.script,
-    #              site=args.site,
-    #              datatype=args.datatype,
-    #              access=args.access,
-    #              filegroup=args.filegroup,
-    #              dirconf=args.dirconf,
-    #              year=args.year,
-    #              month=args.month,
-    #              filelimit=args.filelimit,
-    #              newestfiles=args.newestfiles)
-    #     # <--------------------------------------- test DBSCANNER end
+    dirconf = r'L:\Dropbox\luhk_work\20 - CODING\22 - DATAFLOW\configs'
+
+    testrun = 2
+    month = 5
+
+    if testrun == 1:
+        # test FILESCANNER start ----------------------------------->
+        import argparse
+        args = dict(script='filescanner',
+                    site=site,
+                    datatype=datatype,
+                    access=access,
+                    filegroup=filegroup,
+                    dirconf=dirconf,
+                    year=2022, month=month, filelimit=1, newestfiles=0)
+        args = argparse.Namespace(**args)  # Convert dict to Namespace
+        args = cli.validate_args(args)
+        DataFlow(script=args.script,
+                 site=args.site,
+                 datatype=args.datatype,
+                 access=args.access,
+                 filegroup=args.filegroup,
+                 dirconf=args.dirconf,
+                 year=args.year,
+                 month=args.month,
+                 filelimit=args.filelimit,
+                 newestfiles=args.newestfiles)
+        # <--------------------------------------- test FILESCANNER end
+
+    if testrun == 2:
+        # test VARSCANNER start ----------------------------------->
+        import argparse
+        args = dict(script='varscanner',
+                    site=site,
+                    datatype=datatype,
+                    access=access,
+                    filegroup=filegroup,
+                    dirconf=dirconf)
+        args = argparse.Namespace(**args)  # Convert dict to Namespace
+        args = cli.validate_args(args)
+
+        DataFlow(script=args.script,
+                 site=args.site,
+                 datatype=args.datatype,
+                 access=args.access,
+                 filegroup=args.filegroup,
+                 dirconf=args.dirconf)
+        # <--------------------------------------- test VARSCANNER end
+
+    if testrun == 3:
+        # test DBSCANNER start ----------------------------------->
+        import argparse
+        args = dict(script='dbscanner',
+                    site=site,
+                    datatype=datatype,
+                    access=access,
+                    filegroup=filegroup,
+                    dirconf=dirconf,
+                    year=2022, month=None, filelimit=0, newestfiles=0
+                    )
+        args = argparse.Namespace(**args)  # Convert dict to Namespace
+        args = cli.validate_args(args)
+        DataFlow(script=args.script,
+                 site=args.site,
+                 datatype=args.datatype,
+                 access=args.access,
+                 filegroup=args.filegroup,
+                 dirconf=args.dirconf,
+                 year=args.year,
+                 month=args.month,
+                 filelimit=args.filelimit,
+                 newestfiles=args.newestfiles)
+        # <--------------------------------------- test DBSCANNER end
 
 
 if __name__ == '__main__':

@@ -1,0 +1,81 @@
+# CH-DAV
+# 12_meteo_forestfloor
+
+
+DAV12-RAW-FF6-TOA5-DAT-TBL1-1MIN-202107292014:
+  # TOA5
+  # First file: CH-DAV_iDL_FF6_0_1_TBL1_2021_07_29_2014.dat
+  # Last file:  *currently running*
+  filetype_valid_from: 2021-07-29 20:14:00
+  filetype_valid_to: 2099-12-31 23:59:59
+  filetype_id: CH-DAV_iDL_FF6_0_1_TBL1_*.dat
+  filetype_dateparser: CH-DAV_iDL_FF6_0_1_TBL1_%Y_%m_%d_%H%M.dat
+  filetype_gzip: false
+  db_bucket: ch-dav_raw
+  filegroup: 12_meteo_forestfloor
+  data_raw_freq: T
+  data_skiprows: [ 0, 3 ]
+  data_headerrows: [ 0, 1 ]
+  data_index_col: 0
+  data_parse_dates: [ 0 ]
+  data_date_parser: '%Y-%m-%d %H:%M:%S'
+  data_build_timestamp: false
+  data_keep_good_rows: false
+  data_na_values: [ -9999, nan, NaN, NAN, -6999, '-' ]
+  data_encoding: utf-8
+  data_delimiter: ','
+  data_mangle_dupe_cols: true
+  data_keep_date_col: false
+  data_version: raw
+  data_vars:
+    DNTP_iDL_T2_2x1_1: { field: DNTP_iDL_T2_2.10_1, units: false, measurement: _instrumentmetrics }
+    DNTP_LOGGER_T2_2x1_1: { field: DNTP_LOGGER_T2_2.10_1, units: false, measurement: _instrumentmetrics }
+    G_FF6_0x05_1_Avg: { field: G_FF6_0.05_1, units: false, measurement: G }
+    G_FF6_0x05_1_Std: { field: G_SD_FF6_0.05_1, units: false, measurement: _SD }
+    LW_IN_RAW_T2_2x1_1_Avg: { field: LW_IN_RAW_T2_2.10_1, units: false, measurement: LW }
+    LW_IN_RAW_T2_2x1_1_Std: { field: LW_IN_RAW_T2_2.10_1, units: false, measurement: _RAW }
+    LW_IN_T2_2x1_1_Avg: { field: LW_IN_T2_2.10_1, units: false, measurement: LW }
+    LW_IN_T2_2x1_1_Std: { field: LW_IN_SD_T2_2.10_1, units: false, measurement: _SD }
+    LW_OUT_RAW_T2_2x1_1_Avg: { field: LW_OUT_RAW_T2_2.10_1, units: false, measurement: LW }
+    LW_OUT_RAW_T2_2x1_1_Std: { field: LW_OUT_RAW_SD_T2_2.10_1, units: false, measurement: _RAW }
+    LW_OUT_T2_2x1_1_Avg: { field: LW_OUT_T2_2.10_1, units: false, measurement: LW }
+    LW_OUT_T2_2x1_1_Std: { field: LW_OUT_SD_T2_2.10_1, units: false, measurement: _SD }
+    PPFD_IN_T2_2x1_1_Avg: { field: PPFD_IN_T2_2.10_1, units: false, measurement: PPFD }
+    PPFD_IN_T2_2x1_1_Std: { field: PPFD_IN_SD_T2_2.10_1, units: false, measurement: _SD }
+    RECORD: { field: RECORD_X_X_X, units: false, measurement: _instrumentmetrics }
+    RH_T2_2x1_1_Avg: { field: RH_T2_2.10_1, units: false, measurement: RH }
+    SDP_FF6_0x05_1: { field: SDP_FF6_0.05_1, units: false, measurement: SDP }
+    SDP_FF6_0x10_1: { field: SDP_FF6_0.10_1, units: false, measurement: SDP }
+    SDP_FF6_0x20_1: { field: SDP_FF6_0.20_1, units: false, measurement: SDP }
+    SDP_FF6_0x30_1: { field: SDP_FF6_0.30_1, units: false, measurement: SDP }
+    SDP_FF6_0x40_1: { field: SDP_FF6_0.40_1, units: false, measurement: SDP }
+    SDP_FF6_0x50_1: { field: SDP_FF6_0.50_1, units: false, measurement: SDP }
+    SEC_FF6_0x05_1: { field: SEC_FF6_0.05_1, units: false, measurement: SEC }
+    SEC_FF6_0x10_1: { field: SEC_FF6_0.10_1, units: false, measurement: SEC }
+    SEC_FF6_0x20_1: { field: SEC_FF6_0.20_1, units: false, measurement: SEC }
+    SEC_FF6_0x30_1: { field: SEC_FF6_0.30_1, units: false, measurement: SEC }
+    SEC_FF6_0x40_1: { field: SEC_FF6_0.40_1, units: false, measurement: SEC }
+    SEC_FF6_0x50_1: { field: SEC_FF6_0.50_1, units: false, measurement: SEC }
+    SV_iDL_T2_2x1_1: { field: SV_iDL_T2_2.10_1, units: false, measurement: _instrumentmetrics }
+    SV_LOGGER_T2_2x1_1: { field: SV_LOGGER_T2_2.10_1, units: false, measurement: _instrumentmetrics }
+    SW_IN_T2_2x1_1_Avg: { field: SW_IN_T2_2.10_1, units: false, measurement: SW }
+    SW_IN_T2_2x1_1_Std: { field: SW_IN_SD_T2_2.10_1, units: false, measurement: _SD }
+    SW_OUT_T2_2x1_1_Avg: { field: SW_OUT_T2_2.10_1, units: false, measurement: SW }
+    SW_OUT_T2_2x1_1_Std: { field: SW_OUT_SD_T2_2.10_1, units: false, measurement: _SD }
+    SWC_FF6_0x05_1: { field: SWC_FF6_0.05_1, units: false, measurement: SWC }
+    SWC_FF6_0x10_1: { field: SWC_FF6_0.10_1, units: false, measurement: SWC }
+    SWC_FF6_0x20_1: { field: SWC_FF6_0.20_1, units: false, measurement: SWC }
+    SWC_FF6_0x30_1: { field: SWC_FF6_0.30_1, units: false, measurement: SWC }
+    SWC_FF6_0x40_1: { field: SWC_FF6_0.40_1, units: false, measurement: SWC }
+    SWC_FF6_0x50_1: { field: SWC_FF6_0.50_1, units: false, measurement: SWC }
+    T_iDL_T2_2x1_1: { field: T_iDL_T2_2.10_1, units: false, measurement: _instrumentmetrics }
+    T_LOGGER_T2_2x1_1: { field: T_LOGGER_T2_2.10_1, units: false, measurement: _instrumentmetrics }
+    T_RAD_T2_2x1_1_Avg: { field: T_RAD_T2_2.10_1, units: false, measurement: _instrumentmetrics }
+    T_RAD_T2_2x1_1_Std: { field: T_RAD_SD_T2_2.10_1, units: false, measurement: _instrumentmetrics }
+    TA_T2_2x1_1_Avg: { field: TA_T2_2.10_1, units: false, measurement: TA }
+    TS_FF6_0x05_1: { field: TS_FF6_0.05_1, units: false, measurement: TS }
+    TS_FF6_0x10_1: { field: TS_FF6_0.10_1, units: false, measurement: TS }
+    TS_FF6_0x20_1: { field: TS_FF6_0.20_1, units: false, measurement: TS }
+    TS_FF6_0x30_1: { field: TS_FF6_0.30_1, units: false, measurement: TS }
+    TS_FF6_0x40_1: { field: TS_FF6_0.40_1, units: false, measurement: TS }
+    TS_FF6_0x50_1: { field: TS_FF6_0.50_1, units: false, measurement: TS }

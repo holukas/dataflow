@@ -1,5 +1,11 @@
 # Changelog
 
+
+## v0.1.0 | 3 May 2022
+- All configs except for the database settings are now part of the main code. The database  
+settings in the file `dbconf.yaml` remains external (outside main code) for security reasons.
+
+
 ## v0.0.8 | 2 May 2022
 - The "filescanner-was-here" file is now generated in the folder as soon as `varscanner`
 is working in the respective folder (before file was generated after `varscanner` finished).

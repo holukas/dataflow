@@ -1,0 +1,22 @@
+# Basedirs network addresses, from Windows
+raw_server: \\grasslandserver.ethz.ch\archive\FluxData
+processing_server: \\grasslandserver.ethz.ch\processing
+export_server: \\grasslandserver.ethz.ch\export
+
+# Basedirs from gl-calcs
+raw_mount: /mnt/gl-raw-data/FluxData
+processing_mount: /mnt/gl-processing/
+
+# Output dirs
+out_dataflow_mount: /home/holukas/source_code/test_out
+out_dataflow: L:\Dropbox\luhk_work\20 - CODING\22 - DATAFLOW\_OUT\dataflow
+
+# Sites subfolders
+ch-aws: CH-AWS_CrapAlv
+ch-cha: CH-CHA_Chamau
+ch-das: CH-DAS_Dav-Subcanopy
+ch-dav: CH-DAV_Davos
+ch-fru: CH-FRU_Fruebuel
+ch-lae: CH-LAE_Laegeren
+ch-las: CH-LAS_Lae-Subcanopy
+ch-oe2: CH-OE2_Oensingen

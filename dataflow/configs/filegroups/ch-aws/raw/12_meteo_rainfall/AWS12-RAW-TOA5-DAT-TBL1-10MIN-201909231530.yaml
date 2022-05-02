@@ -1,0 +1,43 @@
+# CH-AWS
+# 12_meteo_rainfall
+
+
+AWS12-RAW-TOA5-DAT-TBL1-10MIN-201909231530:
+  # TOA5
+  # First file: CH-AWS_iDL_BOX3_0_1_TBL1_20190923-1530.dat (the very first CH-AWS_iDL_BOX3_0_1_TBL1_*.dat file)
+  # Last file:  *currently running*
+  # In 850m distance to EC tower, near Alp Weissenstein main building
+  # From the winter rainfall gauge (heated) which complements the
+  # unheated rainfall gauge at the valley met station.
+  # This is mast 2 (M2).
+  filetype_valid_from: 2019-09-23 15:30:00
+  filetype_valid_to: 2099-12-31 23:59:59
+  filetype_id: CH-AWS_iDL_BOX3_0_1_TBL1_*.dat
+  filetype_dateparser: CH-AWS_iDL_BOX3_0_1_TBL1_%Y%m%d-%H%M.dat
+  filetype_gzip: false
+  db_bucket: ch-aws_raw
+  filegroup: 12_meteo_rainfall
+  data_raw_freq: 10T
+  data_skiprows: [ 0, 3 ]
+  data_headerrows: [ 0, 1 ]
+  data_index_col: 0
+  data_parse_dates: [ 0 ]
+  data_date_parser: '%Y-%m-%d %H:%M:%S'
+  data_build_timestamp: false
+  data_keep_good_rows: false
+  data_na_values: [ -9999, nan, NaN, NAN, -6999, '-' ]
+  data_encoding: utf-8
+  data_delimiter: ','
+  data_mangle_dupe_cols: true
+  data_keep_date_col: false
+  data_version: raw
+  data_vars:
+    BV_iDL_BOX3_0_1: { field: BV_iDL_BOX3_0_1, units: false, measurement: _instrumentmetrics }
+    BV_iDL_BOX3_0_1_Std: { field: BV_SD_iDL_BOX3_0_1, units: false, measurement: _instrumentmetrics }
+    BV_iPWR_BOX3_0_1_Avg: { field: BV_iPWR_BOX3_0_1, units: false, measurement: _instrumentmetrics }
+    BV_iPWR_BOX3_0_1_Std: { field: BV_iPWR_SD_BOX3_0_1, units: false, measurement: _instrumentmetrics }
+    PREC_M2_3_1_Tot: { field: PREC_TOT_M2_3_1, units: false, measurement: PREC }
+    RECORD: { field: RECORD_BOX3_0_1, units: false, measurement: _instrumentmetrics }
+    Tpanel_BOX3_0_1_Avg: { field: TPANEL_BOX3_0_1, units: false, measurement: _instrumentmetrics }
+    Tpanel_BOX3_0_1_Std: { field: TPANEL_SD_BOX3_0_1, units: false, measurement: _instrumentmetrics }
+

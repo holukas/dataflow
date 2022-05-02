@@ -1,0 +1,49 @@
+# CH-DAV
+# 40_chambers_ghg
+
+
+DAV40-RAW-ICOSSEQ-CMB-QCL-DAT-1S-20191024:
+  # ICOS format, special sequential format
+  # Different locations (horizontal var index) are in different rows
+  # instead different columns.
+  # Chambers
+  # Contains QCL data N2O, CH4, H2O
+  # First file: CH-Dav_CM_20191024_L10_F05.dat (the very first CH-Dav_CM_*_L10_F05.dat file)
+  # Last file:  *currently running*
+  filetype_valid_from: 2019-10-24 00:00:00
+  filetype_valid_to: 2099-12-31 23:59:59
+  filetype_id: CH-Dav_CM_*_L10_F05.dat
+  filetype_dateparser: CH-Dav_CM_%Y%m%d_L10_F05.dat
+  filetype_gzip: false
+  db_bucket: ch-dav_raw
+  filegroup: 40_chambers_ghg
+  data_raw_freq: S
+  data_skiprows: [ ]
+  data_headerrows: [ 0 ]
+  data_index_col: 0
+  data_parse_dates: [ 0 ]
+  data_date_parser: '%Y%m%d%H%M%S'
+  data_build_timestamp: false
+  data_keep_good_rows: false
+  data_na_values: [ -9999, nan, NaN, NAN, -6999, '-' ]
+  data_encoding: utf-8
+  data_delimiter: ','
+  data_mangle_dupe_cols: true
+  data_keep_date_col: false
+  data_version: raw
+  data_vars:
+    CH4: { field: <<automatic>>, units: false, measurement: CH4 }
+    CO2: { field: <<automatic>>, units: false, measurement: CO2 }
+    FLOW_VOLRATE: { field: <<automatic>>, units: false, measurement: FLOW }
+    H2O: { field: <<automatic>>, units: false, measurement: H2O }
+    INLET_VICI: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    LIMITS: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    LOCATION: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    MOVEMENT: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    N2O: { field: <<automatic>>, units: false, measurement: N2O }
+    OUTLET_VICI: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    PA_CMB: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    PRESS_CELL: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    T_CELL: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    TA_CMB: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    VALVES: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }

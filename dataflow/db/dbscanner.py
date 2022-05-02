@@ -29,26 +29,26 @@ class dbScanner:
         #     for ix, v in enumerate(varnameslist):
         #         print(f"    {ix}: {v}")
 
-        bucket = 'ch-dav_raw'
-        measurements = ['TA', 'SW']
-        vars = ['TA_T1_35_1', 'TA_PRF_T1_35_1', 'SW_IN_T1_35_2', 'SW_OUT_T2_2.10_1']
-        start = '2022-01-27T00:00:00Z'
-        stop = 'now()'
-
-        querystring = self._assemble_fluxql_querystring(bucket=bucket, measurements=measurements, vars=vars,
-                                                        start=start,
-                                                        stop=stop)
-        xxx = self.get_var_data(querystring=querystring)
-
-        print(xxx.head(5))
-        print(xxx.tail(5))
-
         # bucket = 'ch-dav_raw'
-        # measurement = 'PPFD'
-        # varnameslist = self.list_varnames_in_measurement(bucket=bucket, measurement=measurement)
-        # print(f"BUCKET: {bucket}  |  "
-        #       f"MEASUREMENT: {measurement}  |  "
-        #       f"{len(varnameslist)} VARIABLES (fields): {varnameslist}")
+        # measurements = ['TA', 'SW']
+        # vars = ['TA_T1_35_1', 'TA_PRF_T1_35_1', 'SW_IN_T1_35_2', 'SW_OUT_T2_2.10_1']
+        # start = '2022-01-27T00:00:00Z'
+        # stop = 'now()'
+        #
+        # querystring = self._assemble_fluxql_querystring(bucket=bucket, measurements=measurements, vars=vars,
+        #                                                 start=start,
+        #                                                 stop=stop)
+        # xxx = self.get_var_data(querystring=querystring)
+        #
+        # print(xxx.head(5))
+        # print(xxx.tail(5))
+
+        bucket = 'ch-dav_raw'
+        measurement = 'PPFD'
+        varnameslist = self.list_varnames_in_measurement(bucket=bucket, measurement=measurement)
+        print(f"BUCKET: {bucket}  |  "
+              f"MEASUREMENT: {measurement}  |  "
+              f"{len(varnameslist)} VARIABLES (fields): {varnameslist}")
 
     def list_varnames_in_measurement(self, bucket: str, measurement: str) -> list:
         query = f'''

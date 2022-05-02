@@ -1,0 +1,98 @@
+# UNITMAPPER
+#
+# Renames key to value, e.g. "Deg C" to "degC"
+# Set to false if unit name should remain the same as key
+
+
+# B
+Boolean: boolean
+
+# C
+Celsius: degC
+
+# D
+deg: false
+Deg: deg
+Degrees: deg
+degC: false
+deg C: degC
+Deg C: degC
+"[deg_from_north]": deg from north
+dS.m-1: ds m-1
+
+# F
+flag: false
+
+# H
+hPa: false
+
+# K
+kPa: false
+
+# M
+m: false
+"[m]": m
+"[m+1s-1]": m s-1
+mA: false
+mbar: false
+Mikro m: um
+Mikromol m-2 s-1: umol m-2 s-1
+mm: false
+"[mm+1hour-1]": mm h-1
+mmol/mol: mmol mol-1
+"[mmol+1s-1m-2]": mmol m-2 s-1
+ms: false
+msec: ms
+m s-1: false
+m/s: m s-1
+mV: false
+mV.m2.W-1: mV (W m-2)-1
+mV*m^2/W: mV (W m-2)-1
+"m^3/m^3": m3 m-3
+m3.m-3: m3 m-3
+
+
+# P
+Pa: false
+PA: Pa
+ppm: false
+Percent: "%"
+
+# R
+RN: "record number"
+
+# U
+umol mol-1: false
+umol m-2 s-1: false
+"[µmol+1s-1m-2]": umol m-2 s-1
+umol.m-2.s-1: umol m-2 s-1
+umol s-1 m-2: umol m-2 s-1
+µmol m-2 s-1: umol m-2 s-1
+unitless: false
+uV.m2.W-1: uV (W m-2)-1
+uS/cm: uS cm-1
+
+# V
+V: false
+vol%: "vol%"
+Vol%: "vol%"
+Volts: V
+volts: V
+
+# W
+W m-2: false
+W.m-2: W m-2
+"[W+1m-2]": W m-2
+W.meter-2: W m-2
+W/meter²: W m-2
+W/m²: W m-2
+W/m2: W m-2
+W*m-2: W m-2
+W/m^2: W m-2
+
+# ... other
+-not-given-: false
+"[#]": "#"
+"%": false
+"% vol": "vol%"
+"°C": degC

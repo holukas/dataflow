@@ -1,0 +1,55 @@
+# CH-DAV
+# 13_meteo_backup_eth
+
+
+DAV13-RAW-TOA5-DAT-TBL1-10S-201809271725:
+  # TOA5
+  # First file: CH-DAV_iDL_T1_35_2_TBL1_2018_09_27_1725.dat (the very first CH-DAV_iDL_H1_0_1_TBL1_*.dat file)
+  # Last file:  *currently running*
+  filetype_valid_from: 2018-09-27 17:25:00
+  filetype_valid_to: 2099-12-31 23:59:59
+  filetype_id: CH-DAV_iDL_T1_35_2_TBL1_*.dat
+  filetype_dateparser: CH-DAV_iDL_T1_35_2_TBL1_%Y_%m_%d_%H%M.dat
+  filetype_gzip: false
+  db_bucket: ch-dav_raw
+  filegroup: 13_meteo_backup_eth
+  data_raw_freq: 10S
+  data_skiprows: [ 0, 3 ]
+  data_headerrows: [ 0, 1 ]
+  data_index_col: 0
+  data_parse_dates: [ 0 ]
+  data_date_parser: '%Y-%m-%d %H:%M:%S'
+  data_build_timestamp: false
+  data_keep_good_rows: false
+  data_na_values: [ -9999, nan, NaN, NAN, -6999, '-' ]
+  data_encoding: utf-8
+  data_delimiter: ','
+  data_mangle_dupe_cols: true
+  data_keep_date_col: false
+  data_version: raw
+  data_vars:
+    batt_volt_Min: { field: BV_T1_35_1, units: false, measurement: _instrumentmetrics }
+    LS_T1_35_1: { field: LS_T1_35_1, units: false, measurement: LS }
+    LSD_T1_35_1: { field: LSD_T1_35_1, units: false, measurement: LS }
+    Null: { field: NULL_X_X_X, units: false, measurement: XXX }
+    P_4_1_1: { field: PREC_TOT_T1_35_1, units: false, measurement: PREC }
+    PA_T1_35_1: { field: PA_T1_35_1, units: false, measurement: PA }
+    PTemp: { field: PTemp_X_X_X, units: false, measurement: XXX }
+    RECORD: { field: RECORD_X_X_X, units: false, measurement: _instrumentmetrics }
+    RH_4_1_1: { field: RH_T1_35_X, units: false, measurement: RH }
+    SV_iDL_Min: { field: SV_iDL_Min_X_X_X, units: false, measurement: _instrumentmetrics }
+    SW_IN_4_1_1: { field: SW_IN_T1_35_X, units: false, measurement: SW }
+    SW_IN_IU_4_1_1: { field: SW_IN_IU_T1_35_X, units: false, measurement: _IU }
+    SW_IN_T1_35_3: { field: SW_IN_T1_35_3, units: false, measurement: SW }
+    T_iDL: { field: T_iDL_X_X_X, units: false, measurement: _instrumentmetrics }
+    T_RH_T1_35_2: { field: T_RH_T1_35_2_X_X_X, units: false, measurement: _instrumentmetrics }
+    TA_4_1_1: { field: TA_T1_35_X, units: false, measurement: TA }
+    VP_T1_35_1: { field: VP_T1_35_1_X_X_X, units: false, measurement: XXX }
+    WD_T1_35_2: { field: WD_T1_35_2, units: false, measurement: WD }
+    WS_E_T1_35_2: { field: WS_E_T1_35_2_X_X_X, units: false, measurement: WS }
+    WS_N_T1_35_2: { field: WS_N_T1_35_2_X_X_X, units: false, measurement: WS }
+    WS_T1_35_2: { field: WS_T1_35_2_X_X_X, units: false, measurement: WS }
+    WSG_T1_35_2: { field: WSG_T1_35_2_X_X_X, units: false, measurement: XXX }
+    xOrientation: { field: xOrientation_X_X_X, units: false, measurement: _instrumentmetrics }
+    yOrientation: { field: yOrientation_X_X_X, units: false, measurement: _instrumentmetrics }
+

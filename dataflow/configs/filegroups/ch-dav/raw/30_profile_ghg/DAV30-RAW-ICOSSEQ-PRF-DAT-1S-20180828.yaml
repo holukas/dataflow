@@ -1,0 +1,48 @@
+# CH-DAV
+# 30_profile_ghg
+
+
+DAV30-RAW-ICOSSEQ-PRF-DAT-1S-20180828:
+  # ICOS format, sequential data -> different heights in different rows
+  # Contains IRGA data CO2, H2O
+  # First file: CH-Dav_ST_20180828_L10_F01.dat (the very first CH-Dav_ST_*_L10_F01.dat file)
+  # Last file:  *currently running*
+  filetype_valid_from: 2018-08-28 00:00:00
+  filetype_valid_to: 2099-12-31 23:59:59
+  filetype_id: CH-Dav_ST_*_L10_F01.dat
+  filetype_dateparser: CH-Dav_ST_%Y%m%d_L10_F01.dat
+  filetype_gzip: false
+  db_bucket: ch-dav_raw
+  filegroup: 30_profile_ghg
+  data_raw_freq: S
+  data_skiprows: [ ]
+  data_headerrows: [ 0 ]
+  data_index_col: 0
+  data_parse_dates: [ 0 ]
+  data_date_parser: '%Y%m%d%H%M%S'
+  data_build_timestamp: false
+  data_keep_good_rows: false
+  data_na_values: [ -9999, nan, NaN, NAN, -6999, '-' ]
+  data_encoding: utf-8
+  data_delimiter: ','
+  data_mangle_dupe_cols: true
+  data_keep_date_col: false
+  data_version: raw
+  data_vars:
+    CHANNEL_VICI: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    CO2: { field: <<automatic>>, units: umol mol-1, measurement: CO2 }
+    FLOW_INLET_1: { field: <<automatic>>, units: false, measurement: FLOW }
+    FLOW_INLET_2: { field: <<automatic>>, units: false, measurement: FLOW }
+    FLOW_INLET_3: { field: <<automatic>>, units: false, measurement: FLOW }
+    FLOW_INLET_4: { field: <<automatic>>, units: false, measurement: FLOW }
+    FLOW_VOLRATE: { field: <<automatic>>, units: false, measurement: FLOW }
+    H2O: { field: <<automatic>>, units: mmol mol-1, measurement: H2O }
+    INLET: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    LEVEL: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    LOCATION: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    P_BUF: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    PRESS_CELL: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    RH_BUF: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    T_BUF: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    T_CELL: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
+    VALVES: { field: <<automatic>>, units: false, measurement: _instrumentmetrics }
