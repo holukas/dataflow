@@ -1,0 +1,137 @@
+# CH-OE2
+# 10_meteo
+
+
+OE210-RAW-TOA5-DAT-TBL1-1MIN-201703150939:
+  # TOA5
+  # First file: CH-OE2_iDL_BOX1_0_1_TBL1_20170315-0939.dat (the very first CH-OE2_iDL_BOX1_0_1_TBL1_*.dat file)
+  # Last file:  *currently running*
+  filetype_valid_from: 2017-03-15 09:39:00
+  filetype_valid_to: 2099-12-31 23:59:59
+  filetype_id: CH-OE2_iDL_BOX1_0_1_TBL1_*.dat
+  filetype_dateparser: CH-OE2_iDL_BOX1_0_1_TBL1_%Y%m%d-%H%M.dat
+  filetype_gzip: false
+  filegroup: 10_meteo
+  data_raw_freq: T
+  data_skiprows: [ 0, 3 ]
+  data_headerrows: [ 0, 1 ]
+  data_index_col: 0
+  data_parse_dates: [ 0 ]
+  data_date_parser: '%Y-%m-%d %H:%M:%S'
+  data_build_timestamp: false
+  data_keep_good_rows: false
+  data_remove_bad_rows: false
+  data_na_values: [ -9999, nan, NaN, NAN, -6999, '-' ]
+  data_encoding: utf-8
+  data_delimiter: ','
+  data_mangle_dupe_cols: true
+  data_keep_date_col: false
+  data_version: raw
+  data_vars:
+    BV_iDL_BOX1_0_1_Avg: { field: BV_iDL_BOX1_0_1, units: false, measurement: _instrumentmetrics }
+    BV_iDL_BOX1_0_1_Std: { field: BV_iDL_SD_BOX1_0_1, units: false, measurement: _instrumentmetrics }
+    BV_iDL_INT_BOX1_0_1_Avg: { field: BV_iDL_INT_BOX1_0_1, units: false, measurement: _instrumentmetrics }
+    BV_iDL_INT_BOX1_0_1_Std: { field: BV_iDL_INT_SD_BOX1_0_1, units: false, measurement: _instrumentmetrics }
+    DNTP_iDL_BOX1_0_1: { field: DNTP_iDL_BOX1_0_1, units: false, measurement: _instrumentmetrics }
+    G_CF2_0x03_1_Avg: { field: G_CF2_0.03_1, units: false, measurement: G }
+    G_CF2_0x03_1_Std: { field: G_CF2_SD_0.03_1, units: false, measurement: _SD }
+    G_CF3_0x03_1_Avg: { field: G_CF3_0.03_1, units: false, measurement: G }
+    G_CF3_0x03_1_Std: { field: G_CF3_SD_0.03_1, units: false, measurement: _SD }
+    G_CF4_0x03_1_Avg: { field: G_CF4_0.03_1, units: false, measurement: G }
+    G_CF4_0x03_1_Std: { field: G_CF4_SD_0.03_1, units: false, measurement: _SD }
+    G_CF5_0x03_1_Avg: { field: G_CF5_0.03_1, units: false, measurement: G }
+    G_CF5_0x03_1_Std: { field: G_CF5_SD_0.03_1, units: false, measurement: _SD }
+    LW_IN_M1_1_1_Avg: { field: LW_IN_M1_1_1, units: false, measurement: LW }
+    LW_IN_M1_1_1_Std: { field: LW_IN_SD_M1_1_1, units: false, measurement: _SD }
+    LW_IN_RAW_M1_1_1_Avg: { field: LW_IN_RAW_M1_1_1, units: false, measurement: _RAW }
+    LW_IN_RAW_M1_1_1_Std: { field: LW_IN_RAW_SD_M1_1_1, units: false, measurement: _SD }
+    LW_OUT_M1_1_1_Avg: { field: LW_OUT_M1_1_1, units: false, measurement: LW }
+    LW_OUT_M1_1_1_Std: { field: LW_OUT_SD_M1_1_1, units: false, measurement: _SD }
+    LW_OUT_RAW_M1_1_1_Avg: { field: LW_OUT_RAW_M1_1_1, units: false, measurement: _RAW }
+    LW_OUT_RAW_M1_1_1_Std: { field: LW_OUT_RAW_SD_M1_1_1, units: false, measurement: _RAW }
+    PA_CF1_1_1_Avg: { field: PA_CF1_1_1, units: false, measurement: PA }
+    PA_CF1_1_1_Std: { field: PA_SD_CF1_1_1, units: false, measurement: _SD }
+    PPFD_DIF_M1_1_1_Avg: { field: PPFD_DIF_M1_1_1, units: false, measurement: PPFD }
+    PPFD_DIF_M1_1_1_Std: { field: PPFD_DIF_SD_M1_1_1, units: false, measurement: _SD }
+    PPFD_IN_M1_1_1_Avg: { field: PPFD_IN_M1_1_1, units: false, measurement: PPFD }
+    PPFD_IN_M1_1_1_Std: { field: PPFD_IN_SD_M1_1_1, units: false, measurement: _SD }
+    PREC_TOT_M2_1_1_Std: { field: PREC_TOT_SD_M2_1_1, units: false, measurement: _SD }
+    PREC_TOT_M2_1_1_Tot: { field: PREC_TOT_M2_1_1, units: false, measurement: PREC }
+    RECORD: { field: RECORD_X_X_X, units: false, measurement: _instrumentmetrics }
+    RH_T1_2_1_Avg: { field: RH_T1_2_1, units: false, measurement: RH }
+    RH_T1_2_1_Std: { field: RH_SD_T1_2_1, units: false, measurement: _SD }
+    SDI12_PWR_Max: { field: SDI12_PWR_MAX_X_X_X, units: false, measurement: _instrumentmetrics }
+    SDI12_PWR_TMx: { field: SDI12_PWR_TMX_X_X_X, units: false, measurement: _instrumentmetrics }
+    SDP_CF1_0x05_1_Avg: { field: SDP_CF1_0.05_1, units: false, measurement: SDP }
+    SDP_CF1_0x05_1_Std: { field: SDP_SD_CF1_0.05_1, units: false, measurement: _SD }
+    SDP_CF1_0x15_1_Avg: { field: SDP_CF1_0.15_1, units: false, measurement: SDP }
+    SDP_CF1_0x15_1_Std: { field: SDP_SD_CF1_0.15_1, units: false, measurement: _SD }
+    SDP_CF1_0x30_1_Avg: { field: SDP_CF1_0.30_1, units: false, measurement: SDP }
+    SDP_CF1_0x30_1_Std: { field: SDP_SD_CF1_0.30_1, units: false, measurement: _SD }
+    SDP_CF1_0x50_1_Avg: { field: SDP_CF1_0.50_1, units: false, measurement: SDP }
+    SDP_CF1_0x50_1_Std: { field: SDP_SD_CF1_0.50_1, units: false, measurement: _SD }
+    SW_IN_M1_1_1_Avg: { field: SW_IN_M1_1_1, units: false, measurement: SW }
+    SW_IN_M1_1_1_Std: { field: SW_IN_SD_M1_1_1, units: false, measurement: _SD }
+    SW_OUT_M1_1_1_Avg: { field: SW_OUT_M1_1_1, units: false, measurement: SW }
+    SW_OUT_M1_1_1_Std: { field: SW_OUT_SD_M1_1_1, units: false, measurement: _SD }
+    SWC_CF1_0x3_1_Avg: { field: SWC_CF1_0.3_1, units: false, measurement: SWC }
+    SWC_CF1_0x3_1_Std: { field: SWC_SD_CF1_0.3_1, units: false, measurement: _SD }
+    SWC_CF1_0x5_1_Avg: { field: SWC_CF1_0.5_1, units: false, measurement: SWC }
+    SWC_CF1_0x05_1_Avg: { field: SWC_CF1_0.05_1, units: false, measurement: SWC }
+    SWC_CF1_0x5_1_Std: { field: SWC_SD_CF1_0.5_1, units: false, measurement: _SD }
+    SWC_CF1_0x05_1_Std: { field: SWC_SD_CF1_0.05_1, units: false, measurement: _SD }
+    SWC_CF1_0x15_1_Avg: { field: SWC_CF1_0.15_1, units: false, measurement: SWC }
+    SWC_CF1_0x15_1_Std: { field: SWC_SD_CF1_0.15_1, units: false, measurement: _SD }
+    SWC_CF1_0x30_1_Avg: { field: SWC_CF1_0.30_1, units: false, measurement: SWC }
+    SWC_CF1_0x30_1_Std: { field: SWC_SD_CF1_0.30_1, units: false, measurement: _SD }
+    SWC_CF1_0x50_1_Avg: { field: SWC_CF1_0.50_1, units: false, measurement: SWC }
+    SWC_CF1_0x50_1_Std: { field: SWC_SD_CF1_0.50_1, units: false, measurement: _SD }
+    T_iDL_BOX1_0_1_Avg: { field: T_iDL_BOX1_0_1, units: false, measurement: _instrumentmetrics }
+    T_iDL_BOX1_0_1_Std: { field: T_iDL_SD_BOX1_0_1, units: false, measurement: _instrumentmetrics }
+    T_RAD_M1_1_1_Avg: { field: T_RAD_M1_1_1, units: false, measurement: _instrumentmetrics }
+    T_RAD_M1_1_1_Std: { field: T_RAD_SD_M1_1_1, units: false, measurement: _instrumentmetrics }
+    TA_T1_2_1_Avg: { field: TA_T1_2_1, units: false, measurement: TA }
+    TA_T1_2_1_Std: { field: TA_SD_T1_2_1, units: false, measurement: _SD }
+    TS_CF1_0x05_1_Avg: { field: TS_CF1_0.05_1, units: false, measurement: TS }
+    TS_CF1_0x05_1_Std: { field: TS_SD_CF1_0.05_1, units: false, measurement: _SD }
+    TS_CF1_0x15_1_Avg: { field: TS_CF1_0.15_1, units: false, measurement: TS }
+    TS_CF1_0x15_1_Std: { field: TS_SD_CF1_0.15_1, units: false, measurement: _SD }
+    TS_CF1_0x30_1_Avg: { field: TS_CF1_0.30_1, units: false, measurement: TS }
+    TS_CF1_0x30_1_Std: { field: TS_SD_CF1_0.30_1, units: false, measurement: _SD }
+    TS_CF1_0x50_1_Avg: { field: TS_CF1_0.50_1, units: false, measurement: TS }
+    TS_CF1_0x50_1_Std: { field: TS_SD_CF1_0.50_1, units: false, measurement: _SD }
+    TS_CF2_0x015_1_Avg: { field: TS_CF2_0.015_1, units: false, measurement: TS }
+    TS_CF2_0x015_1_Std: { field: TS_SD_CF2_0.015_1, units: false, measurement: _SD }
+    TS_CF3_0x015_1_Avg: { field: TS_CF3_0.015_1, units: false, measurement: TS }
+    TS_CF3_0x015_1_Std: { field: TS_SD_CF3_0.015_1, units: false, measurement: _SD }
+    TS_CF4_0x015_1_Avg: { field: TS_CF4_0.015_1, units: false, measurement: TS }
+    TS_CF4_0x015_1_Std: { field: TS_SD_CF4_0.015_1, units: false, measurement: _SD }
+    TS_CF5_0x015_1_Avg: { field: TS_CF5_0.015_1, units: false, measurement: TS }
+    TS_CF5_0x015_1_Std: { field: TS_SD_CF5_0.015_1, units: false, measurement: _SD }
+    TS_PRF_CF1_1_2_Avg: { field: TS_PRF_CF1_1_2, units: false, measurement: TS }
+    TS_PRF_CF1_1_2_Std: { field: TS_PRF_SD_CF1_1_2, units: false, measurement: _SD }
+    TS_PRF_CF1_0x1_1_Avg: { field: TS_PRF_CF1_0.1_1, units: false, measurement: TS }
+    TS_PRF_CF1_0x1_1_Std: { field: TS_PRF_SD_CF1_0.1_1, units: false, measurement: _SD }
+    TS_PRF_CF1_0x1_2_Avg: { field: TS_PRF_CF1_0.1_2, units: false, measurement: TS }
+    TS_PRF_CF1_0x1_2_Std: { field: TS_PRF_SD_CF1_0.1_2, units: false, measurement: _SD }
+    TS_PRF_CF1_0x2_2_Avg: { field: TS_PRF_CF1_0.2_2, units: false, measurement: TS }
+    TS_PRF_CF1_0x2_2_Std: { field: TS_PRF_SD_CF1_0.2_2, units: false, measurement: _SD }
+    TS_PRF_CF1_0x3_1_Avg: { field: TS_PRF_CF1_0.3_1, units: false, measurement: TS }
+    TS_PRF_CF1_0x3_1_Std: { field: TS_PRF_SD_CF1_0.3_1, units: false, measurement: _SD }
+    TS_PRF_CF1_0x5_1_Avg: { field: TS_PRF_CF1_0.5_1, units: false, measurement: TS }
+    TS_PRF_CF1_0x05_1_Avg: { field: TS_PRF_CF1_0.05_1, units: false, measurement: TS }
+    TS_PRF_CF1_0x5_1_Std: { field: TS_PRF_SD_CF1_0.5_1, units: false, measurement: _SD }
+    TS_PRF_CF1_0x05_1_Std: { field: TS_PRF_SD_CF1_0.05_1, units: false, measurement: _SD }
+    TS_PRF_CF1_0x5_2_Avg: { field: TS_PRF_CF1_0.5_2, units: false, measurement: TS }
+    TS_PRF_CF1_0x05_2_Avg: { field: TS_PRF_CF1_0.05_2, units: false, measurement: TS }
+    TS_PRF_CF1_0x5_2_Std: { field: TS_PRF_SD_CF1_0.5_2, units: false, measurement: _SD }
+    TS_PRF_CF1_0x05_2_Std: { field: TS_PRF_SD_CF1_0.05_2, units: false, measurement: _SD }
+    TS_PRF_CF1_0x15_1_Avg: { field: TS_PRF_CF1_0.15_1, units: false, measurement: TS }
+    TS_PRF_CF1_0x15_1_Std: { field: TS_PRF_SD_CF1_0.15_1, units: false, measurement: _SD }
+    WD_VANE_T1_2_1_Avg: { field: WD_VANE_T1_2_1, units: false, measurement: WD }
+    WD_VANE_T1_2_1_Std: { field: WD_VANE_SD_T1_2_1, units: false, measurement: _SD }
+    WS_CUP_T1_2_1_Avg: { field: WS_CUP_T1_2_1, units: false, measurement: WS }
+    WS_CUP_T1_2_1_Std: { field: WS_CUP_SD_T1_2_1, units: false, measurement: _SD }
+    WS_CUP_T1_2_1_WVc(1): { field: WS_CUP_WVc(1)_T1_2_1, units: false, measurement: WS }
+    WS_CUP_T1_2_1_WVc(2): { field: WS_CUP_WVc(2)_T1_2_1, units: false, measurement: WS }
+    WS_CUP_T1_2_1_WVc(3): { field: WS_CUP_WVc(3)_T1_2_1, units: false, measurement: WS }

@@ -72,10 +72,15 @@ class FileReader():
         self.mangle_dupe_cols = filetypeconf['data_mangle_dupe_cols']
         self.keep_date_col = filetypeconf['data_keep_date_col']
 
-        self.parse_dates = self._convert_timestamp_idx_col(var=filetypeconf['data_parse_dates'])
-        parsed_index_col = ('TIMESTAMP', '-')
-        # self.parse_dates = filetypeconf['data_parse_dates']
-        self.parse_dates = {parsed_index_col: self.parse_dates}
+        # Format parse_dates arg for .read_csv()
+        # Necessary if date is parsed from named columns
+        if filetypeconf['data_parse_dates']:
+            self.parse_dates = self._convert_timestamp_idx_col(var=filetypeconf['data_parse_dates'])
+            parsed_index_col = ('TIMESTAMP', '-')
+            # self.parse_dates = filetypeconf['data_parse_dates']
+            self.parse_dates = {parsed_index_col: self.parse_dates}
+        else:
+            self.parse_dates = False
 
         self.build_timestamp = filetypeconf['data_build_timestamp']
         self.data_encoding = filetypeconf['data_encoding']
@@ -86,27 +91,25 @@ class FileReader():
         self.goodrows_id = None if not filetypeconf['data_keep_good_rows'] \
             else filetypeconf['data_keep_good_rows'][1]  # ID used to identify rows w/ good data
 
+        self.badrows_col = None if not filetypeconf['data_remove_bad_rows'] \
+            else filetypeconf['data_remove_bad_rows'][0]  # Col used to identify rows w/ bad data
+        self.badrows_id = None if not filetypeconf['data_remove_bad_rows'] \
+            else filetypeconf['data_remove_bad_rows'][1]  # ID used to identify rows w/ bad data
+
         # # Detect if file has special format that needs formatting
         # self.is_special_format = True if any(f in self.config_filetype for f in self.special_formats) else False
 
         self.run()
 
-    def run(self):
-        self.data_df = self._readfile()
+    def _convert_to_float_or_string(self):
+        """Convert data to float or string
 
-        # In case the timestamp was built from multiple columns with 'parse_dates',
-        # e.g. in EddyPro full output files from the 'date' and 'time' columns,
-        # the parsed column has to be set as the timestamp index
-        if isinstance(self.parse_dates, dict):
-            try:
-                self.data_df.set_index(('TIMESTAMP', '-'), inplace=True)
-            except KeyError:
-                pass
-
-        # Convert each column to best possible data format, e.g. float64, string
-        # NaNs are not converted to string, they are still recognized as missing
-        # after this step.
-        self.data_df = self.data_df.convert_dtypes(convert_boolean=False, convert_integer=False)
+        Convert each column to best possible data format, either
+        float64 or string. NaNs are not converted to string, they
+        are still recognized as missing after this step.
+        """
+        self.data_df = self.data_df.convert_dtypes(
+            convert_boolean=False, convert_integer=False)
 
         _found_dtypes = self.data_df.dtypes
         _is_dtype_string = _found_dtypes == 'string'
@@ -122,13 +125,35 @@ class FileReader():
                              f"as dtype 'string': {_dtype_str_colnames}")
             self.logger.info(f"### If this is expected you can ignore this warning.")
 
+    def run(self):
+        self.data_df = self._readfile()
+
+        # In case the timestamp was built from multiple columns with 'parse_dates',
+        # e.g. in EddyPro full output files from the 'date' and 'time' columns,
+        # the parsed column has to be set as the timestamp index
+        if isinstance(self.parse_dates, dict):
+            try:
+                self.data_df.set_index(('TIMESTAMP', '-'), inplace=True)
+            except KeyError:
+                pass
+
+        # Convert data to float or string
+        # Columns can be dtype string after this step, which can either be
+        # desired (ICOSSEQ locations), or unwanted (in case of bad data rows)
+        self._convert_to_float_or_string()
+
         # Convert special data structures
         if self.special_format:
             self._special_data_formats()
 
         # Filter data
         if self.goodrows_id:
-            self._filter_data()
+            self._keep_good_data_rows()
+        if self.badrows_id:
+            self._remove_bad_data_rows()
+
+        # todo check if this works Numeric data only
+        self._to_numeric()
 
         # Timestamp
         if self.build_timestamp:
@@ -142,9 +167,6 @@ class FileReader():
 
         # Columns
         self._remove_unnamed_cols()
-
-        # # todo Numeric data only
-        # self._to_numeric()
 
     def _convert_timestamp_idx_col(self, var):
         """Convert to list of tuples if needed
@@ -163,10 +185,15 @@ class FileReader():
                 new[idx] = (c[0], c[1])
         return new
 
-    def _filter_data(self):
+    def _keep_good_data_rows(self):
         """Keep good data rows only, needed for irregular formats"""
         filter_goodrows = self.data_df.iloc[:, self.goodrows_col] == self.goodrows_id
         self.data_df = self.data_df[filter_goodrows]
+
+    def _remove_bad_data_rows(self):
+        """Remove bad data rows, needed for irregular formats"""
+        filter_badrows = self.data_df.iloc[:, self.badrows_col] != self.badrows_id
+        self.data_df = self.data_df[filter_badrows]
 
     def _special_data_formats(self):
 
@@ -299,8 +326,10 @@ class FileReader():
 
     def _to_numeric(self):
         """Make sure all data are numeric"""
-        self.data_df = self.data_df.astype(float)  # Crashed if not possible
-        # self.data_df = self.data_df.apply(pd.to_numeric, errors='coerce')  # Does not crash
+        try:
+            self.data_df = self.data_df.astype(float)  # Crashed if not possible
+        except:
+            self.data_df = self.data_df.apply(pd.to_numeric, errors='coerce')  # Does not crash
 
     def get_data(self):
         return self.data_df
@@ -333,17 +362,20 @@ class FileReader():
                     date_parser=self.date_parser,
                     index_col=self.index_col,
                     engine='python',
+                    # nrows=5,
                     nrows=self.nrows,
                     compression=self.compression,
                     on_bad_lines='warn',  # in pandas v1.3.0
                     usecols=None,
                     names=self.names,
-                    skip_blank_lines=True)
+                    skip_blank_lines=True
+                    )
 
         # Try to read with args
         try:
             # todo read header separately like in diive
             df = pd.read_csv(**args)
+            print(df.head(5))
         except ValueError:
             # Found to occur when the first row is empty and the
             # second row has errors (e.g., too many columns).
@@ -374,6 +406,37 @@ class FileReader():
 
         df = self.data_df.copy()
 
+        # Build from columns by index, column names not available
+        if self.build_timestamp == 'YEAR0+MONTH1+DAY2+HOUR3+MINUTE4':
+            # Remove rows where date info is missing
+            _not_possible = df['YEAR'].isnull()
+            df = df[~_not_possible]
+            _not_possible = df['MONTH'].isnull()
+            df = df[~_not_possible]
+            _not_possible = df['DAY'].isnull()
+            df = df[~_not_possible]
+            _not_possible = df['HOUR'].isnull()
+            df = df[~_not_possible]
+            _not_possible = df['MINUTE'].isnull()
+            df = df[~_not_possible]
+
+            # pandas recognizes columns with these names as time columns
+            df['TIMESTAMP'] = pd.to_datetime(df[['YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE']])
+
+            # Remove original columns
+            dropcols = ['YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE']
+            df.drop(dropcols, axis=1, inplace=True)
+
+            # Remove rows where timestamp-building did not work
+            locs_emptydate = df['TIMESTAMP'].isnull()
+            df = df.loc[~locs_emptydate, :]
+
+            # Set as index
+            df.set_index('TIMESTAMP', inplace=True)
+
+            return df
+
+        # Build from columns by name, column names available
         if self.build_timestamp == 'YEAR+DOY+TIME':
             # Remove rows where date info is missing
             _not_possible = df['YEAR'].isnull()

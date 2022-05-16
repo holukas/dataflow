@@ -1,6 +1,32 @@
 # Changelog
 
 
+## v0.2.0 | 16 May 2022
+- Target bucket is now determined from CLI args `site` and `datatype` instead
+of from `filetype` configuration.
+- Therefore, the `db_bucket` setting in the `filetype` configuration files has
+been removed.
+- It is now possible to directly upload data to the `test` bucket by setting the
+`testupload` arg to `True`. (not yet available in CLI)
+- Removed the tag `srcfile`: this tag will no longer be uploaded to the database.
+The reason is that this tag causes duplicates (multiple entries per timestamp for
+the same variable) in case of overlapping source files. 
+- Since `srcfile` is no longer stored as tag, it is now output to the log file.
+- Added new option in filetype settings: `data_remove_bad_rows` which has similar
+functionality as `data_keep_good_rows`, but it removes data rows based on e.g. a
+string instead of keeping them. This option was implemented because of inconsistencies
+in filetype `DAV17-RAW-NABEL-PRF-SSV-DAT-P2-5MIN-200001010000`.
+- Started documentation of filetype settings in `configs`:`filegroups`:`README.md`
+- Added a general filetype of EddyPro _fluxnet_ files (Level-0 fluxes)
+- Restructured the `configs`:`filegroups`: the `processing` subfolder now contains
+filetypes that are the same across sites, e.g., the `filetype` for EddyPro
+full_output files.
+- Added additional restriction for `20_ec_fluxes`:`Level-0` files: the path to
+their source file must contain the string `Level-0`.
+- Added option to ignore files that contain certain strings. 
+- Added `filetype`s for early DAV17 NABEL CO2 profiles and DAV13 profile data
+
+
 ## v0.1.0 | 3 May 2022
 - All configs except for the database settings are now part of the main code. The database  
 settings in the file `dbconf.yaml` remains external (outside main code) for security reasons.

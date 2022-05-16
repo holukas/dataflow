@@ -17,6 +17,7 @@ Degrees: deg
 degC: false
 deg C: degC
 Deg C: degC
+deg from north: false
 "[deg_from_north]": deg from north
 dS.m-1: ds m-1
 
@@ -27,6 +28,7 @@ flag: false
 hPa: false
 
 # K
+kg m-1 s-2: false
 kPa: false
 
 # M
@@ -38,9 +40,16 @@ mbar: false
 Mikro m: um
 Mikromol m-2 s-1: umol m-2 s-1
 mm: false
+mm h-1: false
 "[mm+1hour-1]": mm h-1
+mmol mol-1: false
 mmol/mol: mmol mol-1
+mmol m-2 s-1: false
 "[mmol+1s-1m-2]": mmol m-2 s-1
+mmol m-3: false
+"[mmol+1m-3]": mmol m-3
+"[mmol+1mol_a-1]": mmol mol-1
+"[mmol+1mol_d-1]": mmol mol-1
 ms: false
 msec: ms
 m s-1: false
@@ -50,6 +59,11 @@ mV.m2.W-1: mV (W m-2)-1
 mV*m^2/W: mV (W m-2)-1
 "m^3/m^3": m3 m-3
 m3.m-3: m3 m-3
+
+
+# N
+nmol mol-1: false
+nmol m-2 s-1: false
 
 
 # P
@@ -63,6 +77,8 @@ RN: "record number"
 
 # U
 umol mol-1: false
+"[µmol+1mol_a-1]": umol mol-1
+"[µmol+1mol_d-1]": umol mol-1
 umol m-2 s-1: false
 "[µmol+1s-1m-2]": umol m-2 s-1
 umol.m-2.s-1: umol m-2 s-1
@@ -92,6 +108,7 @@ W/m^2: W m-2
 
 # ... other
 -not-given-: false
+"#": false
 "[#]": "#"
 "%": false
 "% vol": "vol%"

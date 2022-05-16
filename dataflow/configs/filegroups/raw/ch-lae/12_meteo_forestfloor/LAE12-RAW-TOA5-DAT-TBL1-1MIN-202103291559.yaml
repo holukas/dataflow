@@ -1,0 +1,206 @@
+# CH-LAE
+# 12_meteo_forestfloor
+
+
+LAE12-RAW-TOA5-DAT-TBL1-1MIN-202103291559:
+  # TOA5
+  # First file: CH-LAE_iDL_FF1_0_1_TBL1_20210329-1559.dat (the very first 1MIN CH-LAE_iDL_FF1_0_1_TBL1_*.dat file)
+  # Last file:  *currently running*
+  filetype_valid_from: 2021-03-29 15:59:00
+  filetype_valid_to: 2099-12-31 23:59:59
+  filetype_id: CH-LAE_iDL_FF1_0_1_TBL1_*.dat
+  filetype_dateparser: CH-LAE_iDL_FF1_0_1_TBL1_%Y%m%d-%H%M.dat
+  filetype_gzip: false
+  filegroup: 12_meteo_forestfloor
+  data_raw_freq: T
+  data_skiprows: [ 0, 3 ]
+  data_headerrows: [ 0, 1 ]
+  data_index_col: 0
+  data_parse_dates: [ 0 ]
+  data_date_parser: '%Y-%m-%d %H:%M:%S'
+  data_build_timestamp: false
+  data_keep_good_rows: false
+  data_remove_bad_rows: false
+  data_na_values: [ -9999, nan, NaN, NAN, -6999, '-' ]
+  data_encoding: utf-8
+  data_delimiter: ','
+  data_mangle_dupe_cols: true
+  data_keep_date_col: false
+  data_version: raw
+  data_vars:
+    RECORD: { field: RECORD_X_X_X, units: false, measurement: _instrumentmetrics }
+    Batt_Volt_Avg: { field: BV_X_X_X, units: false, measurement: _instrumentmetrics }
+    PTemp_C_Avg: { field: PTemp_C_Avg_X_X_X, units: false, measurement: XXX }
+    T109Dev3_Avg: { field: T109Dev3_Avg_X_X_X, units: false, measurement: XXX }
+    Windspeed_Avg: { field: WS_X_X_X, units: false, measurement: WS }
+    TS_FF1_0x05_3_Avg: { field: TS_FF1_0.05_3, units: false, measurement: TS }
+    TS_FF1_0x05_4_Avg: { field: TS_FF1_0.05_4, units: false, measurement: TS }
+    WinddirM_Avg: { field: WD_VANE_FF1_2_1, units: false, measurement: WD }
+    Windspeed_WVc(1): { field: WS_WVc(1)_X_X_X, units: false, measurement: XXX }
+    Windspeed_WVc(2): { field: WS_WVc(2)_X_X_X, units: false, measurement: XXX }
+    Windspeed_WVc(3): { field: WS_WVc(3)_X_X_X, units: false, measurement: XXX }
+    D8001_N150_Avg: { field: D8001_N150_Avg_X_X_X, units: false, measurement: XXX }
+    D2577_N150_Avg: { field: D2577_N150_Avg_X_X_X, units: false, measurement: XXX }
+    D2591_N150_Avg: { field: D2591_N150_Avg_X_X_X, units: false, measurement: XXX }
+    D8002_E150_Avg: { field: D8002_E150_Avg_X_X_X, units: false, measurement: XXX }
+    D2544_E150_Avg: { field: D2544_E150_Avg_X_X_X, units: false, measurement: XXX }
+    D2632_E150_Avg: { field: D2632_E150_Avg_X_X_X, units: false, measurement: XXX }
+    D2585_E150_Avg: { field: D2585_E150_Avg_X_X_X, units: false, measurement: XXX }
+    D2597_E150_Avg: { field: D2597_E150_Avg_X_X_X, units: false, measurement: XXX }
+    D2586_E150_Avg: { field: D2586_E150_Avg_X_X_X, units: false, measurement: XXX }
+    D9957_E150_Avg: { field: D9957_E150_Avg_X_X_X, units: false, measurement: XXX }
+    NetRadM_Avg: { field: NETRAD_FF1_2_1, units: false, measurement: NETRAD }
+    PPFDM_Avg: { field: PPFD_IN_AVG_FF1_2_1, units: false, measurement: PPFD }
+    G_FF1_0x05_1_Avg: { field: G_FF1_0.05_1, units: false, measurement: G }
+    G_FF1_0x05_2_Avg: { field: G_FF1_0.05_2, units: false, measurement: G }
+    Windspeed_Std: { field: WS_SD_X_X_X, units: false, measurement: _SD }
+    TS_FF1_0x05_3_Std: { field: TS_SD_FF1_0.05_3, units: false, measurement: _SD }
+    TS_FF1_0x05_4_Std: { field: TS_SD_FF1_0.05_4, units: false, measurement: _SD }
+    WinddirM_Std: { field: WD_VANE_SD_FF1_2_1, units: false, measurement: _SD }
+    D8001_N150_Std: { field: D8001_N150_Std_X_X_X, units: false, measurement: XXX }
+    D2577_N150_Std: { field: D2577_N150_Std_X_X_X, units: false, measurement: XXX }
+    D2591_N150_Std: { field: D2591_N150_Std_X_X_X, units: false, measurement: XXX }
+    D8002_E150_Std: { field: D8002_E150_Std_X_X_X, units: false, measurement: XXX }
+    D2544_E150_Std: { field: D2544_E150_Std_X_X_X, units: false, measurement: XXX }
+    D2632_E150_Std: { field: D2632_E150_Std_X_X_X, units: false, measurement: XXX }
+    D2585_E150_Std: { field: D2585_E150_Std_X_X_X, units: false, measurement: XXX }
+    D2597_E150_Std: { field: D2597_E150_Std_X_X_X, units: false, measurement: XXX }
+    D2586_E150_Std: { field: D2586_E150_Std_X_X_X, units: false, measurement: XXX }
+    D9957_E150_Std: { field: D9957_E150_Std_X_X_X, units: false, measurement: XXX }
+    NetRadM_Std: { field: NETRAD_SD_FF1_2_1, units: false, measurement: _SD }
+    PPFDM_Std: { field: PPFD_IN_SD_FF1_2_1, units: false, measurement: _SD }
+    G_FF1_0x05_1_Std: { field: G_SD_FF1_0.05_1, units: false, measurement: _SD }
+    G_FF1_0x05_2_Std: { field: G_SD_FF1_0.05_2, units: false, measurement: _SD }
+    SAPFLOW_TR9957_1x5_1_Avg: { field: SAPFLOW_TREE9957_1.5_1, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR9957_1x5_2_Avg: { field: SAPFLOW_TREE9957_1.5_2, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2544_1x5_1_Avg: { field: SAPFLOW_TREE2544_1.5_1, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2544_1x5_2_Avg: { field: SAPFLOW_TREE2544_1.5_2, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR8001_1x5_1_Avg: { field: SAPFLOW_TREE8001_1.5_1, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR8001_1x5_2_Avg: { field: SAPFLOW_TREE8001_1.5_2, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR9959_1x5_1_Avg: { field: SAPFLOW_TREE9959_1.5_1, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR9959_1x5_2_Avg: { field: SAPFLOW_TREE9959_1.5_2, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2606_1x5_1_Avg: { field: SAPFLOW_TREE2606_1.5_1, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2606_1x5_2_Avg: { field: SAPFLOW_TREE2606_1.5_2, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2589_1x5_1_Avg: { field: SAPFLOW_TREE2589_1.5_1, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2589_1x5_2_Avg: { field: SAPFLOW_TREE2589_1.5_2, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2632_1x5_1_Avg: { field: SAPFLOW_TREE2632_1.5_1, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2632_1x5_2_Avg: { field: SAPFLOW_TREE2632_1.5_2, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2577_1x5_1_Avg: { field: SAPFLOW_TREE2577_1.5_1, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2577_1x5_2_Avg: { field: SAPFLOW_TREE2577_1.5_2, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2586_1x5_1_Avg: { field: SAPFLOW_TREE2586_1.5_1, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2586_1x5_2_Avg: { field: SAPFLOW_TREE2586_1.5_2, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2591_1x5_1_Avg: { field: SAPFLOW_TREE2591_1.5_1, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2591_1x5_2_Avg: { field: SAPFLOW_TREE2591_1.5_2, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2585_1x5_1_Avg: { field: SAPFLOW_TREE2585_1.5_1, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2585_1x5_2_Avg: { field: SAPFLOW_TREE2585_1.5_2, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2597_1x5_1_Avg: { field: SAPFLOW_TREE2597_1.5_1, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2597_1x5_2_Avg: { field: SAPFLOW_TREE2597_1.5_2, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR9957_1x5_1_Std: { field: SAPFLOW_SD_TREE9957_1.5_1, units: false, measurement: _SD }
+    SAPFLOW_TR2544_1x5_1_Std: { field: SAPFLOW_SD_TREE2544_1.5_1, units: false, measurement: _SD }
+    SAPFLOW_TR8001_1x5_1_Std: { field: SAPFLOW_SD_TREE8001_1.5_1, units: false, measurement: _SD }
+    SAPFLOW_TR9959_1x5_1_Std: { field: SAPFLOW_SD_TREE9959_1.5_1, units: false, measurement: _SD }
+    SAPFLOW_TR9959_1x5_2_Std: { field: SAPFLOW_SD_TREE9959_1.5_2, units: false, measurement: _SD }
+    SAPFLOW_TR2606_1x5_1_Std: { field: SAPFLOW_SD_TREE2606_1.5_1, units: false, measurement: _SD }
+    SAPFLOW_TR2606_1x5_2_Std: { field: SAPFLOW_SD_TREE2606_1.5_2, units: false, measurement: _SD }
+    SAPFLOW_TR2589_1x5_1_Std: { field: SAPFLOW_SD_TREE2589_1.5_1, units: false, measurement: _SD }
+    SAPFLOW_TR2589_1x5_2_Std: { field: SAPFLOW_SD_TREE2589_1.5_2, units: false, measurement: _SD }
+    SAPFLOW_TR2632_1x5_1_Std: { field: SAPFLOW_SD_TREE2632_1.5_1, units: false, measurement: _SD }
+    SAPFLOW_TR2632_1x5_2_Std: { field: SAPFLOW_SD_TREE2632_1.5_2, units: false, measurement: _SD }
+    SAPFLOW_TR2577_1x5_1_Std: { field: SAPFLOW_SD_TREE2577_1.5_1, units: false, measurement: _SD }
+    SAPFLOW_TR2577_1x5_2_Std: { field: SAPFLOW_SD_TREE2577_1.5_2, units: false, measurement: _SD }
+    SAPFLOW_TR2586_1x5_1_Std: { field: SAPFLOW_SD_TREE2586_1.5_1, units: false, measurement: _SD }
+    SAPFLOW_TR2586_1x5_2_Std: { field: SAPFLOW_SD_TREE2586_1.5_2, units: false, measurement: _SD }
+    SAPFLOW_TR2591_1x5_1_Std: { field: SAPFLOW_SD_TREE2591_1.5_1, units: false, measurement: _SD }
+    SAPFLOW_TR2591_1x5_2_Std: { field: SAPFLOW_SD_TREE2591_1.5_2, units: false, measurement: _SD }
+    SAPFLOW_TR2585_1x5_1_Std: { field: SAPFLOW_SD_TREE2585_1.5_1, units: false, measurement: _SD }
+    SAPFLOW_TR2585_1x5_2_Std: { field: SAPFLOW_SD_TREE2585_1.5_2, units: false, measurement: _SD }
+    SAPFLOW_TR2597_1x5_1_Std: { field: SAPFLOW_SD_TREE2597_1.5_1, units: false, measurement: _SD }
+    SAPFLOW_TR2597_1x5_2_Std: { field: SAPFLOW_SD_TREE2597_1.5_2, units: false, measurement: _SD }
+    WP_FF1_0x05_1_Avg: { field: WP_FF1_0.05_1, units: false, measurement: WP }
+    WP_FF1_0x1_1_Avg: { field: WP_FF1_0.1_1, units: false, measurement: WP }
+    WP_FF1_0x2_1_Avg: { field: WP_FF1_0.2_1, units: false, measurement: WP }
+    WP_FF1_0x3_1_Avg: { field: WP_FF1_0.3_1, units: false, measurement: WP }
+    WP_FF1_0x5_1_Avg: { field: WP_FF1_0.5_1, units: false, measurement: WP }
+    WP_FF1_0x6_1_Avg: { field: WP_FF1_0.6_1, units: false, measurement: WP }
+    TS_FF1_0x05_1_Avg: { field: TS_FF1_0.05_1, units: false, measurement: TS }
+    TS_FF1_0x1_1_Avg: { field: TS_FF1_0.1_1, units: false, measurement: TS }
+    TS_FF1_0x2_1_Avg: { field: TS_FF1_0.2_1, units: false, measurement: TS }
+    TS_FF1_0x3_1_Avg: { field: TS_FF1_0.3_1, units: false, measurement: TS }
+    TS_FF1_0x5_1_Avg: { field: TS_FF1_0.5_1, units: false, measurement: TS }
+    TS_FF1_0x6_1_Avg: { field: TS_FF1_0.6_1, units: false, measurement: TS }
+    WP_FF1_0x05_1_Std: { field: WP_SD_FF1_0.05_1, units: false, measurement: _SD }
+    WP_FF1_0x1_1_Std: { field: WP_SD_FF1_0.1_1, units: false, measurement: _SD }
+    WP_FF1_0x2_1_Std: { field: WP_SD_FF1_0.2_1, units: false, measurement: _SD }
+    WP_FF1_0x3_1_Std: { field: WP_SD_FF1_0.3_1, units: false, measurement: _SD }
+    WP_FF1_0x5_1_Std: { field: WP_SD_FF1_0.5_1, units: false, measurement: _SD }
+    WP_FF1_0x6_1_Std: { field: WP_SD_FF1_0.6_1, units: false, measurement: _SD }
+    TS_FF1_0x05_1_Std: { field: TS_SD_FF1_0.05_1, units: false, measurement: _SD }
+    TS_FF1_0x1_1_Std: { field: TS_SD_FF1_0.1_1, units: false, measurement: _SD }
+    TS_FF1_0x2_1_Std: { field: TS_SD_FF1_0.2_1, units: false, measurement: _SD }
+    TS_FF1_0x3_1_Std: { field: TS_SD_FF1_0.3_1, units: false, measurement: _SD }
+    TS_FF1_0x5_1_Std: { field: TS_SD_FF1_0.5_1, units: false, measurement: _SD }
+    TS_FF1_0x6_1_Std: { field: TS_SD_FF1_0.6_1, units: false, measurement: _SD }
+    SWC_RAW_FF1_0x05_1_Avg: { field: SWC_RAW_FF1_0.05_1, units: false, measurement: _RAW }
+    SWC_RAW_FF1_0x1_1_Avg: { field: SWC_RAW_FF1_0.1_1, units: false, measurement: _RAW }
+    SWC_RAW_FF1_0x2_1_Avg: { field: SWC_RAW_FF1_0.2_1, units: false, measurement: _RAW }
+    SWC_RAW_FF1_0x3_1_Avg: { field: SWC_RAW_FF1_0.3_1, units: false, measurement: _RAW }
+    SWC_RAW_FF1_0x5_1_Avg: { field: SWC_RAW_FF1_0.5_1, units: false, measurement: _RAW }
+    SWC_FF1_0x05_1_Avg: { field: SWC_FF1_0.05_1, units: false, measurement: SWC }
+    SWC_FF1_0x1_1_Avg: { field: SWC_FF1_0.1_1, units: false, measurement: SWC }
+    SWC_FF1_0x2_1_Avg: { field: SWC_FF1_0.2_1, units: false, measurement: SWC }
+    SWC_FF1_0x3_1_Avg: { field: SWC_FF1_0.3_1, units: false, measurement: SWC }
+    SWC_FF1_0x5_1_Avg: { field: SWC_FF1_0.5_1, units: false, measurement: SWC }
+    TS_FF1_0x05_2_Avg: { field: TS_FF1_0.05_2, units: false, measurement: TS }
+    TS_FF1_0x1_2_Avg: { field: TS_FF1_0.1_2, units: false, measurement: TS }
+    TS_FF1_0x2_2_Avg: { field: TS_FF1_0.2_2, units: false, measurement: TS }
+    TS_FF1_0x3_2_Avg: { field: TS_FF1_0.3_2, units: false, measurement: TS }
+    TS_FF1_0x5_2_Avg: { field: TS_FF1_0.5_2, units: false, measurement: TS }
+    EC_RAW_FF1_0x05_1_Avg: { field: EC_RAW_FF1_0.05_1, units: false, measurement: XXX }
+    EC_RAW_FF1_0x1_1_Avg: { field: EC_RAW_FF1_0.1_1, units: false, measurement: XXX }
+    EC_RAW_FF1_0x2_1_Avg: { field: EC_RAW_FF1_0.2_1, units: false, measurement: XXX }
+    EC_RAW_FF1_0x3_1_Avg: { field: EC_RAW_FF1_0.3_1, units: false, measurement: XXX }
+    EC_RAW_FF1_0x5_1_Avg: { field: EC_RAW_FF1_0.5_1, units: false, measurement: XXX }
+    SWC_RAW_FF1_0x05_1_Std: { field: SWC_RAW_SD_FF1_0.05_1, units: false, measurement: _RAW }
+    SWC_RAW_FF1_0x1_1_Std: { field: SWC_RAW_SD_FF1_0.1_1, units: false, measurement: _RAW }
+    SWC_RAW_FF1_0x2_1_Std: { field: SWC_RAW_SD_FF1_0.2_1, units: false, measurement: _RAW }
+    SWC_RAW_FF1_0x3_1_Std: { field: SWC_RAW_SD_FF1_0.3_1, units: false, measurement: _RAW }
+    SWC_RAW_FF1_0x5_1_Std: { field: SWC_RAW_SD_FF1_0.5_1, units: false, measurement: _RAW }
+    SWC_FF1_0x05_1_Std: { field: SWC_SD_FF1_0.05_1, units: false, measurement: _SD }
+    SWC_FF1_0x1_1_Std: { field: SWC_SD_FF1_0.1_1, units: false, measurement: _SD }
+    SWC_FF1_0x2_1_Std: { field: SWC_SD_FF1_0.2_1, units: false, measurement: _SD }
+    SWC_FF1_0x3_1_Std: { field: SWC_SD_FF1_0.3_1, units: false, measurement: _SD }
+    SWC_FF1_0x5_1_Std: { field: SWC_SD_FF1_0.5_1, units: false, measurement: _SD }
+    TS_FF1_0x05_2_Std: { field: TS_SD_FF1_0.05_2, units: false, measurement: _SD }
+    TS_FF1_0x1_2_Std: { field: TS_SD_FF1_0.1_2, units: false, measurement: _SD }
+    TS_FF1_0x2_2_Std: { field: TS_SD_FF1_0.2_2, units: false, measurement: _SD }
+    TS_FF1_0x3_2_Std: { field: TS_SD_FF1_0.3_2, units: false, measurement: _SD }
+    TS_FF1_0x5_2_Std: { field: TS_SD_FF1_0.5_2, units: false, measurement: _SD }
+    EC_RAW_FF1_0x05_1_Std: { field: EC_RAW_SD_FF1_0.05_1, units: false, measurement: _RAW }
+    EC_RAW_FF1_0x1_1_Std: { field: EC_RAW_SD_FF1_0.1_1, units: false, measurement: _RAW }
+    EC_RAW_FF1_0x2_1_Std: { field: EC_RAW_SD_FF1_0.2_1, units: false, measurement: _RAW }
+    EC_RAW_FF1_0x3_1_Std: { field: EC_RAW_SD_FF1_0.3_1, units: false, measurement: _RAW }
+    EC_RAW_FF1_0x5_1_Std: { field: EC_RAW_SD_FF1_0.5_1, units: false, measurement: _RAW }
+    TA_T1_2_1_Avg: { field: TA_T1_2_1, units: false, measurement: TA }
+    RH_T1_2_1_Avg: { field: RH_T1_2_1, units: false, measurement: RH }
+    TA_T1_2_1_Std: { field: TA_SD_T1_2_1, units: false, measurement: _SD }
+    RH_T1_2_1_Std: { field: RH_SD_T1_2_1, units: false, measurement: _SD }
+    SAPFLOW_TR2601_1x5_1_Avg: { field: SAPFLOW_TREE2601_1.5_1, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2601_1x5_2_Avg: { field: SAPFLOW_TREE2601_1.5_2, units: false, measurement: SAPFLOW }
+    SAPFLOW_TR2601_1x5_1_Std: { field: SAPFLOW_SD_TREE2601_1.5_1, units: false, measurement: _SD }
+    SAPFLOW_TR2601_1x5_2_Std: { field: SAPFLOW_SD_TREE2601_1.5_2, units: false, measurement: _SD }
+    PPFD_BC_IN_M1_2_1_Avg: { field: PPFD_IN_BC_M1_2_1, units: false, measurement: PPFD }
+    PPFD_BC_IN_M1_2_1_Std: { field: PPFD_IN_BC_M1_2_1, units: false, measurement: _SD }
+    SW_BC_IN_M1_2_1_Avg: { field: SW_IN_BC_M1_2_1, units: false, measurement: SW }
+    LW_BC_IN_M1_2_1_Avg: { field: LW_IN_BC_M1_2_1, units: false, measurement: LW }
+    SW_BC_IN_M1_2_1_Std: { field: SW_IN_BC_SD_M1_2_1, units: false, measurement: _SD }
+    SW_BC_OUT_M1_2_1_Avg: { field: SW_OUT_BC_M1_2_1, units: false, measurement: SW }
+    LW_BC_OUT_M1_2_1_Avg: { field: LW_OUT_BC_M1_2_1, units: false, measurement: LW }
+    SW_BC_OUT_M1_2_1_Std: { field: SW_OUT_BC_SD_M1_2_1, units: false, measurement: _SD }
+    LW_BC_IN_M1_2_1_Std: { field: LW_IN_BC_SD_M1_2_1, units: false, measurement: _SD }
+    LW_BC_OUT_M1_2_1_Std: { field: LW_OUT_BC_SD_M1_2_1, units: false, measurement: _SD }
+    SW_BC_VIN_M1_2_1_Avg: { field: SW_VIN_BC_M1_2_1, units: false, measurement: SW }
+    LW_BC_VIN_M1_2_1_Avg: { field: LW_VIN_BC_M1_2_1, units: false, measurement: LW }
+    SW_BC_VOUT_M1_2_1_Avg: { field: SW_VOUT_BC_M1_2_1, units: false, measurement: SW }
+    LW_BC_VOUT_M1_2_1_Avg: { field: LW_VOUT_BC_M1_2_1, units: false, measurement: LW }
+    LW_BC_TBIN_M1_2_1_Avg: { field: LW_TBIN_BC_M1_2_1, units: false, measurement: LW }
+    LW_BC_TBOUT_M1_2_1_Avg: { field: LW_TBOUT_BC_M1_2_1, units: false, measurement: LW }

@@ -1,5 +1,10 @@
 # DATAFLOW
 
+`dataflow` scans folders for files and tries to assign a `filetype` to each found file.
+
+If a `filetype` was successfully assigned to a specific file, `dataflow` uploads the respective
+file using the settings for the respectively assigned `filetype`.
+
 `dataflow` currently consists of three sub-scripts:
 - `filescanner`: Scans the server for data files and outputs results to `dataflow` output folder.
 - `varscanner`: Scans the `dataflow` output folder for **all** `filescanner` results.
@@ -10,8 +15,10 @@ These sub-scripts need to be called separately. While `filescanner` works indepe
 
 `dbscanner` works directly on database data.
 
-`dataflow` needs the external `configs` folder to run, which is not part of this source code
-due to security reasons.
+`dataflow` configurations, including the different `filetypes`, are given in the `configs` folder.
+
+Configurations for accessing the database are not included in this source code for security reasons.
+
 
 ## Current data
 The first step is to make sure `dataflow` works with 2021 data onwards. filetypes for
@@ -87,7 +94,11 @@ for each site (e.g. CH-DAV) and filegroup (e.g. 10_meteo).
 #### 13_meteo_meteoswiss
 - ...
 #### 13_meteo_nabel
-- CH-DAV > raw_13_meteo_nabel > DAV13-RAW-NABEL-CSV-1MIN-201810040000.yaml
+- CH-DAV > raw_13_meteo_nabel > DAV13-RAW-NABEL-CSV-1MIN-201901010000.yaml
+- CH-DAV > raw_13_meteo_nabel > DAV13-RAW-NABEL-SSV-TXT-30MIN-199701010000.yaml (+20220504)
+- CH-DAV > raw_13_meteo_nabel > DAV13-RAW-NABEL-SSV-TXT-10MIN-200001010000.yaml (+20220504)
+- CH-DAV > raw_13_meteo_nabel > DAV13-RAW-NABEL-SSV-TXT-10MIN-200901010000.yaml (+20220505)
+- CH-DAV > raw_13_meteo_nabel > DAV13-RAW-NABEL-SSV-TXT-10MIN-201601010000.yaml (+20220505)
 #### 15_meteo_snowheight
 - CH-DAV > raw_15_meteo_snowheight > DAV15-RAW-TOA5-DAT-1MIN-202112020000.yaml
 - CH-DAV > raw_15_meteo_snowheight > DAV15-RAW-ICOS-DAT-1MIN-201911050000.yaml
@@ -95,6 +106,8 @@ for each site (e.g. CH-DAV) and filegroup (e.g. 10_meteo).
 - CH-DAV > raw_17_meteo_profile > DAV17-RAW-TOA5-PRF-DAT-AUX-1MIN-202112140000.yaml
 - CH-DAV > raw_17_meteo_profile > DAV17-RAW-TOA5-PRF-DAT-10S-202201030000.yaml
 - CH-DAV > raw_17_meteo_profile > DAV17-RAW-ICOS-PRF-DAT-10S-20180711.yaml
+- CH-DAV > raw_17_meteo_profile > DAV17-RAW-NABEL-PRF-SSV-DAT-P2-5MIN-200001010000.yaml (+20220503)
+- CH-DAV > raw_17_meteo_profile > DAV17-RAW-NABEL-PRF-SSV-DAT-P2-5MIN-200601010000.yaml (+20220503)
 #### 30_profile_ghg
 - CH-DAV > raw_30_profile_ghg > DAV30-RAW-ICOSSEQ-PRF-DAT-1S-20180828.yaml
 - CH-DAV > raw_30_profile_ghg > DAV30-RAW-ICOSSEQ-PRF-QCL-DAT-1S-20191003.yaml

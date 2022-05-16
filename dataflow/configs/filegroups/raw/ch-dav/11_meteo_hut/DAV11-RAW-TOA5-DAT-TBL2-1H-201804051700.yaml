@@ -1,0 +1,43 @@
+# CH-DAV
+# 11_meteo_hut
+
+
+DAV11-RAW-TOA5-DAT-TBL2-1H-201804051700:
+  # TOA5
+  # First file: CH-DAV_iDL_H1_0_1_TBL2_2018_04_05_1700.dat (the very first CH-DAV_iDL_H1_0_1_TBL2_*.dat file)
+  # Last file:  *currently running*
+  filetype_valid_from: 2018-04-05 17:00:00
+  filetype_valid_to: 2099-12-31 23:59:59
+  filetype_id: CH-DAV_iDL_H1_0_1_TBL2_*.dat
+  filetype_dateparser: CH-DAV_iDL_H1_0_1_TBL2_%Y_%m_%d_%H%M.dat
+  filetype_gzip: false
+  filegroup: 11_meteo_hut
+  data_raw_freq: H
+  data_skiprows: [ 0, 3 ]
+  data_headerrows: [ 0, 1 ]
+  data_index_col: 0
+  data_parse_dates: [ 0 ]
+  data_date_parser: '%Y-%m-%d %H:%M:%S'
+  data_build_timestamp: false
+  data_keep_good_rows: false
+  data_remove_bad_rows: false
+  data_na_values: [ -9999, nan, NaN, NAN, -6999, '-' ]
+  data_encoding: utf-8
+  data_delimiter: ','
+  data_mangle_dupe_cols: true
+  data_keep_date_col: false
+  data_version: raw
+  data_vars:
+    RECORD: { field: RECORD_X_X_X, units: false, measurement: _instrumentmetrics }
+    SWC1_15_Avg: { field: SWC_LOWRES_FF0_0.15_1, units: false, measurement: SWC }
+    SWC1_50_Avg: { field: SWC_LOWRES_FF0_0.50_1, units: false, measurement: SWC }
+    SWC1_80_Avg: { field: SWC_LOWRES_FF0_0.80_1, units: false, measurement: SWC }
+    SWC2_15_Avg: { field: SWC_LOWRES_FF0_0.15_2, units: false, measurement: SWC }
+    SWC2_50_Avg: { field: SWC_LOWRES_FF0_0.50_2, units: false, measurement: SWC }
+    SWC2_80_Avg: { field: SWC_LOWRES_FF0_0.80_2, units: false, measurement: SWC }
+    SWC3_15_Avg: { field: SWC_LOWRES_FF0_0.15_3, units: false, measurement: SWC }
+    SWC3_50_Avg: { field: SWC_LOWRES_FF0_0.50_3, units: false, measurement: SWC }
+    SWC3_80_Avg: { field: SWC_LOWRES_FF0_0.80_3, units: false, measurement: SWC }
+    SWC4_15_Avg: { field: SWC_LOWRES_FF0_0.15_4, units: false, measurement: SWC }
+    SWC4_50_Avg: { field: SWC_LOWRES_FF0_0.50_4, units: false, measurement: SWC }
+    SWC4_80_Avg: { field: SWC_LOWRES_FF0_0.80_4, units: false, measurement: SWC }

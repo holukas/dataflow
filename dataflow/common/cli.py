@@ -97,6 +97,9 @@ def get_args():
     parser.add_argument('-n', '--newestfiles', type=int, default=0,
                         help="Consider newest files only, 0 means keep all files, e.g. 3 means keep 3 newest files. "
                              "Is applied after FILELIMIT was considered.")
+
+    #TODO hier weiter: add arg for testupload
+
     # parser.add_argument('-fnd', '--filenamedateformat', type=str, default='%Y%m%d%H%M%S',
     #                     help="Filename date format as datetime format strings. Is used to parse the date and "
     #                          "time info from the filename of found files. The filename(s) of the files found in "

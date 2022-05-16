@@ -1,0 +1,77 @@
+# CH-DAV
+# 13_meteo_nabel
+
+#   NABEL measurements
+#
+#   Complete year in one respective file
+#
+#   File has ANSI encoding, see filetype "DAV13-RAW-NABEL-CSV-1MIN-201901010000"
+#   for details about ANSI.
+#
+#   The timestamp is built from the first five columns. This settings file
+#   assigns the column names YEAR, MONTH, DAY, HOUR, MINUTE to these columns.
+#   pandas can recognizes columns with these names as time columns and
+#   timestamp-building is thus easy.
+#   Then the columns are combined into the full timestamp using the setting
+#   'data_build_timestamp'.
+#
+#   Same format as DAV13-RAW-NABEL-SSV-TXT-30MIN-199701010000.yaml, but in
+#   10MIN time resolution instead of 30MIN.
+#
+#   Since these are yearly datafiles, there or not many files and thus filetype_id
+#   gives the filenames of all valid files directly without wildcards.
+
+
+DAV13-RAW-NABEL-SSV-TXT-10MIN-200001010000:
+  # SSV: space-separated files
+  # First file: DAV_NABEL.10min_2000.01-12.txt
+  # Last file:  DAV_NABEL.10min_2015.01-12.txt
+  filetype_valid_from: 2000-01-01 00:00:00
+  filetype_valid_to: 2015-01-01 00:00:00
+  filetype_id: [
+    'DAV_NABEL.10min_2000.01-12.txt', 'DAV_NABEL.10min_2001.01-12.txt',
+    'DAV_NABEL.10min_2002.01-12.txt', 'DAV_NABEL.10min_2003.01-12.txt',
+    'DAV_NABEL.10min_2004.01-12.txt', 'DAV_NABEL.10min.2005.01-12.txt',
+    'DAV_NABEL.10min_2006.01-12.txt', 'DAV_NABEL.10min_2007.01-12.txt',
+    'DAV_NABEL.10min_2008.01-12.txt',
+    'DAV_NABEL.10min_2010.01-12.txt', 'DAV_NABEL.10min_2011.01-10.txt',
+    'DAV_NABEL.10min_2013.01-12.txt', 'DAV_NABEL.10min_2014.01-12.txt',
+    'DAV_NABEL.10min_2015.01-12.txt'
+  ]
+  filetype_dateparser: [ 'DAV_NABEL.10min_%Y.%m-12.txt', 'DAV_NABEL.10min.%Y.%m-12.txt',
+                         'DAV_NABEL.10min_%Y.%m-10.txt' ]
+  filetype_gzip: false
+  filegroup: 13_meteo_nabel
+  data_raw_freq: 10T
+  # Skip complete upper part, incl. column name info:
+  data_skiprows: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 ]
+#  data_skiprows: [ 0 ]
+  data_headerrows: 0
+#  data_headerrows: [ 0 ]
+  data_index_col: -9999
+  data_parse_dates: false
+  data_date_parser: false
+  data_build_timestamp: "YEAR0+MONTH1+DAY2+HOUR3+MINUTE4"
+  data_keep_good_rows: false
+  data_remove_bad_rows: false
+  data_na_values: [ -9999, nan, NaN, NAN, -6999, '-' ]
+  data_encoding: cp1252
+  data_delimiter: '\s+'
+  data_mangle_dupe_cols: true
+  data_keep_date_col: false
+  data_version: raw
+  data_vars:
+    YEAR:
+    MONTH:
+    DAY:
+    HOUR:
+    MINUTE:
+    Windrichtung: { field: WD_VANE_NABEL_T1_35_1, gain: 1, units: deg, measurement: WD }
+    Windgeschwindigkeit: { field: WS_CUP_NABEL_T1_35_1, gain: 1, units: m s-1, measurement: WS }
+    Windspitze: { field: WS_CUP_MAX_NABEL_T1_35_1, gain: 1, units: m s-1, measurement: WS }
+    Druck: { field: PA_NABEL_H1_2_1, gain: 1, units: hPa, measurement: PA }
+    Globalstrahlung: { field: SW_IN_NABEL_T1_35_1, gain: 1, units: W m-2, measurement: SW }
+    Strahlungsbilanz: { field: NETRAD_NABEL_T1_35_1, gain: 1, units: W m-2, measurement: NETRAD }
+    Niederschlagsmenge: { field: PREC_TOT_NABEL_T1_25_1, gain: 1, units: mm, measurement: PREC }
+    rel. Feuchte: { field: RH_NABEL_T1_35_1, gain: 1, units: "%", measurement: RH }
+    Temperatur: { field: TA_NABEL_T1_35_1, gain: 1, units: degC, measurement: TA }

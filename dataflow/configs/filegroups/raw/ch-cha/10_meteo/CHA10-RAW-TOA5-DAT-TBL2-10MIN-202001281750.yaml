@@ -1,0 +1,111 @@
+# CH-CHA
+# 10_meteo
+
+
+CHA10-RAW-TOA5-DAT-TBL2-10MIN-202001281750:
+  # TOA5
+  # First file: CH-CHA_iDL_BOX1_0_1_TBL2_20200128-1750.dat (the very first 10MIN CH-CHA_iDL_BOX1_0_1_TBL2_*.dat file)
+  # Last file:  *currently running*
+  filetype_valid_from: 2020-01-28 17:50:00
+  filetype_valid_to: 2099-02-28 11:01:00
+  filetype_id: CH-CHA_iDL_BOX1_0_1_TBL2_*.dat
+  filetype_dateparser: CH-CHA_iDL_BOX1_0_1_TBL2_%Y%m%d-%H%M.dat
+  filetype_gzip: false
+  filegroup: 10_meteo
+  data_raw_freq: 10T
+  data_skiprows: [ 0, 3 ]
+  data_headerrows: [ 0, 1 ]
+  data_index_col: 0
+  data_parse_dates: [ 0 ]
+  data_date_parser: '%Y-%m-%d %H:%M:%S'
+  data_build_timestamp: false
+  data_keep_good_rows: false
+  data_remove_bad_rows: false
+  data_na_values: [ -9999, nan, NaN, NAN, -6999, '-' ]
+  data_encoding: utf-8
+  data_delimiter: ','
+  data_mangle_dupe_cols: true
+  data_keep_date_col: false
+  data_version: raw
+  data_vars:
+    RECORD: { field: RECORD_LOWRES_X_X_X, units: false, measurement: _instrumentmetrics }
+    SDP_GF1_1x00_3_Avg: { field: SDP_LOWRES_GF1_1.00_3, units: false, measurement: SDP }
+    SDP_GF1_1x00_3_Std: { field: SDP_LOWRES_SD_GF1_1.00_3, units: false, measurement: _SD }
+    SDP_GF1_0x05_3_Avg: { field: SDP_LOWRES_GF1_0.05_3, units: false, measurement: SDP }
+    SDP_GF1_0x05_3_Std: { field: SDP_LOWRES_SD_GF1_0.05_3, units: false, measurement: _SD }
+    SDP_GF1_0x10_3_Avg: { field: SDP_LOWRES_GF1_0.10_3, units: false, measurement: SDP }
+    SDP_GF1_0x10_3_Std: { field: SDP_LOWRES_SD_GF1_0.10_3, units: false, measurement: _SD }
+    SDP_GF1_0x20_3_Avg: { field: SDP_LOWRES_GF1_0.20_3, units: false, measurement: SDP }
+    SDP_GF1_0x20_3_Std: { field: SDP_LOWRES_SD_GF1_0.20_3, units: false, measurement: _SD }
+    SDP_GF1_0x30_3_Avg: { field: SDP_LOWRES_GF1_0.30_3, units: false, measurement: SDP }
+    SDP_GF1_0x30_3_Std: { field: SDP_LOWRES_SD_GF1_0.30_3, units: false, measurement: _SD }
+    SDP_GF1_0x40_3_Avg: { field: SDP_LOWRES_GF1_0.40_3, units: false, measurement: SDP }
+    SDP_GF1_0x40_3_Std: { field: SDP_LOWRES_SD_GF1_0.40_3, units: false, measurement: _SD }
+    SDP_GF1_0x50_3_Avg: { field: SDP_LOWRES_GF1_0.50_3, units: false, measurement: SDP }
+    SDP_GF1_0x50_3_Std: { field: SDP_LOWRES_SD_GF1_0.50_3, units: false, measurement: _SD }
+    SDP_GF1_0x60_3_Avg: { field: SDP_LOWRES_GF1_0.60_3, units: false, measurement: SDP }
+    SDP_GF1_0x60_3_Std: { field: SDP_LOWRES_SD_GF1_0.60_3, units: false, measurement: _SD }
+    SDP_GF1_0x75_3_Avg: { field: SDP_LOWRES_GF1_0.75_3, units: false, measurement: SDP }
+    SDP_GF1_0x75_3_Std: { field: SDP_LOWRES_SD_GF1_0.75_3, units: false, measurement: _SD }
+    SDP_GF1_0x100_3_Avg: { field: SDP_LOWRES_GF1_1.00_3, units: false, measurement: SDP }
+    SDP_GF1_0x100_3_Std: { field: SDP_LOWRES_SD_GF1_1.00_3, units: false, measurement: _SD }
+    SEC_GF1_1x00_3_Avg: { field: SEC_LOWRES_GF1_1.00_3, units: false, measurement: SEC }
+    SEC_GF1_1x00_3_Std: { field: SEC_LOWRES_SD_GF1_1.00_3, units: false, measurement: _SD }
+    SEC_GF1_0x05_3_Avg: { field: SEC_LOWRES_GF1_0.05_3, units: false, measurement: SEC }
+    SEC_GF1_0x05_3_Std: { field: SEC_LOWRES_SD_GF1_0.05_3, units: false, measurement: _SD }
+    SEC_GF1_0x10_3_Avg: { field: SEC_LOWRES_GF1_0.10_3, units: false, measurement: SEC }
+    SEC_GF1_0x10_3_Std: { field: SEC_LOWRES_SD_GF1_0.10_3, units: false, measurement: _SD }
+    SEC_GF1_0x20_3_Avg: { field: SEC_LOWRES_GF1_0.20_3, units: false, measurement: SEC }
+    SEC_GF1_0x20_3_Std: { field: SEC_LOWRES_SD_GF1_0.20_3, units: false, measurement: _SD }
+    SEC_GF1_0x30_3_Avg: { field: SEC_LOWRES_GF1_0.30_3, units: false, measurement: SEC }
+    SEC_GF1_0x30_3_Std: { field: SEC_LOWRES_SD_GF1_0.30_3, units: false, measurement: _SD }
+    SEC_GF1_0x40_3_Avg: { field: SEC_LOWRES_GF1_0.40_3, units: false, measurement: SEC }
+    SEC_GF1_0x40_3_Std: { field: SEC_LOWRES_SD_GF1_0.40_3, units: false, measurement: _SD }
+    SEC_GF1_0x50_3_Avg: { field: SEC_LOWRES_GF1_0.50_3, units: false, measurement: SEC }
+    SEC_GF1_0x50_3_Std: { field: SEC_LOWRES_SD_GF1_0.50_3, units: false, measurement: _SD }
+    SEC_GF1_0x60_3_Avg: { field: SEC_LOWRES_GF1_0.60_3, units: false, measurement: SEC }
+    SEC_GF1_0x60_3_Std: { field: SEC_LOWRES_SD_GF1_0.60_3, units: false, measurement: _SD }
+    SEC_GF1_0x75_3_Avg: { field: SEC_LOWRES_GF1_0.75_3, units: false, measurement: SEC }
+    SEC_GF1_0x75_3_Std: { field: SEC_LOWRES_SD_GF1_0.75_3, units: false, measurement: _SD }
+    SEC_GF1_0x100_3_Avg: { field: SEC_LOWRES_GF1_1.00_3, units: false, measurement: SEC }
+    SEC_GF1_0x100_3_Std: { field: SEC_LOWRES_SD_GF1_1.00_3, units: false, measurement: _SD }
+    SWC_GF1_1x00_3_Avg: { field: SWC_LOWRES_GF1_1.00_3, units: false, measurement: SWC }
+    SWC_GF1_1x00_3_Std: { field: SWC_LOWRES_SD_GF1_1.00_3, units: false, measurement: _SD }
+    SWC_GF1_0x05_3_Avg: { field: SWC_LOWRES_GF1_0.05_3, units: false, measurement: SWC }
+    SWC_GF1_0x05_3_Std: { field: SWC_LOWRES_SD_GF1_0.05_3, units: false, measurement: _SD }
+    SWC_GF1_0x10_3_Avg: { field: SWC_LOWRES_GF1_0.10_3, units: false, measurement: SWC }
+    SWC_GF1_0x10_3_Std: { field: SWC_LOWRES_SD_GF1_0.10_3, units: false, measurement: _SD }
+    SWC_GF1_0x20_3_Avg: { field: SWC_LOWRES_GF1_0.20_3, units: false, measurement: SWC }
+    SWC_GF1_0x20_3_Std: { field: SWC_LOWRES_SD_GF1_0.20_3, units: false, measurement: _SD }
+    SWC_GF1_0x30_3_Avg: { field: SWC_LOWRES_GF1_0.30_3, units: false, measurement: SWC }
+    SWC_GF1_0x30_3_Std: { field: SWC_LOWRES_SD_GF1_0.30_3, units: false, measurement: _SD }
+    SWC_GF1_0x40_3_Avg: { field: SWC_LOWRES_GF1_0.40_3, units: false, measurement: SWC }
+    SWC_GF1_0x40_3_Std: { field: SWC_LOWRES_SD_GF1_0.40_3, units: false, measurement: _SD }
+    SWC_GF1_0x50_3_Avg: { field: SWC_LOWRES_GF1_0.50_3, units: false, measurement: SWC }
+    SWC_GF1_0x50_3_Std: { field: SWC_LOWRES_SD_GF1_0.50_3, units: false, measurement: _SD }
+    SWC_GF1_0x60_3_Avg: { field: SWC_LOWRES_GF1_0.60_3, units: false, measurement: SWC }
+    SWC_GF1_0x60_3_Std: { field: SWC_LOWRES_SD_GF1_0.60_3, units: false, measurement: _SD }
+    SWC_GF1_0x75_3_Avg: { field: SWC_LOWRES_GF1_0.75_3, units: false, measurement: SWC }
+    SWC_GF1_0x75_3_Std: { field: SWC_LOWRES_SD_GF1_0.75_3, units: false, measurement: _SD }
+    SWC_GF1_0x100_3_Avg: { field: SWC_LOWRES_GF1_1.00_3, units: false, measurement: SWC }
+    SWC_GF1_0x100_3_Std: { field: SWC_LOWRES_SD_GF1_1.00_3, units: false, measurement: _SD }
+    TS_GF1_1x00_3_Avg: { field: TS_LOWRES_GF1_1.00_3, units: false, measurement: TS }
+    TS_GF1_1x00_3_Std: { field: TS_LOWRES_SD_GF1_1.00_3, units: false, measurement: _SD }
+    TS_GF1_0x05_3_Avg: { field: TS_LOWRES_GF1_0.05_3, units: false, measurement: TS }
+    TS_GF1_0x05_3_Std: { field: TS_LOWRES_SD_GF1_0.05_3, units: false, measurement: _SD }
+    TS_GF1_0x10_3_Avg: { field: TS_LOWRES_GF1_0.10_3, units: false, measurement: TS }
+    TS_GF1_0x10_3_Std: { field: TS_LOWRES_SD_GF1_0.10_3, units: false, measurement: _SD }
+    TS_GF1_0x20_3_Avg: { field: TS_LOWRES_GF1_0.20_3, units: false, measurement: TS }
+    TS_GF1_0x20_3_Std: { field: TS_LOWRES_SD_GF1_0.20_3, units: false, measurement: _SD }
+    TS_GF1_0x30_3_Avg: { field: TS_LOWRES_GF1_0.30_3, units: false, measurement: TS }
+    TS_GF1_0x30_3_Std: { field: TS_LOWRES_SD_GF1_0.30_3, units: false, measurement: _SD }
+    TS_GF1_0x40_3_Avg: { field: TS_LOWRES_GF1_0.40_3, units: false, measurement: TS }
+    TS_GF1_0x40_3_Std: { field: TS_LOWRES_SD_GF1_0.40_3, units: false, measurement: _SD }
+    TS_GF1_0x50_3_Avg: { field: TS_LOWRES_GF1_0.50_3, units: false, measurement: TS }
+    TS_GF1_0x50_3_Std: { field: TS_LOWRES_SD_GF1_0.50_3, units: false, measurement: _SD }
+    TS_GF1_0x60_3_Avg: { field: TS_LOWRES_GF1_0.60_3, units: false, measurement: TS }
+    TS_GF1_0x60_3_Std: { field: TS_LOWRES_SD_GF1_0.60_3, units: false, measurement: _SD }
+    TS_GF1_0x75_3_Avg: { field: TS_LOWRES_GF1_0.75_3, units: false, measurement: TS }
+    TS_GF1_0x75_3_Std: { field: TS_LOWRES_SD_GF1_0.75_3, units: false, measurement: _SD }
+    TS_GF1_0x100_3_Avg: { field: TS_LOWRES_GF1_1.00_3, units: false, measurement: TS }
+    TS_GF1_0x100_3_Std: { field: TS_LOWRES_SD_GF1_1.00_3, units: false, measurement: _SD }

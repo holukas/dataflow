@@ -94,15 +94,18 @@ class VarScanner:
                              f"{self.filescanner_df.loc[fs_file_ix, 'numdatarows']} rows")
 
             # Loop through vars
+            # v0.2.0: db_bucket is now defined from CLI args `site` and `datatype`,
+            # no longer from `filetype` configuration files
             self._loopvars(df=df, fileinfo=fs_fileinfo, filetypeconf=filetypeconf,
-                           freq=freq, freqfrom=freqfrom, file_ix=fs_file_ix)
+                           freq=freq, freqfrom=freqfrom, file_ix=fs_file_ix,
+                           db_bucket=fs_fileinfo['db_bucket'])
 
         # if self.mode > 2:
         self.logger.info(f"{self.class_id} Finished writing variables.")
         self.write_client.__del__()
         self.client.__del__()
 
-    def _loopvars(self, df, fileinfo, filetypeconf, freq, freqfrom, file_ix):
+    def _loopvars(self, df, fileinfo, filetypeconf, freq, freqfrom, file_ix, db_bucket:str):
         """Loop over vars in file"""
 
         # Find variables
@@ -118,7 +121,8 @@ class VarScanner:
                                                        fileinfo=fileinfo,
                                                        filetypeconf=filetypeconf,
                                                        freq=freq,
-                                                       freqfrom=freqfrom)
+                                                       freqfrom=freqfrom,
+                                                       db_bucket=db_bucket)
 
             # Add var to found vars in overview of *unique* variables
             # For this overview, the source file is not needed. It would result
@@ -139,7 +143,7 @@ class VarScanner:
             # Ingest var into database
             elif is_greenlit:
                 # elif self.mode > 2 and is_greenlit:
-                self._ingest(df=df, newvar=newvar, file_ix=file_ix)
+                self._ingest(df=df, newvar=newvar, file_ix=file_ix, sourcepath=fileinfo['filepath'])
 
     def _log_no_data(self, var):
         self.logger.warning(f"### (!)VARIABLE WARNING: NO DATA ###:")
@@ -156,7 +160,7 @@ class VarScanner:
 
         self.logger.info(f"### If this is expected you can ignore this warning.")
 
-    def _ingest(self, df: pd.DataFrame, newvar, file_ix):
+    def _ingest(self, df: pd.DataFrame, newvar, file_ix, sourcepath:str):
         """Collect variable data and tags and upload to database
 
         New df that contains the variable (field) and tags (all other columns)
@@ -202,34 +206,51 @@ class VarScanner:
         var_df['freqfrom'] = newvar['freqfrom']
         var_df['filegroup'] = newvar['filegroup']
         var_df['config_filetype'] = newvar['config_filetype']
-        var_df['srcfile'] = newvar['srcfile']
+        # var_df['srcfile'] = newvar['srcfile']  # no longer a tag since v0.2.0
         var_df['data_version'] = newvar['data_version']
         var_df['gain'] = newvar['gain']
 
         # Define which columns should be stored as tags in the database
+
+        # Without the tag 'srcfile'
+        # To avoid duplicates for a specific timestamp
         tags = ['varname', 'units', 'raw_varname', 'raw_units', 'hpos', 'vpos', 'repl',
                 'data_raw_freq', 'freq', 'freqfrom',
-                'filegroup', 'config_filetype', 'srcfile', 'data_version', 'gain']
+                'filegroup', 'config_filetype', 'data_version', 'gain']
+
+        # # With tag 'srcfile'
+        # # Using 'srcfile' as tag leads to duplicates in case of overlapping files
+        # tags = ['varname', 'units', 'raw_varname', 'raw_units', 'hpos', 'vpos', 'repl',
+        #         'data_raw_freq', 'freq', 'freqfrom',
+        #         'filegroup', 'config_filetype', 'srcfile', 'data_version', 'gain']
 
         # Write to db
-        self.logger.info(f"     Writing to database from file #{file_ix}: "
-                         f"{newvar['srcfile']}: "
-                         f"{newvar['raw_varname']} as {newvar['field']} "
+        # Output also the source file to log
+        self.logger.info(f"     Database ingestion from file #{file_ix}:")
+        self.logger.info(f"         Source file: {sourcepath}:")
+        self.logger.info(f"         --> Writing {newvar['raw_varname']} as {newvar['field']} "
                          f"to db (bucket: {newvar['db_bucket']}) ...")
+
+        # # This used 'srcfile' from tags:
+        # self.logger.info(f"     Writing to database from file #{file_ix}: "
+        #                  f"{newvar['srcfile']}: "
+        #                  f"{newvar['raw_varname']} as {newvar['field']} "
+        #                  f"to db (bucket: {newvar['db_bucket']}) ...")
 
         self.write_client.write(newvar['db_bucket'],
                                 record=var_df,
                                 data_frame_measurement_name=newvar['measurement'],
                                 data_frame_tag_columns=tags)
 
-    def _init_varentry(self, fileinfo, filetypeconf, freq, freqfrom, rawvar):
+    def _init_varentry(self, fileinfo, filetypeconf, freq, freqfrom, rawvar, db_bucket:str):
         newvar = dict(
             config_filetype=fileinfo['config_filetype'],
             srcfile=Path(fileinfo['filepath']).name,  # Only filename with extension
             filegroup=fileinfo['filegroup'],
             data_version=fileinfo['data_version'],
             special_format=fileinfo['special_format'],
-            db_bucket=filetypeconf['db_bucket'],
+            db_bucket=db_bucket,  # v0.2.0: db_bucket now comes from CLI args `site` and `datatype`
+            # db_bucket=filetypeconf['db_bucket'],
             data_raw_freq=filetypeconf['data_raw_freq'],
             freq=freq,
             freqfrom=freqfrom,
@@ -246,7 +267,7 @@ class VarScanner:
         )
         return newvar
 
-    def create_varentry(self, rawvar, fileinfo, filetypeconf, freq, freqfrom):
+    def create_varentry(self, rawvar, fileinfo, filetypeconf, freq, freqfrom, db_bucket:str):
         """Loop through variables in file and collect info for each var
 
         Collects the following varinfo:
@@ -264,7 +285,8 @@ class VarScanner:
         # Collect varinfo as tags in dict
         newvar = \
             self._init_varentry(fileinfo=fileinfo, filetypeconf=filetypeconf,
-                                freq=freq, freqfrom=freqfrom, rawvar=rawvar)
+                                freq=freq, freqfrom=freqfrom, rawvar=rawvar,
+                                db_bucket=db_bucket)
 
         # Get var settings from configuration
         if rawvar[0] in filetypeconf['data_vars'].keys():

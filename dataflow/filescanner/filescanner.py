@@ -4,6 +4,7 @@ FILESCANNER
 import datetime
 import datetime as dt
 import fnmatch
+import logging
 import os
 import pathlib
 import time
@@ -35,24 +36,47 @@ class FileScanner:
     def __init__(
             self,
             site: str,
+            datatype: str,
             filegroup: str,
-            conf_filetypes,
-            logger,
+            conf_filetypes: dict,
+            logger: logging.Logger,
             dir_src: pathlib.Path,
             filelimit: int = 0,
-            newestfiles: int = 3
+            newestfiles: int = 3,
+            testupload: bool = False
     ):
         self.dir_src = dir_src
         # self.dir_src = dir_src.as_posix()
         self.site = site
+        self.datatype = datatype
         self.filegroup = filegroup
         self.conf_filetypes = conf_filetypes
         self.filelimit = filelimit if filelimit > 0 else None
         self.newestfiles = newestfiles if newestfiles >= 0 else 0
+        self.testupload = testupload
         self.logger = logger
+
+        # Destination bucket in database
+        # v0.2.0: Target bucket is now determined from site
+        # and datatype instead of from filetypeconf.
+        # During test uploads, data are uploaded to 'test' bucket.
+        self.db_bucket = f"{self.site}_{self.datatype}" if not self.testupload else 'test'
+
         logblocks._log_start(logger=self.logger, class_id=self.class_id)
 
+        self._ignore_extensions = self._list_of_ignored_extensions()
+        self.ignored_strings = self._list_of_ignored_strings()
+
         self.filescanner_df = self._init_df()
+
+    def _list_of_ignored_strings(self) -> list:
+        return ['*binned*', 'stats_agg_BICO-*']
+
+    def _list_of_ignored_extensions(self) -> list:
+        # TODO check: Ignore files with certain extensions, v0.0.7
+        return ['.png', '.dll', '.log', '.exe', '.metadata', '.eddypro',
+                '.gz', '.settings', '.settingsOld', '.jpg', '.JPG', '.jpeg', '.JPEG',
+                '.gif']
 
     def _init_df(self) -> pd.DataFrame:
         return pd.DataFrame(columns=['filename', 'site', 'filegroup',
@@ -73,7 +97,7 @@ class FileScanner:
 
         # Loop through all available filetypes
         for filetype in self.conf_filetypes.keys():
-            filetypeconf = self.conf_filetypes[filetype]
+            filetypeconf = self.conf_filetypes[filetype].copy()
 
             # Assing filetype:
             # File must match filetype_id (e.g. "meteo*.a*"), filedate format (e.g. "meteo%Y%m%d%H.a%M")
@@ -95,6 +119,12 @@ class FileScanner:
 
             # Continue if match was found
             if fnmatch_success:
+
+                # Level-0 fluxes must be in a subfolder that is named 'Level-0'
+                if filetypeconf['filegroup'] == '20_ec_fluxes' \
+                        and filetypeconf['data_version'] == 'Level-0' \
+                        and not 'Level-0' in str(newfile['filepath'].parent):
+                    continue
 
                 # Check if file conforms to one of the defined filedate formats
                 filedate = None
@@ -119,7 +149,7 @@ class FileScanner:
                             #   Example where filename is parsed in full, including file extension:
                             #       'CH-DAV_iDL_H1_0_1_TBL1_%Y_%m_%d_%H%M.dat'
                             length = len(dateparser) + 1
-                            filedate = dt.datetime.strptime(newfile['filename'][0:length+1], dateparser)
+                            filedate = dt.datetime.strptime(newfile['filename'][0:length + 1], dateparser)
                             break
                         except ValueError:
                             continue
@@ -138,7 +168,8 @@ class FileScanner:
                     # If True, file passed all checks and info is filled into dict
                     newfile['filedate'] = filedate
                     newfile['config_filetype'] = filetype
-                    newfile['db_bucket'] = filetypeconf['db_bucket']
+                    newfile['db_bucket'] = self.db_bucket
+                    # newfile['db_bucket'] = filetypeconf['db_bucket']
                     newfile['id'] = filetypeconf['filetype_id']
 
                     # Detect data version
@@ -191,22 +222,26 @@ class FileScanner:
             root = Path(root)
 
             for filename in files:
+
+                ignore = False
+
+                # Ignore certain extensions
+                if Path(filename).suffix in self._ignore_extensions:
+                    ignore = True
+
+                # Ignore files that contain certain strings
+                for ignored_string in self.ignored_strings:
+                    if fnmatch.fnmatch(filename, ignored_string):
+                        ignore = True
+
+                if ignore:
+                    continue
+
                 filenum += 1
 
                 if self.filelimit:
                     if filenum > self.filelimit:
                         break
-
-                # Ignore files with certain extensions, v0.0.7
-                ignore_exts = ['.png', '.dll', '.log', '.exe', '.metadata', '.eddypro',
-                               '.gz', '.settings', '.settingsOld', '.jpg', '.JPG', '.jpeg', '.JPEG',
-                               '.gif']
-                if Path(filename).suffix in ignore_exts:
-                    continue
-
-                # if self.filegroup == '20_ec_fluxes':
-
-                # if fnmatch.fnmatch(filename, f'*.{ext}'):
 
                 self.logger.info(f"{self.class_id} Found file #{filenum}: {filename}")
 
