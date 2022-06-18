@@ -63,13 +63,26 @@ def get_args():
                              "'mount' path (e.g. on gl-calcs)")
     parser.add_argument('filegroup', type=str,
                         help="Data group, e.g. '10_meteo'")
+    parser.add_argument('dirconf', type=str,
+                        help="Path to folder with configuration settings")
+
+    parser.add_argument('-y', '--year', type=int,
+                        help="Year")
+    parser.add_argument('-m', '--month', type=int,
+                        help="Month")
+    parser.add_argument('-l', '--filelimit', type=int, default=0,
+                        help="File limit, 0 corresponds to no limit.")
+    parser.add_argument('-n', '--newestfiles', type=int, default=0,
+                        help="Consider newest files only, 0 means keep all files, e.g. 3 means keep 3 newest files. "
+                             "Is applied after FILELIMIT was considered.")
+
+    #TODO hier weiter: add arg for testupload
+
     # parser.add_argument('mode', type=int, default='1',
     #                     help="Options:\n"
     #                          "  1: Run FileScanner (search files)\n"
     #                          "  2: Run FileScanner and VarScanner (search variables)\n"
     #                          "  3: Run FileScanner, VarScanner and dbIngest (upload files to database)")
-    parser.add_argument('dirconf', type=str,
-                        help="Path to folder with configuration settings")
 
     # parser.add_argument('dataid', type=str,
     #                     help="Data ID: an identification string to identify different data versions, "
@@ -87,18 +100,6 @@ def get_args():
     # parser.add_argument('-ds', '--datascanner', action='store_true',
     #                     help="If this flag is set, FileScanner (search files) and VarScanner "
     #                          "(search variables) will be executed.")
-
-    parser.add_argument('-y', '--year', type=int,
-                        help="Year")
-    parser.add_argument('-m', '--month', type=int,
-                        help="Month")
-    parser.add_argument('-l', '--filelimit', type=int, default=0,
-                        help="File limit, 0 corresponds to no limit.")
-    parser.add_argument('-n', '--newestfiles', type=int, default=0,
-                        help="Consider newest files only, 0 means keep all files, e.g. 3 means keep 3 newest files. "
-                             "Is applied after FILELIMIT was considered.")
-
-    #TODO hier weiter: add arg for testupload
 
     # parser.add_argument('-fnd', '--filenamedateformat', type=str, default='%Y%m%d%H%M%S',
     #                     help="Filename date format as datetime format strings. Is used to parse the date and "

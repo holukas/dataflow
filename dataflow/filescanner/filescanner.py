@@ -91,6 +91,7 @@ class FileScanner:
     #     return self.varscanner_df
 
     def _detect_filetype(self, newfile) -> dict:
+        """Assign filetype to found file"""
         # filedate = filetype = configfile = db_bucket = id = data_version = '-not-defined-'
         newfile['filedate'] = newfile['config_filetype'] = \
             newfile['db_bucket'] = newfile['id'] = '-not-defined-'
@@ -98,6 +99,10 @@ class FileScanner:
         # Loop through all available filetypes
         for filetype in self.conf_filetypes.keys():
             filetypeconf = self.conf_filetypes[filetype].copy()
+
+            # Check if filescanner is allowed to assign this filetype
+            if not filetypeconf['can_be_used_by_filescanner']:
+                continue
 
             # Assing filetype:
             # File must match filetype_id (e.g. "meteo*.a*"), filedate format (e.g. "meteo%Y%m%d%H.a%M")

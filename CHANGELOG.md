@@ -1,6 +1,20 @@
 # Changelog
 
 
+## v0.2.1 | 18 Jun 2022
+- `dataflow` is now part of project `POET`
+- `configs` folder (with filegroups etc.) is no longer part of `dataflow`,
+but a separate project
+- `dbconf.yaml`, the configuration for the database, is no longer in the
+`configs` subfolder, but in subfolder `configs_secret`
+
+### Data Updates
+Updated in `configs` folder:
+- Added filetype `DAV12-RAW-FF4-TOA5-DAT-TBL1-1MIN-202006241033`
+- Added filetype `DAV12-RAW-FF5-TOA5-DAT-TBL1-1MIN-202006240958`
+- Added filetype `DAV12-RAW-FF3-TOA5-DAT-TBL1-1MIN-201903041642`
+
+
 ## v0.2.0 | 16 May 2022
 - Target bucket is now determined from CLI args `site` and `datatype` instead
 of from `filetype` configuration.

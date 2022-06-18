@@ -375,7 +375,7 @@ class FileReader():
         try:
             # todo read header separately like in diive
             df = pd.read_csv(**args)
-            print(df.head(5))
+            # print(df.head(5))
         except ValueError:
             # Found to occur when the first row is empty and the
             # second row has errors (e.g., too many columns).

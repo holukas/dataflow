@@ -27,9 +27,9 @@ the following sites are finished:
 - [ in progress ] CH-CHA (current data)
 - [ in progress ] CH-FRU (current data)
 - [ in progress ] CH-DAV (current data), FF2-5 still missing 
-- [ todo ] CH-DAS (current data)
+- [ in progress ] CH-DAS (current data)
 - [ in progress ] CH-LAE (current data)
-- [ todo ] CH-LAS (current data)
+- [ in progress ] CH-LAS (current data)
 - [ in progress ] CH-OE2 (current data)
 
 
@@ -69,23 +69,24 @@ for each site (e.g. CH-DAV) and filegroup (e.g. 10_meteo).
 - CH-DAV > raw_12_meteo_forestfloor > DAV12-RAW-FF1-TOA5-DAT-TBL1-10MIN-201802281110.yaml (+20220312)
 - CH-DAV > raw_12_meteo_forestfloor > DAV12-RAW-FF1-TOA5-DAT-TBL1-1MIN-201807181445.yaml (+20220312)
 - CH-DAV > raw_12_meteo_forestfloor > DAV12-RAW-FF1-TOA5-DAT-TBL1-1MIN-201903050001.yaml (+20220312)
-- CH-DAV > raw_12_meteo_forestfloor > DAV12-RAW-FF1-TOA5-DAT-TBL1-1MIN-202006241044.yaml (+20220312)
 - CH-DAV > raw_12_meteo_forestfloor > DAV12-RAW-FF1-TOA5-DAT-TBL1-1MIN-202110221616.yaml
+
 - CH-DAV > raw_12_meteo_forestfloor > DAV12-RAW-FF1-TOA5-DAT-TBL2-25H-201802281104.yaml
 ##### FF2
 - CH-DAV > raw_12_meteo_forestfloor > DAV12-RAW-FF2-TOA5-DAT-TBL1-1MIN-201903070001.yaml (+20220313)
 - CH-DAV > raw_12_meteo_forestfloor > DAV12-RAW-FF2-TOA5-DAT-TBL1-1MIN-202110221618.yaml (+20220313)
 - FF2 TBL2
 ##### FF3
+- CH-DAV > raw_12_meteo_forestfloor > DAV12-RAW-FF3-TOA5-DAT-TBL1-1MIN-201903041642.yaml (+20220526)
 - CH-DAV > raw_12_meteo_forestfloor > DAV12-RAW-FF3-TOA5-DAT-TBL1-1MIN-202110221627.yaml (+20220502)
 - FF3_0_1 TBL2
 - FF3_0_2 TBL1
 - FF3_0_2 TBL2?
 ##### FF4 
-- FF4 TBL1
+- CH-DAV > raw_12_meteo_forestfloor > DAV12-RAW-FF4-TOA5-DAT-TBL1-1MIN-202006241033.yaml (+20220523)
 - FF4 TBL2
 ##### FF5
-- FF5 TBL1
+- CH-DAV > raw_12_meteo_forestfloor > DAV12-RAW-FF5-TOA5-DAT-TBL1-1MIN-202006240958.yaml (+20220524)
 - FF5 TBL2
 ##### FF6
 - CH-DAV > raw_12_meteo_forestfloor > DAV12-RAW-FF6-TOA5-DAT-TBL1-1MIN-202110221616.yaml

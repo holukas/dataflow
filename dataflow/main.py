@@ -15,14 +15,12 @@ try:
     # For CLI
     from .filescanner.filescanner import FileScanner
     from .varscanner.varscanner import VarScanner
-    from .db.dbscanner import dbScanner
     from .common import filereader, logger, cli
     from .common.times import _make_run_id
 except ImportError:
     # For local machine
     from filescanner.filescanner import FileScanner
     from varscanner.varscanner import VarScanner
-    from db.dbscanner import dbScanner
     from common import filereader, logger, cli
     from common.times import _make_run_id
 
@@ -89,9 +87,6 @@ class DataFlow:
 
         if self.script == 'varscanner':
             self._varscanner()
-
-        if self.script == 'dbscanner':
-            self._dbscanner()
 
     def _filescanner(self) -> pd.DataFrame:
         """Call FileScanner"""
@@ -227,23 +222,23 @@ class DataFlow:
         # # Folder with configuration settings
         # dirconf = Path(dirconf)
 
-        # Search in this file's folder
-        _dir_main = Path(__file__).parent.resolve()
+        # # Search in this file's folder
+        # _dir_main = Path(__file__).parent.resolve()
 
         # Assemble paths to configs
 
         # Filetypes for raw data are defined separately for each site
         if self.datatype == 'raw':
-            _dir_filegroups = _dir_main / 'configs' / 'filegroups' / self.datatype / self.site / self.filegroup
+            _dir_filegroups = self.dirconf / 'filegroups' / self.datatype / self.site / self.filegroup
 
         # Filetypes for processed data are the same across sites
         # and stored
         elif self.datatype == 'processing':
-            _dir_filegroups = _dir_main / 'configs' / 'filegroups' / self.datatype / self.filegroup
+            _dir_filegroups = self.dirconf / 'filegroups' / self.datatype / self.filegroup
 
-        _file_unitmapper = _dir_main / 'configs' / 'units.yaml'
-        _file_dirs = _dir_main / 'configs' / 'dirs.yaml'
-        _file_dbconf = self.dirconf / 'dbconf.yaml'
+        _file_unitmapper = self.dirconf / 'units.yaml'
+        _file_dirs = self.dirconf / 'dirs.yaml'
+        _file_dbconf = Path(f"{self.dirconf}_secret") / 'dbconf.yaml'
         # dir_filegroups = self.dirconf / 'filegroups' / self.site / self.datatype / self.filegroup
         # file_unitmapper = self.dirconf / 'units.yaml'
         # file_dirs = self.dirconf / 'dirs.yaml'
@@ -260,9 +255,6 @@ class DataFlow:
         path = Path(rootdir) / self.site / self.datatype / self.filegroup / f"{self.run_id}"
         path.mkdir(parents=True, exist_ok=True)
         return path
-
-    def _dbscanner(self):
-        dbScanner(conf_db=self.conf_db)
 
     def _set_source_dir(self):
         """Set source dir"""
@@ -359,7 +351,9 @@ def main():
              filelimit=args.filelimit,
              newestfiles=args.newestfiles)
 
+    # # ================================
     # # Local settings (not on gl-calcs)
+    # # ================================
     # # Settings for running dataflow from local computer
     #
     # def _local_run_filescanner(year, args):
@@ -377,29 +371,30 @@ def main():
     #
     # args = dict(
     #     script='filescanner',
-    #     # site='ch-las',
-    #     # site='ch-fru',
-    #     site='ch-dav',
+    #     site='ch-lae',
     #     datatype='raw',
     #     # datatype='processing',
     #     access='server',
+    #     filegroup='12_meteo_forestfloor',
     #     # filegroup='20_ec_fluxes',
-    #     filegroup='13_meteo_nabel',
+    #     # filegroup='10_meteo',
+    #     # filegroup='13_meteo_nabel',
     #     # filegroup='17_meteo_profile',
-    #     dirconf=r'L:\Dropbox\luhk_work\20 - CODING\22 - DATAFLOW\configs',
-    #     # year=2011,
+    #     dirconf=r'L:\Dropbox\luhk_work\20 - CODING\22 - POET\configs',
+    #     # year=2022,
     #     # month=5,
     #     month=5,
-    #     filelimit=3,
+    #     filelimit=0,
     #     newestfiles=0,
-    #     testupload=True
+    #     # testupload=True
+    #     testupload=False
     # )
     # import argparse
     # args = argparse.Namespace(**args)  # Convert dict to Namespace
     # args = cli.validate_args(args)
     #
     # years = [2022]
-    # # years = range(1997, 2023)
+    # # # years = range(1997, 2023)
     # localrun = 3
     #
     # if localrun == 1:
@@ -413,31 +408,6 @@ def main():
     #     for year in years:
     #         _local_run_filescanner(year=year, args=args)
     #         _local_run_varscanner(args=args)
-    #
-    # # if localrun == 3:
-    # #     # test DBSCANNER start ----------------------------------->
-    # #     import argparse
-    # #     args = dict(script='dbscanner',
-    # #                 site=site,
-    # #                 datatype=datatype,
-    # #                 access=access,
-    # #                 filegroup=filegroup,
-    # #                 dirconf=dirconf,
-    # #                 year=year, month=month, filelimit=0, newestfiles=0
-    # #                 )
-    # #     args = argparse.Namespace(**args)  # Convert dict to Namespace
-    # #     args = cli.validate_args(args)
-    # #     DataFlow(script=args.script,
-    # #              site=args.site,
-    # #              datatype=args.datatype,
-    # #              access=args.access,
-    # #              filegroup=args.filegroup,
-    # #              dirconf=args.dirconf,
-    # #              year=args.year,
-    # #              month=args.month,
-    # #              filelimit=args.filelimit,
-    # #              newestfiles=args.newestfiles)
-    # #     # <--------------------------------------- test DBSCANNER end
 
 
 if __name__ == '__main__':
