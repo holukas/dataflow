@@ -1,6 +1,10 @@
 # Changelog
 
 
+## vX.X.X | XX Jun 2022
+- some small code refactoring
+
+
 ## v0.2.1 | 18 Jun 2022
 - `dataflow` is now part of project `POET`
 - `configs` folder (with filegroups etc.) is no longer part of `dataflow`,

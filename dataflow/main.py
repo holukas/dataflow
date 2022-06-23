@@ -67,6 +67,7 @@ class DataFlow:
 
         # Logger
         # Logfiles are started when filescanner is run
+        # If varscanner is run, then existing logfiles are continued
         if self.script == 'filescanner':
             # Run ID
             self.run_id = _make_run_id(prefix="DF")
@@ -121,21 +122,28 @@ class DataFlow:
     def _varscanner(self):
         """Call VarScanner"""
 
-        # Path for file search of previous VarScanner results
+        # Path for file search of previous filescanner results
         # General output path for run results
-        dir_out_dataflow_runs = self._set_outdir()  # Path with /runs at end of path
+        dir_out_dataflow_runs = self._set_outdir()  # Path with "/runs" at end of path
         # self.dir_out_dataflow = Path(self.conf_dirs['out_dataflow'])
         searchpath = dir_out_dataflow_runs / self.site / self.datatype / self.filegroup
 
+        # Loop through folders in searchpath
         for root, dirs, files in os.walk(str(searchpath)):
             foundfoldername = Path(root).stem
+
+            # Previous filescanner results are stored in folders starting w/ 'DF-'
             if not foundfoldername.startswith('DF-'): continue
 
             if dt.datetime.strptime(foundfoldername, 'DF-%Y%m%d-%H%M%S'):
+                # Output folder of a previous run was found
                 found_run_id = foundfoldername
-                _logger = logger.setup_logger(run_id=found_run_id, dir_out_run=Path(root), name=found_run_id)
-                _logger.info(f"Calling VarScanner ...")
 
+                # Write to previous logging file
+                _logger = logger.setup_logger(run_id=found_run_id, dir_out_run=Path(root), name=found_run_id)
+                _logger.info(f"Calling varscanner ...")
+
+                # File from previous filescanner run
                 _required_filescanner_csv = f"{found_run_id}_filescanner.csv"
                 if not _required_filescanner_csv in files:
                     _logger.warning(f"    ### (!)WARNING: FILE MISSING ###:")
@@ -143,11 +151,7 @@ class DataFlow:
                                     f"folder: {root}  -->  Skipping folder")
                     continue
 
-                #                 self.logger.info(f"### (!)STRING WARNING ###:")
-                #             self.logger.info(f"### {_num_dtype_string} column(s) were classified "
-                #                              f"as dtype 'string': {_dtype_str_colnames}")
-                #             self.logger.info(f"### If this is expected you can ignore this warning.")
-
+                # Logfile from previous filescanner run
                 _required_filescanner_log = f"{found_run_id}.log"
                 if not _required_filescanner_log in files:
                     _logger.warning(f"    ### (!)WARNING: FILE MISSING ###:")
@@ -155,16 +159,17 @@ class DataFlow:
                                     f"folder: {root}  -->  Skipping folder")
                     continue
 
-                # Check whether VARSCANNER has already worked on this folder
-
+                # Check whether varscanner has already worked on this folder
                 _seen_by_vs = f"__varscanner-was-here-*__.txt"
                 matching = fnmatch.filter(files, _seen_by_vs)
                 if matching:
+                    # varscanner worked already in this folder
                     _logger.warning(f"    ### (!)WARNING: VARSCANNER RESULTS ALREADY AVAILABLE ###:")
                     _logger.warning(f"    ### The file {_seen_by_vs} indicates that the "
                                     f"folder: {root} was already visited by VARSCANNER --> Skipping folder")
                     continue
                 else:
+                    # New folder, varscanner was not here yet
                     now_time_str = dt.datetime.now().strftime("%Y%m%d%H%M%S")
                     outfile = Path(root) / f"__varscanner-was-here-{now_time_str}__.txt"
                     f = open(outfile, "w")
@@ -199,8 +204,6 @@ class DataFlow:
                 outfile = Path(root) / f"{found_run_id}_varscanner_vars_not_greenlit.csv"
                 varscanner_df.loc[varscanner_df['measurement'] == '-not-greenlit-', :].to_csv(outfile, index=False)
 
-                # return varscanner_df
-
     def _set_outdir(self) -> Path:
         """Set the output folder for run results"""
         if self.access == 'mount':
@@ -218,36 +221,29 @@ class DataFlow:
         dir_source = self._set_source_dir()
         return dir_out_run, dir_source
 
-    def _read_configs(self):
-        # # Folder with configuration settings
-        # dirconf = Path(dirconf)
-
-        # # Search in this file's folder
-        # _dir_main = Path(__file__).parent.resolve()
-
-        # Assemble paths to configs
-
+    def _set_dir_filegroups(self) -> Path:
+        """Set folder where filetype settings are stored"""
+        dir_filegroups = None
         # Filetypes for raw data are defined separately for each site
         if self.datatype == 'raw':
-            _dir_filegroups = self.dirconf / 'filegroups' / self.datatype / self.site / self.filegroup
-
+            dir_filegroups = self.dirconf / 'filegroups' / self.datatype / self.site / self.filegroup
         # Filetypes for processed data are the same across sites
-        # and stored
         elif self.datatype == 'processing':
-            _dir_filegroups = self.dirconf / 'filegroups' / self.datatype / self.filegroup
+            dir_filegroups = self.dirconf / 'filegroups' / self.datatype / self.filegroup
+        return dir_filegroups
 
-        _file_unitmapper = self.dirconf / 'units.yaml'
-        _file_dirs = self.dirconf / 'dirs.yaml'
-        _file_dbconf = Path(f"{self.dirconf}_secret") / 'dbconf.yaml'
-        # dir_filegroups = self.dirconf / 'filegroups' / self.site / self.datatype / self.filegroup
-        # file_unitmapper = self.dirconf / 'units.yaml'
-        # file_dirs = self.dirconf / 'dirs.yaml'
-
+    def _read_configs(self) -> tuple[dict, dict, dict, dict]:
+        """Get configurations for filegroups, units, directories and database"""
+        # Assemble paths to configs
+        _dir_filegroups = self._set_dir_filegroups()
+        _path_file_unitmapper = self.dirconf / 'units.yaml'
+        _path_file_dirs = self.dirconf / 'dirs.yaml'
+        _path_file_dbconf = Path(f"{self.dirconf}_secret") / 'dbconf.yaml'
         # Read configs
         conf_filetypes = filereader.get_conf_filetypes(dir=_dir_filegroups)
-        conf_unitmapper = filereader.read_configfile(config_file=_file_unitmapper)
-        conf_dirs = filereader.read_configfile(config_file=_file_dirs)
-        conf_db = filereader.read_configfile(config_file=_file_dbconf)
+        conf_unitmapper = filereader.read_configfile(config_file=_path_file_unitmapper)
+        conf_dirs = filereader.read_configfile(config_file=_path_file_dirs)
+        conf_db = filereader.read_configfile(config_file=_path_file_dbconf)
         return conf_filetypes, conf_unitmapper, conf_dirs, conf_db
 
     def _create_outdir_run(self, rootdir: Path) -> Path:
@@ -371,19 +367,19 @@ def main():
     #
     # args = dict(
     #     script='filescanner',
-    #     site='ch-lae',
-    #     datatype='raw',
-    #     # datatype='processing',
+    #     site='ch-oe2',
+    #     # datatype='raw',
+    #     datatype='processing',
     #     access='server',
-    #     filegroup='12_meteo_forestfloor',
-    #     # filegroup='20_ec_fluxes',
+    #     # filegroup='12_meteo_forestfloor',
+    #     filegroup='20_ec_fluxes',
     #     # filegroup='10_meteo',
     #     # filegroup='13_meteo_nabel',
     #     # filegroup='17_meteo_profile',
     #     dirconf=r'L:\Dropbox\luhk_work\20 - CODING\22 - POET\configs',
     #     # year=2022,
     #     # month=5,
-    #     month=5,
+    #     month=None,
     #     filelimit=0,
     #     newestfiles=0,
     #     # testupload=True
