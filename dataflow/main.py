@@ -8,20 +8,21 @@ import fnmatch
 import os
 from pathlib import Path
 
+import dbc.filetypereader as filetypereader
 import pandas as pd
+from dbc import dbcInflux
+from numpy import arange
 from single_source import get_version
 
 try:
     # For CLI
     from .filescanner.filescanner import FileScanner
-    from .varscanner.varscanner import VarScanner
-    from .common import filereader, logger, cli
+    from .common import logger, cli
     from .common.times import _make_run_id
 except ImportError:
     # For local machine
     from filescanner.filescanner import FileScanner
-    from varscanner.varscanner import VarScanner
-    from common import filereader, logger, cli
+    from common import logger, cli
     from common.times import _make_run_id
 
 pd.set_option('display.width', 1000)
@@ -43,6 +44,7 @@ class DataFlow:
             month: int = None,
             filelimit: int = 0,
             newestfiles: int = 0,
+            nrows:int =None,
             testupload: bool = False
     ):
 
@@ -57,6 +59,7 @@ class DataFlow:
         self.month = month
         self.filelimit = filelimit
         self.newestfiles = newestfiles
+        self.nrows=nrows
         self.testupload = testupload  # If True, upload data to 'test' bucket in database
 
         # Read configs
@@ -120,7 +123,11 @@ class DataFlow:
         return filescanner_df
 
     def _varscanner(self):
-        """Call VarScanner"""
+        """Scan files found by 'filescanner' for variables and upload to database
+
+        Using the 'dbc' package.
+
+        """
 
         # Path for file search of previous filescanner results
         # General output path for run results
@@ -184,25 +191,54 @@ class DataFlow:
                 filepath = Path(root) / _required_filescanner_csv
                 filescanner_df = pd.read_csv(filepath)
 
-                varscanner = VarScanner(filescanner_df=filescanner_df,
-                                        conf_unitmapper=self.conf_unitmapper,
-                                        conf_filetypes=self.conf_filetypes,
-                                        conf_db=self.conf_db,
-                                        logger=_logger)
-                varscanner.run()
-                filescanner_df, varscanner_df = varscanner.get_results()
+                varscanner_allfiles_df = pd.DataFrame()
+                # varscanner_uniquevars_df = pd.DataFrame()
+                for fs_file_ix, fs_fileinfo in filescanner_df.iterrows():
+                    dbc = dbcInflux(dirconf=str(self.dirconf))
+
+                    df, filetypeconf, fileinfo = dbc.readfile(filepath=fs_fileinfo['filepath'],
+                                                              filetype=fs_fileinfo['config_filetype'],
+                                                              nrows=self.nrows,
+                                                              logger=_logger)
+
+                    varscanner_df, freq, freqfrom = dbc.upload_filetype(file_df=df,
+                                                                        data_version=filetypeconf['data_version'],
+                                                                        fileinfo=fileinfo,
+                                                                        to_bucket=fs_fileinfo['db_bucket'],
+                                                                        filetypeconf=filetypeconf,
+                                                                        parse_var_pos_indices=True,
+                                                                        logger=_logger)
+
+                    varscanner_allfiles_df = pd.concat([varscanner_allfiles_df, varscanner_df],
+                                                       axis=0, ignore_index=True)
+
+                    filescanner_df.loc[fs_file_ix, 'numvars'] = len(df.columns)
+                    filescanner_df.loc[fs_file_ix, 'numdatarows'] = len(df)
+                    filescanner_df.loc[fs_file_ix, 'freq'] = freq
+                    filescanner_df.loc[fs_file_ix, 'freqfrom'] = freqfrom
+                    filescanner_df.loc[fs_file_ix, 'firstdate'] = df.index[0]
+                    filescanner_df.loc[fs_file_ix, 'lastdate'] = df.index[-1]
 
                 # Output expanded filescanner results
                 outfile = Path(root) / f"{found_run_id}_filescanner_varscanner.csv"
                 filescanner_df.to_csv(outfile, index=False)
 
                 # Output found unique variables
+                varscanner_uniquevars_df = varscanner_allfiles_df[['raw_varname']]
+                varscanner_uniquevars_df = varscanner_uniquevars_df.drop_duplicates()
                 outfile = Path(root) / f"{found_run_id}_varscanner_vars_unique.csv"
-                varscanner_df.to_csv(outfile, index=False)
+                varscanner_uniquevars_df.to_csv(outfile, index=False)
 
                 # Output variables that were not greenlit (not defined in configs)
                 outfile = Path(root) / f"{found_run_id}_varscanner_vars_not_greenlit.csv"
-                varscanner_df.loc[varscanner_df['measurement'] == '-not-greenlit-', :].to_csv(outfile, index=False)
+                varscanner_allfiles_df.loc[varscanner_allfiles_df['measurement'] == '-not-greenlit-', :].to_csv(outfile,
+                                                                                                                index=False)
+
+                # Output all vars found across all files
+                varscanner_allfiles_df.sort_values(by='raw_varname', axis=0, inplace=True)
+                varscanner_allfiles_df.index = arange(1, len(varscanner_allfiles_df) + 1)  # Reset index, starting at 1
+                outfile = Path(root) / f"{found_run_id}_varscanner_allfiles.csv"
+                varscanner_allfiles_df.to_csv(outfile, index=False)
 
     def _set_outdir(self) -> Path:
         """Set the output folder for run results"""
@@ -240,10 +276,10 @@ class DataFlow:
         _path_file_dirs = self.dirconf / 'dirs.yaml'
         _path_file_dbconf = Path(f"{self.dirconf}_secret") / 'dbconf.yaml'
         # Read configs
-        conf_filetypes = filereader.get_conf_filetypes(dir=_dir_filegroups)
-        conf_unitmapper = filereader.read_configfile(config_file=_path_file_unitmapper)
-        conf_dirs = filereader.read_configfile(config_file=_path_file_dirs)
-        conf_db = filereader.read_configfile(config_file=_path_file_dbconf)
+        conf_filetypes = filetypereader.get_conf_filetypes(dir=_dir_filegroups)
+        conf_unitmapper = filetypereader.read_configfile(config_file=_path_file_unitmapper)
+        conf_dirs = filetypereader.read_configfile(config_file=_path_file_dirs)
+        conf_db = filetypereader.read_configfile(config_file=_path_file_dbconf)
         return conf_filetypes, conf_unitmapper, conf_dirs, conf_db
 
     def _create_outdir_run(self, rootdir: Path) -> Path:
@@ -355,35 +391,34 @@ def main():
     # def _local_run_filescanner(year, args):
     #     DataFlow(script='filescanner',
     #              site=args.site, datatype=args.datatype, access=args.access,
-    #              filegroup=args.filegroup, dirconf=args.dirconf,
-    #              year=year, month=args.month,
-    #              filelimit=args.filelimit, newestfiles=args.newestfiles,
-    #              testupload=args.testupload)
+    #              filegroup=args.filegroup, dirconf=args.dirconf, year=year,
+    #              month=args.month, filelimit=args.filelimit, newestfiles=args.newestfiles,
+    #              nrows=None, testupload=args.testupload)
     #
     # def _local_run_varscanner(args):
-    #     DataFlow(script='varscanner',
-    #              site=args.site, datatype=args.datatype, access=args.access,
-    #              filegroup=args.filegroup, dirconf=args.dirconf)
+    #     DataFlow(script='varscanner', site=args.site, datatype=args.datatype,
+    #              access=args.access, nrows=50, filegroup=args.filegroup,
+    #              dirconf=args.dirconf)
     #
     # args = dict(
     #     script='filescanner',
-    #     site='ch-oe2',
-    #     # datatype='raw',
-    #     datatype='processing',
+    #     site='ch-dav',
+    #     datatype='raw',
+    #     # datatype='processing',
     #     access='server',
     #     # filegroup='12_meteo_forestfloor',
-    #     filegroup='20_ec_fluxes',
-    #     # filegroup='10_meteo',
+    #     # filegroup='20_ec_fluxes',
+    #     filegroup='10_meteo',
     #     # filegroup='13_meteo_nabel',
     #     # filegroup='17_meteo_profile',
     #     dirconf=r'L:\Dropbox\luhk_work\20 - CODING\22 - POET\configs',
     #     # year=2022,
-    #     # month=5,
-    #     month=None,
+    #     month=6,
+    #     # month=None,
     #     filelimit=0,
     #     newestfiles=0,
-    #     # testupload=True
-    #     testupload=False
+    #     testupload=True
+    #     # testupload=False
     # )
     # import argparse
     # args = argparse.Namespace(**args)  # Convert dict to Namespace

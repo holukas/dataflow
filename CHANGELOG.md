@@ -1,8 +1,12 @@
 # Changelog
 
 
-## vX.X.X | XX Jun 2022
-- some small code refactoring
+## v0.3.0 | 26 Jun 2022
+- Moved `varscanner` to `dbc` package
+- Now using `dbc` package to scan files for variables and to upload data to database 
+- Removed `filereader` module, it is now part of the `dbc` library
+- Removed `freqfrom` from tags (in `dbc`, but mentioning this here)
+- Refactored code
 
 
 ## v0.2.1 | 18 Jun 2022
