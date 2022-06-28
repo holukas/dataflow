@@ -1,9 +1,15 @@
 # Changelog
 
 
+## v0.4.0 | 28 Jun 2022
+- The `dbc` package is now included with its new name `dbc-influxdb`
+
+
 ## v0.3.0 | 26 Jun 2022
 - Moved `varscanner` to `dbc` package
-- Now using `dbc` package to scan files for variables and to upload data to database 
+- Now using `dbc` package (currently v0.1.0) to scan files for variables and to upload data to database
+- `dbc` was installed directly from the release version on GitLab when `dataflow` is installed on the 
+database server with `pipx`. During development, `dbc` is included as dev-dependency from a local folder.
 - Removed `filereader` module, it is now part of the `dbc` library
 - Removed `freqfrom` from tags (in `dbc`, but mentioning this here)
 - Refactored code
