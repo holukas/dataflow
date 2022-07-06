@@ -13,10 +13,10 @@ argparse = "^1.4.0"
 influxdb-client = "^1.23.0"
 single-source = "^0.2.0"
 wcmatch = "^8.3"
-#dbc = {url = "https://gitlab.ethz.ch/poet/dbc-influxdb/-/archive/v0.2.0/dbc-influxdb-v0.2.0.tar.gz"}
+dbc = {url = "https://gitlab.ethz.ch/poet/dbc-influxdb/-/archive/v0.2.0/dbc-influxdb-v0.2.0.tar.gz"}
 
 [tool.poetry.dev-dependencies]
-dbc-influxdb = { path = "../dbc-influxdb", develop = true }
+#dbc-influxdb = { path = "../dbc-influxdb", develop = true }
 
 [tool.poetry.scripts]
 dataflow = "dataflow:main.main"
