@@ -194,6 +194,14 @@ class DataFlow:
                 varscanner_allfiles_df = pd.DataFrame()
                 # varscanner_uniquevars_df = pd.DataFrame()
                 for fs_file_ix, fs_fileinfo in filescanner_df.iterrows():
+
+                    # Skip files w/ filesize zero, v0.4.1
+                    if fs_fileinfo['filesize'] == 0:
+                        logtxt = f"(!)Skipping file {fs_fileinfo['filepath']} " \
+                                 f"because filesize is {fs_fileinfo['filesize']}"
+                        _logger.info(logtxt)
+                        continue
+
                     dbc = dbcInflux(dirconf=str(self.dirconf))
 
                     df, filetypeconf, fileinfo = dbc.readfile(filepath=fs_fileinfo['filepath'],
@@ -212,12 +220,21 @@ class DataFlow:
                     varscanner_allfiles_df = pd.concat([varscanner_allfiles_df, varscanner_df],
                                                        axis=0, ignore_index=True)
 
-                    filescanner_df.loc[fs_file_ix, 'numvars'] = len(df.columns)
-                    filescanner_df.loc[fs_file_ix, 'numdatarows'] = len(df)
-                    filescanner_df.loc[fs_file_ix, 'freq'] = freq
-                    filescanner_df.loc[fs_file_ix, 'freqfrom'] = freqfrom
-                    filescanner_df.loc[fs_file_ix, 'firstdate'] = df.index[0]
-                    filescanner_df.loc[fs_file_ix, 'lastdate'] = df.index[-1]
+                    if not df.empty:
+                        filescanner_df.loc[fs_file_ix, 'numvars'] = len(df.columns)
+                        filescanner_df.loc[fs_file_ix, 'numdatarows'] = len(df)
+                        filescanner_df.loc[fs_file_ix, 'freq'] = freq
+                        filescanner_df.loc[fs_file_ix, 'freqfrom'] = freqfrom
+                        filescanner_df.loc[fs_file_ix, 'firstdate'] = df.index[0]
+                        filescanner_df.loc[fs_file_ix, 'lastdate'] = df.index[-1]
+                    else:
+                        txt = '-data-empty-'
+                        filescanner_df.loc[fs_file_ix, 'numvars'] = txt
+                        filescanner_df.loc[fs_file_ix, 'numdatarows'] = txt
+                        filescanner_df.loc[fs_file_ix, 'freq'] = txt
+                        filescanner_df.loc[fs_file_ix, 'freqfrom'] = txt
+                        filescanner_df.loc[fs_file_ix, 'firstdate'] = txt
+                        filescanner_df.loc[fs_file_ix, 'lastdate'] = txt
 
                 # Output expanded filescanner results
                 outfile = Path(root) / f"{found_run_id}_filescanner_varscanner.csv"
@@ -369,76 +386,85 @@ class DataFlow:
 
 
 def main():
-    # # CLI settings
-    # args = cli.get_args()
-    # args = cli.validate_args(args)
-    # DataFlow(script=args.script,
-    #          site=args.site,
-    #          datatype=args.datatype,
-    #          access=args.access,
-    #          filegroup=args.filegroup,
-    #          dirconf=args.dirconf,
-    #          year=args.year,
-    #          month=args.month,
-    #          filelimit=args.filelimit,
-    #          newestfiles=args.newestfiles)
-
-    # ================================
-    # Local settings (not on gl-calcs)
-    # ================================
-    # Settings for running dataflow from local computer
-
-    def _local_run_filescanner(year, args):
-        DataFlow(script='filescanner',
-                 site=args.site, datatype=args.datatype, access=args.access,
-                 filegroup=args.filegroup, dirconf=args.dirconf, year=year,
-                 month=args.month, filelimit=args.filelimit, newestfiles=args.newestfiles,
-                 nrows=None, testupload=args.testupload)
-
-    def _local_run_varscanner(args):
-        DataFlow(script='varscanner', site=args.site, datatype=args.datatype,
-                 access=args.access, nrows=50, filegroup=args.filegroup,
-                 dirconf=args.dirconf)
-
-    args = dict(
-        script='filescanner',
-        site='ch-dav',
-        datatype='raw',
-        # datatype='processing',
-        access='server',
-        # filegroup='12_meteo_forestfloor',
-        # filegroup='20_ec_fluxes',
-        filegroup='10_meteo',
-        # filegroup='13_meteo_nabel',
-        # filegroup='17_meteo_profile',
-        dirconf=r'L:\Dropbox\luhk_work\20 - CODING\22 - POET\configs',
-        # year=2022,
-        month=6,
-        # month=None,
-        filelimit=0,
-        newestfiles=0,
-        testupload=True
-        # testupload=False
-    )
-    import argparse
-    args = argparse.Namespace(**args)  # Convert dict to Namespace
+    # CLI settings
+    args = cli.get_args()
     args = cli.validate_args(args)
+    DataFlow(script=args.script,
+             site=args.site,
+             datatype=args.datatype,
+             access=args.access,
+             filegroup=args.filegroup,
+             dirconf=args.dirconf,
+             year=args.year,
+             month=args.month,
+             filelimit=args.filelimit,
+             newestfiles=args.newestfiles)
 
-    years = [2022]
-    # # years = range(1997, 2023)
-    localrun = 3
-
-    if localrun == 1:
-        for year in years:
-            _local_run_filescanner(year=year, args=args)
-
-    if localrun == 2:
-        _local_run_varscanner(args=args)
-
-    if localrun == 3:
-        for year in years:
-            _local_run_filescanner(year=year, args=args)
-            _local_run_varscanner(args=args)
+    # # ================================
+    # # Local settings (not on gl-calcs)
+    # # ================================
+    # # Settings for running dataflow from local computer
+    #
+    # def _local_run_filescanner(year, args):
+    #     DataFlow(script='filescanner',
+    #              site=args.site, datatype=args.datatype, access=args.access,
+    #              filegroup=args.filegroup, dirconf=args.dirconf, year=year,
+    #              month=args.month, filelimit=args.filelimit, newestfiles=args.newestfiles,
+    #              nrows=None, testupload=args.testupload)
+    #
+    # def _local_run_varscanner(args):
+    #     DataFlow(script='varscanner', site=args.site, datatype=args.datatype,
+    #              access=args.access, nrows=None, filegroup=args.filegroup,
+    #              dirconf=args.dirconf)
+    #
+    # args = dict(
+    #     script='filescanner',
+    #     site='ch-dav',
+    #     datatype='raw',
+    #     # datatype='processing',
+    #     access='server',
+    #     # filegroup='10_meteo',
+    #     # filegroup='11_meteo_hut',
+    #     # filegroup='12_meteo_forestfloor',
+    #     # filegroup='13_meteo_backup_eth',
+    #     # filegroup='13_meteo_nabel',
+    #     filegroup='15_meteo_snowheight',
+    #     # filegroup='17_meteo_profile',
+    #     # filegroup='30_profile_ghg',
+    #     # filegroup='40_chambers_ghg',
+    #
+    #     # filegroup='11_meteo_valley',
+    #     # filegroup='12_meteo_rainfall',
+    #     # filegroup='13_meteo_pressure',
+    #     # filegroup='20_ec_fluxes',
+    #     dirconf=r'F:\Dropbox\luhk_work\20 - CODING\22 - POET\configs',
+    #     # year=2022,
+    #     # month=6,
+    #     month=8,
+    #     filelimit=0,
+    #     newestfiles=0,
+    #     # testupload=True
+    #     testupload=False
+    # )
+    # import argparse
+    # args = argparse.Namespace(**args)  # Convert dict to Namespace
+    # args = cli.validate_args(args)
+    #
+    # years = [2021]
+    # # years = range(2020, 2023)
+    # localrun = 3
+    #
+    # if localrun == 1:
+    #     for year in years:
+    #         _local_run_filescanner(year=year, args=args)
+    #
+    # if localrun == 2:
+    #     _local_run_varscanner(args=args)
+    #
+    # if localrun == 3:
+    #     for year in years:
+    #         _local_run_filescanner(year=year, args=args)
+    #         _local_run_varscanner(args=args)
 
 
 if __name__ == '__main__':

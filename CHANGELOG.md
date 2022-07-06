@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v0.4.1 | 6 Jul 2022
+- Added check: filesize must be > 0, otherwise file is skipped TODO
+- Added check for empty data before extending filescanner_df
+
+
 ## v0.4.0 | 28 Jun 2022
 - The `dbc` package is now included with its new name `dbc-influxdb`
 
