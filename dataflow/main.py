@@ -207,15 +207,17 @@ class DataFlow:
                     df, filetypeconf, fileinfo = dbc.readfile(filepath=fs_fileinfo['filepath'],
                                                               filetype=fs_fileinfo['config_filetype'],
                                                               nrows=self.nrows,
-                                                              logger=_logger)
+                                                              logger=_logger,
+                                                              timezone='UTC+01:00')  # We use CET, winter time
 
-                    varscanner_df, freq, freqfrom = dbc.upload_filetype(file_df=df,
-                                                                        data_version=filetypeconf['data_version'],
-                                                                        fileinfo=fileinfo,
-                                                                        to_bucket=fs_fileinfo['db_bucket'],
-                                                                        filetypeconf=filetypeconf,
-                                                                        parse_var_pos_indices=True,
-                                                                        logger=_logger)
+                    varscanner_df, freq, freqfrom = dbc.upload_filetype(
+                        file_df=df,
+                        data_version=filetypeconf['data_version'],
+                        fileinfo=fileinfo,
+                        to_bucket=fs_fileinfo['db_bucket'],
+                        filetypeconf=filetypeconf,
+                        parse_var_pos_indices=filetypeconf['data_vars_parse_pos_indices'],
+                        logger=_logger)
 
                     varscanner_allfiles_df = pd.concat([varscanner_allfiles_df, varscanner_df],
                                                        axis=0, ignore_index=True)
@@ -399,72 +401,6 @@ def main():
              month=args.month,
              filelimit=args.filelimit,
              newestfiles=args.newestfiles)
-
-    # # ================================
-    # # Local settings (not on gl-calcs)
-    # # ================================
-    # # Settings for running dataflow from local computer
-    #
-    # def _local_run_filescanner(year, args):
-    #     DataFlow(script='filescanner',
-    #              site=args.site, datatype=args.datatype, access=args.access,
-    #              filegroup=args.filegroup, dirconf=args.dirconf, year=year,
-    #              month=args.month, filelimit=args.filelimit, newestfiles=args.newestfiles,
-    #              nrows=None, testupload=args.testupload)
-    #
-    # def _local_run_varscanner(args):
-    #     DataFlow(script='varscanner', site=args.site, datatype=args.datatype,
-    #              access=args.access, nrows=None, filegroup=args.filegroup,
-    #              dirconf=args.dirconf)
-    #
-    # args = dict(
-    #     script='filescanner',
-    #     site='ch-dav',
-    #     datatype='raw',
-    #     # datatype='processing',
-    #     access='server',
-    #     # filegroup='10_meteo',
-    #     # filegroup='11_meteo_hut',
-    #     # filegroup='12_meteo_forestfloor',
-    #     # filegroup='13_meteo_backup_eth',
-    #     # filegroup='13_meteo_nabel',
-    #     filegroup='15_meteo_snowheight',
-    #     # filegroup='17_meteo_profile',
-    #     # filegroup='30_profile_ghg',
-    #     # filegroup='40_chambers_ghg',
-    #
-    #     # filegroup='11_meteo_valley',
-    #     # filegroup='12_meteo_rainfall',
-    #     # filegroup='13_meteo_pressure',
-    #     # filegroup='20_ec_fluxes',
-    #     dirconf=r'F:\Dropbox\luhk_work\20 - CODING\22 - POET\configs',
-    #     # year=2022,
-    #     # month=6,
-    #     month=8,
-    #     filelimit=0,
-    #     newestfiles=0,
-    #     # testupload=True
-    #     testupload=False
-    # )
-    # import argparse
-    # args = argparse.Namespace(**args)  # Convert dict to Namespace
-    # args = cli.validate_args(args)
-    #
-    # years = [2021]
-    # # years = range(2020, 2023)
-    # localrun = 3
-    #
-    # if localrun == 1:
-    #     for year in years:
-    #         _local_run_filescanner(year=year, args=args)
-    #
-    # if localrun == 2:
-    #     _local_run_varscanner(args=args)
-    #
-    # if localrun == 3:
-    #     for year in years:
-    #         _local_run_filescanner(year=year, args=args)
-    #         _local_run_varscanner(args=args)
 
 
 if __name__ == '__main__':

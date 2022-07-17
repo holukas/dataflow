@@ -1,8 +1,20 @@
 # Changelog
 
 
+## v0.5.0 | 17 Jul 2022
+- File data are now uploaded with timezone info `timezone='UTC+01:00`, which corresponds to 
+CET (Central European winter time, UTC+01:00). This way all data are stored as `UTC` in the 
+database. `UTC` is the same as `GMT`.
+- Created Python file `local_run.py`. This file allows to upload files manually from a local machine.
+This is necessary to upload the historic data (many files). The script uses `multiprocessing` run
+in parallal. Parallelization currently works for FILEGROUPS.
+- Implemented new arg `parse_var_pos_indices` for `dbc-influxdb.upload_filetype()`, which is now part
+of the `configs` for all filegroups:
+  - `parse_var_pos_indices=filetypeconf['data_vars_parse_pos_indices']`
+
+
 ## v0.4.1 | 6 Jul 2022
-- Added check: filesize must be > 0, otherwise file is skipped TODO
+- Added check: filesize must be > 0, otherwise file is skipped
 - Added check for empty data before extending filescanner_df
 
 
