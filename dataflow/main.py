@@ -208,7 +208,7 @@ class DataFlow:
                                                               filetype=fs_fileinfo['config_filetype'],
                                                               nrows=self.nrows,
                                                               logger=_logger,
-                                                              timezone='UTC+01:00')  # We use CET, winter time
+                                                              timezone_of_timestamp='UTC+01:00')  # We use CET, winter time
 
                     varscanner_df, freq, freqfrom = dbc.upload_filetype(
                         file_df=df,
@@ -217,7 +217,8 @@ class DataFlow:
                         to_bucket=fs_fileinfo['db_bucket'],
                         filetypeconf=filetypeconf,
                         parse_var_pos_indices=filetypeconf['data_vars_parse_pos_indices'],
-                        logger=_logger)
+                        logger=_logger,
+                        timezone_of_timestamp='UTC+01:00')
 
                     varscanner_allfiles_df = pd.concat([varscanner_allfiles_df, varscanner_df],
                                                        axis=0, ignore_index=True)
