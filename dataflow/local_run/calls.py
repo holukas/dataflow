@@ -17,7 +17,7 @@ def call_filescanner(kwargs: dict):
 def call_varscanner(kwargs: dict):
     kwargs = dict_to_namespace(kwargs)
     DataFlow(script='varscanner', site=kwargs.site, datatype=kwargs.datatype,
-             access=kwargs.access, nrows=None, filegroup=kwargs.filegroup,
+             access=kwargs.access, nrows=kwargs.nrows, filegroup=kwargs.filegroup,
              dirconf=kwargs.dirconf)
 
 

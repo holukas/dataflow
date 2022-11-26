@@ -7,6 +7,7 @@ import fnmatch
 import logging
 import os
 import pathlib
+import re
 import time
 from pathlib import Path
 
@@ -75,7 +76,7 @@ class FileScanner:
     def _list_of_ignored_extensions(self) -> list:
         # TODO check: Ignore files with certain extensions, v0.0.7
         return ['.png', '.dll', '.log', '.exe', '.metadata', '.eddypro',
-                '.gz', '.settings', '.settingsOld', '.jpg', '.JPG', '.jpeg', '.JPEG',
+                '.settings', '.settingsOld', '.jpg', '.JPG', '.jpeg', '.JPEG',
                 '.gif']
 
     def _init_df(self) -> pd.DataFrame:
@@ -131,37 +132,65 @@ class FileScanner:
                         and not 'Level-0' in str(newfile['filepath'].parent):
                     continue
 
+                # If a 'filetype_parser' is given, try to parse datetime from filename
+                # Multiple formats can be defined in a list
+                # If only one format is given, it will be converted to a list with a
+                # single element.
+                if not isinstance(filetypeconf['filetype_dateparser'], list):
+                    filetypeconf['filetype_dateparser'] = [filetypeconf['filetype_dateparser']]
+                    # filetypeconf['filetype_dateparser'] = filetypeconf['filetype_dateparser'].split()
+
                 # Check if file conforms to one of the defined filedate formats
+                # Check if filedate can be parsed with one of the patterns
                 filedate = None
-                if filetypeconf['filetype_dateparser']:
-                    # If a 'filetype_parser' is given, try to parse datetime from filename
-                    # Multiple formats can be defined in a list
-                    if not isinstance(filetypeconf['filetype_dateparser'], list):
-                        filetypeconf['filetype_dateparser'] = filetypeconf['filetype_dateparser'].split()
-                    # Check if filedate can be parsed with one of the patterns
-                    for dateparser in filetypeconf['filetype_dateparser']:
-                        try:
-                            # Parse the filename for filedate, based on the length of the provided
-                            # dateparser string. Necessary to account for incremental numbers
-                            # at the end of the filename. This way only part of the filename
-                            # is used to check for filedate. Necessary b/c strptime does not
-                            # seem to accept wildcards to ignore e.g. the end of the filename
-                            # during parsing.
-                            #   Example setting where filename is parsed only partly:
-                            #       DAV11-RAW 'Davos10Min-%Y%m%d-'
-                            #       (ideally this could be parsed with 'Davos10Min-%Y%m%d-*.dat',
-                            #       but this is not possible b/c wildcard cannot be used)
-                            #   Example where filename is parsed in full, including file extension:
-                            #       'CH-DAV_iDL_H1_0_1_TBL1_%Y_%m_%d_%H%M.dat'
-                            length = len(dateparser) + 1
-                            filedate = dt.datetime.strptime(newfile['filename'][0:length + 1], dateparser)
-                            break
-                        except ValueError:
-                            continue
-                else:
-                    # In case the datetime is not parsed directly from the filename (e.g. for
-                    # EddyPro full output files), the file modification datetime is used instead
-                    filedate = datetime.datetime.strptime(newfile['filemtime'], '%Y-%m-%d %H:%M:%S')
+                for dateparser in filetypeconf['filetype_dateparser']:
+                    if dateparser:
+
+                        if dateparser != 'get_from_filepath':
+                            try:
+                                # Parse the filename for filedate, based on the length of the provided
+                                # dateparser string. Necessary to account for incremental numbers
+                                # at the end of the filename. This way only part of the filename
+                                # is used to check for filedate. Necessary b/c strptime does not
+                                # seem to accept wildcards to ignore e.g. the end of the filename
+                                # during parsing.
+                                #   Example setting where filename is parsed only partly:
+                                #       DAV11-RAW 'Davos10Min-%Y%m%d-'
+                                #       (ideally this could be parsed with 'Davos10Min-%Y%m%d-*.dat',
+                                #       but this is not possible b/c wildcard cannot be used)
+                                #   Example where filename is parsed in full, including file extension:
+                                #       'CH-DAV_iDL_H1_0_1_TBL1_%Y_%m_%d_%H%M.dat'
+                                length = len(dateparser) + 1
+                                filedate = dt.datetime.strptime(newfile['filename'][0:length + 1], dateparser)
+                                break
+                            except ValueError:
+                                continue
+
+                        elif dateparser == 'get_from_filepath':
+                            # Check if the filepath gives an indication of the filedate
+                            try:
+                                # Check if the parent folder could be a month 01-12
+                                maybe_month = newfile['filepath'].parents[0].name
+                                pattern_months = '^(0[1-9]|1[012])$'
+                                result_month = re.match(pattern_months, maybe_month)
+
+                                # Check if the parent folder of the parent folder could be a year 1900-2099
+                                maybe_year = newfile['filepath'].parents[1].name
+                                pattern_years = '^(19[0-9][0-9]|20[0-9][0-9])$'
+                                result_year = re.match(pattern_years, maybe_year)
+
+                                if result_month and result_year:
+                                    filedate = dt.datetime(int(maybe_year), int(maybe_month), 1, 0, 0)
+                                    break
+                            except:
+                                continue
+
+                    elif not dateparser:
+                        # No *dateparser* means that in the filetype settings the setting *filetype_dateparser*
+                        # was set to *false*.
+                        # In case the datetime is not parsed directly from the filename (e.g. for
+                        # EddyPro full output files), the file modification datetime is used instead.
+                        filedate = datetime.datetime.strptime(newfile['filemtime'], '%Y-%m-%d %H:%M:%S')
 
                 # Continue with next filetype if no filedate could be parsed
                 if not filedate:
@@ -257,6 +286,8 @@ class FileScanner:
 
                 newfile['filesize'] = newfile['filepath'].stat().st_size
                 newfile['filemtime'] = self._mtime(filepath=newfile['filepath'])
+                # Path(newfile['filepath']).stat().st_mtime
+                # Path(newfile['filepath']).stat().st_ctime
 
                 newfile = self._detect_filetype(newfile=newfile)
 

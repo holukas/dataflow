@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.7 | 26 Nov 2022
+
+- Added support for `-ALTERNATING-` filetypes (special format). For a description of this
+  special format please see CHANGELOG of `dbc-influxdb` here:
+    - [CHANGELOG dbc-influxdb](https://gitlab.ethz.ch/poet/dbc-influxdb/-/blob/main/CHANGELOG.md)
+- `filescanner`: Changed the logic of how the filedate is parsed from the filename. Settings provided
+  in filetype setting `filetype_dateparser` are now first converted to a list, then the script
+  loops through the provided settings and tries to parse the filedate from the filename.
+    - If one element in `filetype_dateparser` is `get_from_filepath`, then the parent subfolders
+      from the filepath of the respective file are checked, e.g.:
+        - Assuming the filepath for file `Davos-Logger.dat`
+          is `//someserver/CH-DAV_Davos/10_meteo/2013/08/Davos-Logger.dat`, then the first
+          subfolder is checked whether it matches a month (between `01` and `12`), and the
+          second subfolder is checked whether it matches a year (between `1900` and `2099`).
+          If both is True, then the filedate is constructed as datetime, in this case
+          `dt.datetime(year=2013, month=8, day=1, hour=0, minute=0)`.
+    - If one element in `filetype_dateparser` is `false`, then the filedate is constructed from
+      the modification time of the respective file. Note that the modification time sometimes
+      has nothing to do with the contents of the file.
+- Included `nrows` setting for specifying how many data rows of each files are uploaded
+  to the database. This is useful to quickly test upload data from many files, e.g., for
+  checking if units of resolution changed. This setting was already available in `dbc-influxdb`,
+  but now it can be passed directly from `dataflow`.
+
 ## v0.6.1 | 26 Oct 2022
 
 - Updated dependency for `dbc-influxdb` to v0.5.0 (installed directly from GitLab)

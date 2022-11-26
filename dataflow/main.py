@@ -204,40 +204,45 @@ class DataFlow:
 
                     dbc = dbcInflux(dirconf=str(self.dirconf))
 
-                    df, filetypeconf, fileinfo = dbc.readfile(filepath=fs_fileinfo['filepath'],
-                                                              filetype=fs_fileinfo['config_filetype'],
-                                                              nrows=self.nrows,
-                                                              logger=_logger,
-                                                              timezone_of_timestamp='UTC+01:00')  # We use CET, winter time
+                    df_list, filetypeconf, fileinfo = dbc.readfile(filepath=fs_fileinfo['filepath'],
+                                                                   filetype=fs_fileinfo['config_filetype'],
+                                                                   nrows=self.nrows,
+                                                                   logger=_logger,
+                                                                   timezone_of_timestamp='UTC+01:00')  # We use CET, winter time
 
-                    varscanner_df, freq, freqfrom = dbc.upload_filetype(
-                        file_df=df,
-                        data_version=filetypeconf['data_version'],
-                        fileinfo=fileinfo,
-                        to_bucket=fs_fileinfo['db_bucket'],
-                        filetypeconf=filetypeconf,
-                        parse_var_pos_indices=filetypeconf['data_vars_parse_pos_indices'],
-                        logger=_logger,
-                        timezone_of_timestamp='UTC+01:00')
+                    for ix, df in enumerate(df_list):
 
-                    varscanner_allfiles_df = pd.concat([varscanner_allfiles_df, varscanner_df],
-                                                       axis=0, ignore_index=True)
+                        if not df.empty:
+                            # Special format -ALTERNATING- has a second set of data_vars
+                            data_vars = filetypeconf['data_vars'] if ix == 0 else filetypeconf['data_vars2']
+                            varscanner_df, freq, freqfrom = dbc.upload_filetype(
+                                file_df=df,
+                                data_version=filetypeconf['data_version'],
+                                data_vars=data_vars,
+                                fileinfo=fileinfo,
+                                to_bucket=fs_fileinfo['db_bucket'],
+                                filetypeconf=filetypeconf,
+                                parse_var_pos_indices=filetypeconf['data_vars_parse_pos_indices'],
+                                logger=_logger,
+                                timezone_of_timestamp='UTC+01:00')
+                            varscanner_allfiles_df = \
+                                pd.concat([varscanner_allfiles_df, varscanner_df],
+                                          axis=0, ignore_index=True)
+                            filescanner_df.loc[fs_file_ix, 'numvars'] = len(df.columns)
+                            filescanner_df.loc[fs_file_ix, 'numdatarows'] = len(df)
+                            filescanner_df.loc[fs_file_ix, 'freq'] = freq
+                            filescanner_df.loc[fs_file_ix, 'freqfrom'] = freqfrom
+                            filescanner_df.loc[fs_file_ix, 'firstdate'] = df.index[0]
+                            filescanner_df.loc[fs_file_ix, 'lastdate'] = df.index[-1]
 
-                    if not df.empty:
-                        filescanner_df.loc[fs_file_ix, 'numvars'] = len(df.columns)
-                        filescanner_df.loc[fs_file_ix, 'numdatarows'] = len(df)
-                        filescanner_df.loc[fs_file_ix, 'freq'] = freq
-                        filescanner_df.loc[fs_file_ix, 'freqfrom'] = freqfrom
-                        filescanner_df.loc[fs_file_ix, 'firstdate'] = df.index[0]
-                        filescanner_df.loc[fs_file_ix, 'lastdate'] = df.index[-1]
-                    else:
-                        txt = '-data-empty-'
-                        filescanner_df.loc[fs_file_ix, 'numvars'] = txt
-                        filescanner_df.loc[fs_file_ix, 'numdatarows'] = txt
-                        filescanner_df.loc[fs_file_ix, 'freq'] = txt
-                        filescanner_df.loc[fs_file_ix, 'freqfrom'] = txt
-                        filescanner_df.loc[fs_file_ix, 'firstdate'] = txt
-                        filescanner_df.loc[fs_file_ix, 'lastdate'] = txt
+                        else:
+                            txt = '-data-empty-'
+                            filescanner_df.loc[fs_file_ix, 'numvars'] = txt
+                            filescanner_df.loc[fs_file_ix, 'numdatarows'] = txt
+                            filescanner_df.loc[fs_file_ix, 'freq'] = txt
+                            filescanner_df.loc[fs_file_ix, 'freqfrom'] = txt
+                            filescanner_df.loc[fs_file_ix, 'firstdate'] = txt
+                            filescanner_df.loc[fs_file_ix, 'lastdate'] = txt
 
                 # Output expanded filescanner results
                 outfile = Path(root) / f"{found_run_id}_filescanner_varscanner.csv"

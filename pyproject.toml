@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dataflow"
-version = "0.6.1"
+version = "0.7"
 description = ""
 authors = ["Lukas Hörtnagl <holukas@ethz.ch>"]
 
@@ -13,7 +13,7 @@ argparse = "^1.4.0"
 influxdb-client = "^1.23.0"
 single-source = "^0.2.0"
 wcmatch = "^8.3"
-dbc-influxdb = {url = "https://gitlab.ethz.ch/poet/dbc-influxdb/-/archive/v0.5.0/dbc-influxdb-v0.5.0.tar.gz"}
+dbc-influxdb = {url = "https://gitlab.ethz.ch/poet/dbc-influxdb/-/archive/v0.6.0/dbc-influxdb-v0.6.0.tar.gz"}
 
 [tool.poetry.dev-dependencies]
 #dbc-influxdb = { path = "../dbc-influxdb", develop = true }
