@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.8.0 | 2 Jan 2023
+
+- Updated all dependencies to their newest (possible) version
+- `dbc-influxdb` version was updated to `v0.7.0` 
+
 ## v0.7 | 26 Nov 2022
 
 - Added support for `-ALTERNATING-` filetypes (special format). For a description of this

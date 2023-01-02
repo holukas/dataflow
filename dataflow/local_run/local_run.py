@@ -43,8 +43,8 @@ from dataflow.local_run.calls import run
 SITE = 'ch-lae'
 DATATYPE = 'raw'
 # DATATYPE='processing'
-FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor']
-# FILEGROUPS = ['10_meteo']
+# FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor']
+FILEGROUPS = ['10_meteo']
 
 # # CH-OE2
 # SITE = 'ch-oe2'
@@ -53,7 +53,7 @@ FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor']
 # FILEGROUPS = ['10_meteo']
 
 # # Processing Level-0
-# SITE = 'ch-cha'
+# SITE = 'ch-oe2'
 # DATATYPE='processing'
 # FILEGROUPS = ['20_ec_fluxes']
 
@@ -61,11 +61,11 @@ FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor']
 # Common
 SCRIPT = 'filescanner'
 ACCESS = 'server'
-DIRCONF = r'F:\Dropbox\luhk_work\20 - CODING\22 - POET\configs'
+DIRCONF = r'F:\Sync\luhk_work\20 - CODING\22 - POET\configs'
 # YEAR = range(1997, 2002)
-YEAR = 2021
-MONTH = None
-# MONTH = 1
+YEAR = 2022
+# MONTH = None
+MONTH = 12
 FILELIMIT = 0
 NEWESTFILES = 0
 # TESTUPLOAD = True
