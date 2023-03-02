@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.8.1 | 3 Mar 2023
+## v0.8.1 | 2 Mar 2023
 
 - The x newest files are now detected based on file modification time instead of filedate
   in (`filescanner.filescanner.FileScanner.run`).
