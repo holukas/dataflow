@@ -1,9 +1,14 @@
 # Changelog
 
+## v0.8.1 | 3 Mar 2023
+
+- The x newest files are now detected based on file modification time instead of filedate
+  in (`filescanner.filescanner.FileScanner.run`).
+
 ## v0.8.0 | 2 Jan 2023
 
 - Updated all dependencies to their newest (possible) version
-- `dbc-influxdb` version was updated to `v0.7.0` 
+- `dbc-influxdb` version was updated to `v0.7.0`
 
 ## v0.7 | 26 Nov 2022
 

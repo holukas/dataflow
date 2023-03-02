@@ -301,9 +301,12 @@ class FileScanner:
 
         # Keep newest files
         if self.newestfiles > 0:
-            self.filescanner_df.sort_values(by='filedate', axis=0, inplace=True, ascending=False)
+            # Changed in v0.9.0: 10 newest files detected by modification time instead of filedate
+            self.filescanner_df.sort_values(by='filemtime', axis=0, inplace=True, ascending=False)
+            # self.filescanner_df.sort_values(by='filedate', axis=0, inplace=True, ascending=False)
             self.filescanner_df = self.filescanner_df.head(self.newestfiles)
-            self.logger.info(f"{self.class_id} Keeping {self.newestfiles} newest files.")
+            self.logger.info(f"{self.class_id} Keeping {self.newestfiles} newest files, "
+                             f"based on file modification time.")
         else:
             self.logger.info(f"{self.class_id} Keeping all {self.filescanner_df.__len__()} files.")
 
