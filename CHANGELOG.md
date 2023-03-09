@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.0 | 9 Mar 2023
+
+- `dbc-influxdb` version was updated to `v0.8.0`
+
 ## v0.8.1 | 2 Mar 2023
 
 - The x newest files are now detected based on file modification time instead of filedate

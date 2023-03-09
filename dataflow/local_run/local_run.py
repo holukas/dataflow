@@ -31,7 +31,7 @@ from dataflow.local_run.calls import run
 # # FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_backup_eth',
 # #               '13_meteo_nabel', '15_meteo_snowheight', '17_meteo_profile', '30_profile_ghg',
 # #               '40_chambers_ghg']
-# FILEGROUPS = ['11_meteo_hut']
+# FILEGROUPS = ['10_meteo']
 
 # # CH-FRU
 # SITE = 'ch-fru'
@@ -39,12 +39,12 @@ from dataflow.local_run.calls import run
 # # DATATYPE='processing'
 # FILEGROUPS = ['10_meteo']
 
-# # CH-LAE
-# SITE = 'ch-lae'
-# DATATYPE = 'raw'
-# # DATATYPE='processing'
-# # FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor']
-# FILEGROUPS = ['10_meteo']
+# CH-LAE
+SITE = 'ch-lae'
+DATATYPE = 'raw'
+# DATATYPE='processing'
+FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor']
+# FILEGROUPS = ['11_meteo_hut']
 
 # # CH-OE2
 # SITE = 'ch-oe2'
@@ -52,20 +52,27 @@ from dataflow.local_run.calls import run
 # # DATATYPE='processing'
 # FILEGROUPS = ['10_meteo']
 
-# Processing Level-0
-SITE = 'ch-oe2'
-DATATYPE='processing'
-FILEGROUPS = ['20_ec_fluxes']
+# # Processing Level-0
+# # SITE = 'ch-aws'
+# # SITE = 'ch-cha'
+# # SITE = 'ch-dav'
+# # SITE = 'ch-das'
+# # SITE = 'ch-fru'
+# # SITE = 'ch-lae'
+# # SITE = 'ch-las'
+# SITE = 'ch-oe2'
+# DATATYPE='processing'
+# FILEGROUPS = ['20_ec_fluxes']
 
 
 # Common
 SCRIPT = 'filescanner'
 ACCESS = 'server'
 DIRCONF = r'F:\Sync\luhk_work\20 - CODING\22 - POET\configs'
-# YEAR = range(1997, 2002)
+# YEAR = list(range(2010, 2013))
 YEAR = 2023
 MONTH = None
-# MONTH = 1
+# MONTH = 5
 FILELIMIT = 0
 NEWESTFILES = 0
 # TESTUPLOAD = True
@@ -84,10 +91,12 @@ if __name__ == '__main__':
     processes = []
 
     # Run filegroups in parallel
+    # for yr in YEAR:
+    #     kwargs['year'] = yr
     for filegroup in FILEGROUPS:
         kwargs['filegroup'] = filegroup
-        # for yyyy in YEAR:
-        #     kwargs['year'] = yyyy
+        # for yr in YEAR:
+        #     kwargs['year'] = yr
         p = multiprocessing.Process(target=run, kwargs=kwargs)
         p.start()
         processes.append(p)
