@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.1 | 5 Apr 2023
+
+- `dbc-influxdb` version was updated to `v0.8.1`
+
 ## v0.9.0 | 9 Mar 2023
 
 - `dbc-influxdb` version was updated to `v0.8.0`

@@ -15,8 +15,8 @@ from dataflow.local_run.calls import run
 # SITE = 'ch-aws'
 # DATATYPE = 'raw'
 # # DATATYPE='processing'
-# FILEGROUPS = ['10_meteo', '11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
-# # FILEGROUPS = ['10_meteo']
+# # FILEGROUPS = ['10_meteo', '11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
+# FILEGROUPS = ['11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
 
 # # CH-CHA
 # SITE = 'ch-cha'
@@ -24,14 +24,14 @@ from dataflow.local_run.calls import run
 # # DATATYPE='processing'
 # FILEGROUPS = ['10_meteo']
 
-# # CH-DAV
-# SITE = 'ch-dav'
-# DATATYPE = 'raw'
-# # DATATYPE='processing'
-# # FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_backup_eth',
-# #               '13_meteo_nabel', '15_meteo_snowheight', '17_meteo_profile', '30_profile_ghg',
-# #               '40_chambers_ghg']
-# FILEGROUPS = ['10_meteo']
+# CH-DAV
+SITE = 'ch-dav'
+DATATYPE = 'raw'
+# DATATYPE='processing'
+# FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_backup_eth',
+#               '13_meteo_nabel', '15_meteo_snowheight', '17_meteo_profile', '30_profile_ghg',
+#               '40_chambers_ghg']
+FILEGROUPS = ['30_profile_ghg']
 
 # # CH-FRU
 # SITE = 'ch-fru'
@@ -39,12 +39,12 @@ from dataflow.local_run.calls import run
 # # DATATYPE='processing'
 # FILEGROUPS = ['10_meteo']
 
-# CH-LAE
-SITE = 'ch-lae'
-DATATYPE = 'raw'
-# DATATYPE='processing'
-FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor']
-# FILEGROUPS = ['11_meteo_hut']
+# # CH-LAE
+# SITE = 'ch-lae'
+# DATATYPE = 'raw'
+# # DATATYPE='processing'
+# FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor']
+# # FILEGROUPS = ['11_meteo_hut']
 
 # # CH-OE2
 # SITE = 'ch-oe2'
@@ -53,15 +53,15 @@ FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor']
 # FILEGROUPS = ['10_meteo']
 
 # # Processing Level-0
-# # SITE = 'ch-aws'
+# SITE = 'ch-aws'
 # # SITE = 'ch-cha'
 # # SITE = 'ch-dav'
 # # SITE = 'ch-das'
 # # SITE = 'ch-fru'
 # # SITE = 'ch-lae'
 # # SITE = 'ch-las'
-# SITE = 'ch-oe2'
-# DATATYPE='processing'
+# # SITE = 'ch-oe2'
+# DATATYPE = 'processing'
 # FILEGROUPS = ['20_ec_fluxes']
 
 
@@ -71,15 +71,15 @@ ACCESS = 'server'
 DIRCONF = r'F:\Sync\luhk_work\20 - CODING\22 - POET\configs'
 # YEAR = list(range(2010, 2013))
 YEAR = 2023
-MONTH = None
-# MONTH = 5
+# MONTH = None
+MONTH = 4
 FILELIMIT = 0
 NEWESTFILES = 0
 # TESTUPLOAD = True
 TESTUPLOAD = False
 # N_ROWS = 10  # Only upload x number of rows of each file
 N_ROWS = None
-
+#
 kwargs = dict(script=SCRIPT, site=SITE, datatype=DATATYPE,
               access=ACCESS, dirconf=DIRCONF, year=YEAR,
               month=MONTH, filelimit=FILELIMIT, newestfiles=NEWESTFILES,
