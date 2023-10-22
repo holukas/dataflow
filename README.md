@@ -22,7 +22,7 @@ Configurations for accessing the database are not included in the `configs` fold
 `dataflow` uses `poetry` for dependency management.
 
 ## Currently defined filetypes
-[Filetypes](https://gitlab.ethz.ch/poet/configs/-/tree/main/filegroups)
+[Filetypes](https://github.com/holukas/configs/tree/main/filegroups)
 
 ## Installation on the database server gl-calcs
 - Source archive is built via `poetry` with `poetry build`
