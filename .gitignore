@@ -1,11 +1,7 @@
 # Folders not needed for repo (old)
 
 # e.g.: /src
-../_docs/
-_example_files/
-_OUT/
-
-
+/.idea/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

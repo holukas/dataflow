@@ -1,26 +1,28 @@
 [tool.poetry]
 name = "dataflow"
-version = "0.9.1"
+version = "0.10.0"
 description = ""
-authors = ["Lukas Hörtnagl <holukas@ethz.ch>"]
+authors = ["Lukas Hörtnagl <31772692+holukas@users.noreply.github.com>"]
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.11"
-PyYAML = "^6.0"
-pandas = "^1.3.4"
-Flask = "^2.0.2"
+pandas = "^2.1.0"
+pyyaml = "^6.0.1"
+flask = "^2.3.3"
 argparse = "^1.4.0"
-influxdb-client = "^1.23.0"
-single-source = "^0.2.0"
-wcmatch = "^8.3"
-dbc-influxdb = {url = "https://gitlab.ethz.ch/poet/dbc-influxdb/-/archive/v0.8.1/dbc-influxdb-v0.8.1.tar.gz"}
+influxdb-client = "^1.37.0"
+single-source = "^0.3.0"
+wcmatch = "^8.5"
+#dbc-influxdb = {url = "https://gitlab.ethz.ch/poet/dbc-influxdb/-/archive/v0.8.1/dbc-influxdb-v0.8.1.tar.gz"}
 
 [tool.poetry.dev-dependencies]
-#dbc-influxdb = { path = "../dbc-influxdb", develop = true }
+dbc-influxdb = { path = "../dbc-influxdb", develop = true }
 
 [tool.poetry.scripts]
 dataflow = "dataflow:main.main"
 
+
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.10.0 | X XXX 2023
+
+--> TODO fast way to upload many PRESS files
+
+- `dbc-influxdb` version was updated to `v0.10.0`
+- Removed arg `mangle_dupe_cols` when using pandas `.read_csv()` (deprecated in pandas)
+- Updated all packages to newest versions
+- `FileScanner` now raises a warning if not all required keys are available as column in
+  the filescanner dataframe. To solve this warning, the required key must be initialized as
+  column then `filescanner_df` is first created in `filescanner.filescanner.FileScanner._init_df`.
+  If the key is not in the dataframe, then pandas raises a future warning due to upcasting, more details:
+    - future warning: https://pandas.pydata.org/docs/whatsnew/v2.1.0.html#deprecations
+    - https://pandas.pydata.org/pdeps/0006-ban-upcasting.html
+- Soil water content `SWC` can now be calculated from `SDP` variables, at the time of this writing
+  this is possible for the site `CH-FRU`. The function to do the calculation was taken from the
+  previous MeteoScreening tool. Conversions for other sites follow later. (`rawfuncs.ch_fru.calc_swc_from_sdp`)
+- (`rawfuncs.common.calc_lwin`)
+
 ## v0.9.1 | 5 Apr 2023
 
 - `dbc-influxdb` version was updated to `v0.8.1`

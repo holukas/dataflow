@@ -12,18 +12,22 @@ import dbc_influxdb.filetypereader as filetypereader
 import pandas as pd
 from dbc_influxdb import dbcInflux
 from numpy import arange
+from pandas import DataFrame
 from single_source import get_version
 
 try:
     # For CLI
     from .filescanner.filescanner import FileScanner
     from .common import logger, cli
-    from .common.times import _make_run_id
+    from .common.times import make_run_id
+    import rawfuncs
+    from .rawfuncs import ch_fru, common
 except ImportError:
     # For local machine
     from filescanner.filescanner import FileScanner
     from common import logger, cli
-    from common.times import _make_run_id
+    from common.times import make_run_id
+    from rawfuncs import ch_fru, common
 
 pd.set_option('display.width', 1000)
 pd.set_option('display.max_columns', 15)
@@ -64,20 +68,20 @@ class DataFlow:
 
         # Read configs
         self.conf_filetypes, \
-        self.conf_unitmapper, \
-        self.conf_dirs, \
-        self.conf_db = self._read_configs()
+            self.conf_unitmapper, \
+            self.conf_dirs, \
+            self.conf_db = self._read_configs()
 
         # Logger
         # Logfiles are started when filescanner is run
         # If varscanner is run, then existing logfiles are continued
         if self.script == 'filescanner':
             # Run ID
-            self.run_id = _make_run_id(prefix="DF")
+            self.run_id = make_run_id(prefix="DF")
 
             # Set directories
             self.dir_out_run, \
-            self.dir_source = self._setdirs()
+                self.dir_source = self._setdirs()
             self.logger = logger.setup_logger(run_id=f"{self.run_id}", dir_out_run=self.dir_out_run, name=self.run_id)
             self.version = get_version(__name__, Path(__file__).parent.parent)  # Single source of truth for version
             self._log_start()
@@ -120,6 +124,11 @@ class DataFlow:
         outfile = self.dir_out_run / f"{self.run_id}_filescanner_filetype_not_defined.csv"
         filescanner_df.loc[filescanner_df['config_filetype'] == '-not-defined-', :].to_csv(outfile, index=False)
 
+        # Ignored filetypes
+        outfile = self.dir_out_run / f"{self.run_id}_filescanner_filetypes_defined_but_ignored.csv"
+        ignored = list(map(lambda x: x.endswith('-IGNORE'), filescanner_df['config_filetype']))
+        filescanner_df[ignored].to_csv(outfile, index=False)
+
         return filescanner_df
 
     def _varscanner(self):
@@ -152,7 +161,9 @@ class DataFlow:
 
                 # File from previous filescanner run
                 _required_filescanner_csv = f"{found_run_id}_filescanner.csv"
-                if not _required_filescanner_csv in files:
+                if _required_filescanner_csv in files:
+                    pass
+                else:
                     _logger.warning(f"    ### (!)WARNING: FILE MISSING ###:")
                     _logger.warning(f"    ### Required file {_required_filescanner_csv} is missing in "
                                     f"folder: {root}  -->  Skipping folder")
@@ -160,7 +171,9 @@ class DataFlow:
 
                 # Logfile from previous filescanner run
                 _required_filescanner_log = f"{found_run_id}.log"
-                if not _required_filescanner_log in files:
+                if _required_filescanner_log in files:
+                    pass
+                else:
                     _logger.warning(f"    ### (!)WARNING: FILE MISSING ###:")
                     _logger.warning(f"    ### Required file {_required_filescanner_log} is missing in "
                                     f"folder: {root}  -->  Skipping folder")
@@ -195,7 +208,18 @@ class DataFlow:
                 # varscanner_uniquevars_df = pd.DataFrame()
                 for fs_file_ix, fs_fileinfo in filescanner_df.iterrows():
 
-                    # Skip files w/ filesize zero, v0.4.1
+                    # Some filetypes are not allowed for filescanner
+                    if str(fs_fileinfo['config_filetype']).endswith('-IGNORE'):
+                        logtxt = (
+                            f"(!)Ignoring file {fs_fileinfo['filepath']} "
+                            f"because this filetype is ignored, see settings in config "
+                            f"can_be_used_by_filescanner: false, which then sets "
+                            f"config_filetype={fs_fileinfo['config_filetype']}"
+                        )
+                        _logger.info(logtxt)
+                        continue
+
+                    # Skip files w/ filesize zero
                     if fs_fileinfo['filesize'] == 0:
                         logtxt = f"(!)Skipping file {fs_fileinfo['filepath']} " \
                                  f"because filesize is {fs_fileinfo['filesize']}"
@@ -204,66 +228,255 @@ class DataFlow:
 
                     dbc = dbcInflux(dirconf=str(self.dirconf))
 
-                    df_list, filetypeconf, fileinfo = dbc.readfile(filepath=fs_fileinfo['filepath'],
-                                                                   filetype=fs_fileinfo['config_filetype'],
-                                                                   nrows=self.nrows,
-                                                                   logger=_logger,
-                                                                   timezone_of_timestamp='UTC+01:00')  # We use CET, winter time
+                    df_list, filetypeconf, fileinfo, missed_ids = \
+                        dbc.readfile(filepath=fs_fileinfo['filepath'],
+                                     filetype=fs_fileinfo['config_filetype'],
+                                     nrows=self.nrows,
+                                     logger=_logger,
+                                     timezone_of_timestamp='UTC+01:00')  # We use CET, winter time
 
                     for ix, df in enumerate(df_list):
 
                         if not df.empty:
+
                             # Special format -ALTERNATING- has a second set of data_vars
                             data_vars = filetypeconf['data_vars'] if ix == 0 else filetypeconf['data_vars2']
+
+                            data_raw_freq = self._get_data_raw_freq(
+                                special_format=fs_fileinfo['special_format'],
+                                data_raw_freq=filetypeconf['data_raw_freq'],
+                                ix=ix)
+
                             varscanner_df, freq, freqfrom = dbc.upload_filetype(
                                 file_df=df,
                                 data_version=filetypeconf['data_version'],
                                 data_vars=data_vars,
+                                data_raw_freq=data_raw_freq,
                                 fileinfo=fileinfo,
                                 to_bucket=fs_fileinfo['db_bucket'],
                                 filetypeconf=filetypeconf,
                                 parse_var_pos_indices=filetypeconf['data_vars_parse_pos_indices'],
                                 logger=_logger,
                                 timezone_of_timestamp='UTC+01:00')
+
+                            # Check if any raw data variables are calculated or corrected with *rawfunc* function
+                            rawfunc_cols = self._rawfunc_vars(data_vars_dict=data_vars.items())
+                            rawfunc_df = df[rawfunc_cols].copy()
+                            if not rawfunc_df.empty:
+                                # Apply functions to raw data and update metadata
+                                newdata_df, newdata_vars = self._execute_rawfuncs(
+                                    rawfunc_df=rawfunc_df,
+                                    data_vars=data_vars)
+
+                                # Upload new variables that were calculated with rawfunc function
+                                varscanner_df, freq, freqfrom = dbc.upload_filetype(
+                                    file_df=newdata_df,
+                                    data_version=filetypeconf['data_version'],
+                                    data_vars=newdata_vars,
+                                    data_raw_freq=data_raw_freq,
+                                    fileinfo=fileinfo,
+                                    to_bucket=fs_fileinfo['db_bucket'],
+                                    filetypeconf=filetypeconf,
+                                    parse_var_pos_indices=filetypeconf['data_vars_parse_pos_indices'],
+                                    logger=_logger,
+                                    timezone_of_timestamp='UTC+01:00')
+
                             varscanner_allfiles_df = \
                                 pd.concat([varscanner_allfiles_df, varscanner_df],
                                           axis=0, ignore_index=True)
-                            filescanner_df.loc[fs_file_ix, 'numvars'] = len(df.columns)
-                            filescanner_df.loc[fs_file_ix, 'numdatarows'] = len(df)
-                            filescanner_df.loc[fs_file_ix, 'freq'] = freq
-                            filescanner_df.loc[fs_file_ix, 'freqfrom'] = freqfrom
-                            filescanner_df.loc[fs_file_ix, 'firstdate'] = df.index[0]
-                            filescanner_df.loc[fs_file_ix, 'lastdate'] = df.index[-1]
+
+                            filescanner_df = self._update(
+                                ix=fs_file_ix,
+                                filescanner_df=filescanner_df,
+                                numvars=len(df.columns),
+                                numdatarows=len(df),
+                                freq=freq,
+                                freqfrom=freqfrom,
+                                firstdate=df.index[0],
+                                lastdate=df.index[-1],
+                                missed_IDs=missed_ids)
 
                         else:
-                            txt = '-data-empty-'
-                            filescanner_df.loc[fs_file_ix, 'numvars'] = txt
-                            filescanner_df.loc[fs_file_ix, 'numdatarows'] = txt
-                            filescanner_df.loc[fs_file_ix, 'freq'] = txt
-                            filescanner_df.loc[fs_file_ix, 'freqfrom'] = txt
-                            filescanner_df.loc[fs_file_ix, 'firstdate'] = txt
-                            filescanner_df.loc[fs_file_ix, 'lastdate'] = txt
+                            filescanner_df = self._update(
+                                ix=fs_file_ix,
+                                filescanner_df=filescanner_df,
+                                numvars='-data-empty-',
+                                numdatarows='-data-empty-',
+                                freq='-data-empty-',
+                                freqfrom='-data-empty-',
+                                firstdate='-data-empty-',
+                                lastdate='-data-empty-',
+                                missed_IDs='-data-empty-')
 
-                # Output expanded filescanner results
-                outfile = Path(root) / f"{found_run_id}_filescanner_varscanner.csv"
-                filescanner_df.to_csv(outfile, index=False)
+                if not varscanner_allfiles_df.empty:
+                    self._output_info_csv_files(
+                        root=root,
+                        found_run_id=found_run_id,
+                        filescanner_df=filescanner_df,
+                        varscanner_allfiles_df=varscanner_allfiles_df)
+                else:
+                    _logger.info("")
+                    _logger.info(f"{'=' * 40} ")
+                    _logger.info("(!)No files available for VarScanner.")
+                    _logger.info("(!)This can happen e.g. when all files found by FileScanner were ignored.")
+                    _logger.info("(!)Ignored files are e.g. files that contain erroneous data.")
+                    _logger.info("(!)Ignored filetypes end with the suffix -IGNORE.")
+                    _logger.info("(!)Check the output file filescanner.csv, there ignored files have "
+                                 "the config_filetype=*-IGNORE")
+                    _logger.info("(!)Check the list of ignored files in the output folder.")
 
-                # Output found unique variables
-                varscanner_uniquevars_df = varscanner_allfiles_df[['raw_varname']]
-                varscanner_uniquevars_df = varscanner_uniquevars_df.drop_duplicates()
-                outfile = Path(root) / f"{found_run_id}_varscanner_vars_unique.csv"
-                varscanner_uniquevars_df.to_csv(outfile, index=False)
+    def _execute_rawfuncs(self, rawfunc_df, data_vars) -> tuple[DataFrame, dict]:
+        """Execute raw data functions defined in the config file, for each variable
 
-                # Output variables that were not greenlit (not defined in configs)
-                outfile = Path(root) / f"{found_run_id}_varscanner_vars_not_greenlit.csv"
-                varscanner_allfiles_df.loc[varscanner_allfiles_df['measurement'] == '-not-greenlit-', :].to_csv(outfile,
-                                                                                                                index=False)
+        For example, for each Theta variable, assign the naming convention name SDP
+        and then use SDP to calculate SWC.
+        """
+        newdata_df = pd.DataFrame()
+        newdata_vars = {}
 
-                # Output all vars found across all files
-                varscanner_allfiles_df.sort_values(by='raw_varname', axis=0, inplace=True)
-                varscanner_allfiles_df.index = arange(1, len(varscanner_allfiles_df) + 1)  # Reset index, starting at 1
-                outfile = Path(root) / f"{found_run_id}_varscanner_allfiles.csv"
-                varscanner_allfiles_df.to_csv(outfile, index=False)
+        # Some variables can be skipped during the loop, e.g., when v1
+        # is calculated as v1 = v2 + v3, then only v2 OR v3 need to be
+        # considered during looping. It does not matter if the loop finds
+        # v2 or v3 first, the respective other variable is part of the
+        # equation.
+        skip = []
+
+        for v in rawfunc_df.columns:
+            if v in skip:
+                continue
+            rawfunc = data_vars[v[0]]['rawfunc']
+            field = data_vars[v[0]]['field']  # Field follows naming convention
+            new_series = None
+            measurement = None
+            units = None
+            calculated = None
+            copy_meta = None
+
+            if rawfunc[0] == 'calc_lw':
+                collist = rawfunc_df.columns.get_level_values(0).to_list()
+
+                temp_col = rawfunc[1]
+                temp_col_ix = collist.index(temp_col)
+                temp_col = rawfunc_df.columns[temp_col_ix]
+                temp = rawfunc_df[temp_col]
+                skip.append(temp_col)
+
+                lw_raw_col = rawfunc[2]
+                copy_meta = data_vars[rawfunc[2]]
+                lw_raw_col_ix = collist.index(lw_raw_col)
+                lw_raw_col = rawfunc_df.columns[lw_raw_col_ix]
+                lw_raw = rawfunc_df[lw_raw_col]
+                skip.append(lw_raw_col)
+
+                lw_col = (rawfunc[3], 'W m-2')
+                lw = common.calc_lwin(temp=temp, lwinraw=lw_raw)
+                lw.name = lw_col
+                new_series = lw
+                measurement = "LW"
+                units = "W m-2"
+                calculated = f"_calculated_from_{lw_raw_col[0]}_and_{temp_col[0]}_"
+
+            if rawfunc[0] == 'calc_swc':
+                series = rawfunc_df[v].copy()
+                if series.dropna().empty:
+                    continue
+                series.name = (field, series.name[1])  # Use name according to naming convention, needed as tuple
+                vpos = series.name[0].split('_')[-2]
+                try:
+                    depth = float(vpos)
+                except ValueError:
+                    continue
+                if self.site == 'ch-fru':
+                    swc = ch_fru.calc_swc_from_sdp(series=series, depth=depth)
+                    copy_meta = data_vars[v[0]]
+                    new_series = swc
+                    measurement = 'SWC'
+                    units = "%"
+                    calculated = "_from_SDP_"
+
+            newdata_df[new_series.name] = new_series
+
+            # Update metadata
+            # The original metadata for the SDP variable is duplicated, then
+            # the metadata are updated
+            newkey = new_series.name[0]  # Variable name, stored as main key for this variable
+            newdata_vars[newkey] = copy_meta  # Copied metadata from base variable
+            newdata_vars[newkey]['field'] = newkey  # Variable name, stored as field for database
+            newdata_vars[newkey]['units'] = units  # Update units for new var
+            newdata_vars[newkey]['rawfunc'] = calculated  # Info about source variable(s)
+            measurement = "_SD" if "_SD_" in newkey else measurement  # Find correct measurement
+            newdata_vars[newkey]['measurement'] = measurement
+
+        # Restore columns MultiIndex
+        newdata_df.columns = pd.MultiIndex.from_tuples(newdata_df.columns)
+
+        return newdata_df, newdata_vars
+
+    def _rawfunc_vars(self, data_vars_dict: dict) -> list:
+        rawfunc_vars = []
+        for var, sett in data_vars_dict:
+            if 'rawfunc' in sett:
+                rawfunc_vars.append(var)
+        return rawfunc_vars
+
+    @staticmethod
+    def _update(ix, filescanner_df, numvars, numdatarows, freq,
+                freqfrom, firstdate, lastdate, missed_IDs):
+        filescanner_df.loc[ix, 'numvars'] = numvars
+        filescanner_df.loc[ix, 'numdatarows'] = numdatarows
+        filescanner_df.loc[ix, 'freq'] = freq
+        filescanner_df.loc[ix, 'freqfrom'] = freqfrom
+        filescanner_df.loc[ix, 'firstdate'] = firstdate
+        filescanner_df.loc[ix, 'lastdate'] = lastdate
+        filescanner_df.loc[ix, 'missed_IDs'] = missed_IDs
+        return filescanner_df
+
+    @staticmethod
+    def _output_info_csv_files(root, found_run_id, filescanner_df, varscanner_allfiles_df):
+        """Output info to CSV files"""
+        # Output expanded filescanner results
+        outfile = Path(root) / f"{found_run_id}_filescanner_varscanner.csv"
+        filescanner_df.to_csv(outfile, index=False)
+
+        # Output found unique variables
+        varscanner_uniquevars_df = varscanner_allfiles_df[['raw_varname']]
+        varscanner_uniquevars_df = varscanner_uniquevars_df.drop_duplicates()
+        outfile = Path(root) / f"{found_run_id}_varscanner_vars_unique.csv"
+        varscanner_uniquevars_df.to_csv(outfile, index=False)
+
+        # Output variables that were not greenlit (not defined in configs)
+        outfile = Path(root) / f"{found_run_id}_varscanner_vars_not_greenlit.csv"
+        varscanner_allfiles_df.loc[varscanner_allfiles_df['measurement'] == '-not-greenlit-', :].to_csv(outfile,
+                                                                                                        index=False)
+
+        # Output all vars found across all files
+        varscanner_allfiles_df.sort_values(by='raw_varname', axis=0, inplace=True)
+        varscanner_allfiles_df.index = arange(1, len(varscanner_allfiles_df) + 1)  # Reset index, starting at 1
+        outfile = Path(root) / f"{found_run_id}_varscanner_allfiles.csv"
+        varscanner_allfiles_df.to_csv(outfile, index=False)
+
+    @staticmethod
+    def _get_data_raw_freq(special_format, data_raw_freq, ix) -> str:
+        """Get raw data time resolution from config file and return it as string
+
+        This method is necessary because the special format '-ALTERNATING-' can
+        contain data with different time resolutions, which are defined as a list
+        in the config file. To continue processing, the list element is extracted
+        and returned as string. For all other formats, the time resolution is already
+        defined as a string in the config file.
+        """
+        # For -ALTERNATING-, data_raw_freq can be given as a list of time resolutions,
+        # e.g., [30T, 10T]
+        if isinstance(data_raw_freq, list):
+            data_raw_freq = data_raw_freq[ix]
+            if special_format != '-ALTERNATING-':
+                raise TypeError(f"data_raw_freq was given as list {data_raw_freq}, but a list is only allowed"
+                                f"for -ALTERNATING- filetypes. For all other filetypes, data_raw_freq"
+                                f"must be provided as string.")
+        # Other filetypes already have time resolution as string
+        elif isinstance(data_raw_freq, str):
+            pass
+        return data_raw_freq
 
     def _set_outdir(self) -> Path:
         """Set the output folder for run results"""

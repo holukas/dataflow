@@ -14,8 +14,6 @@ from pathlib import Path
 import pandas as pd
 from numpy import arange
 
-# from wcmatch import fnmatch
-
 try:
     # For CLI
     from ..common import logblocks
@@ -31,8 +29,21 @@ class FileScanner:
 
     class_id = "[FILESCANNER]"
 
-    # Start strings of config_filetype, identifying special formats
-    special_formats = ['-ICOSSEQ-']
+    # Filename identifiers of special formats
+    special_formats = [
+        '-ICOSSEQ-',
+        '-ALTERNATING-'
+    ]
+
+    ignored_extensions = [
+        '.png', '.dll', '.log', '.exe', '.metadata', '.eddypro',
+        '.settings', '.settingsOld', '.jpg', '.JPG', '.jpeg', '.JPEG',
+        '.gif'
+    ]
+
+    ignored_strings = [
+        '*binned*', 'stats_agg_BICO-*'
+    ]
 
     def __init__(
             self,
@@ -47,7 +58,6 @@ class FileScanner:
             testupload: bool = False
     ):
         self.dir_src = dir_src
-        # self.dir_src = dir_src.as_posix()
         self.site = site
         self.datatype = datatype
         self.filegroup = filegroup
@@ -63,33 +73,19 @@ class FileScanner:
         # During test uploads, data are uploaded to 'test' bucket.
         self.db_bucket = f"{self.site}_{self.datatype}" if not self.testupload else 'test'
 
-        logblocks._log_start(logger=self.logger, class_id=self.class_id)
-
-        self._ignore_extensions = self._list_of_ignored_extensions()
-        self.ignored_strings = self._list_of_ignored_strings()
+        logblocks.log_start(logger=self.logger, class_id=self.class_id)
 
         self.filescanner_df = self._init_df()
-
-    def _list_of_ignored_strings(self) -> list:
-        return ['*binned*', 'stats_agg_BICO-*']
-
-    def _list_of_ignored_extensions(self) -> list:
-        # TODO check: Ignore files with certain extensions, v0.0.7
-        return ['.png', '.dll', '.log', '.exe', '.metadata', '.eddypro',
-                '.settings', '.settingsOld', '.jpg', '.JPG', '.jpeg', '.JPEG',
-                '.gif']
 
     def _init_df(self) -> pd.DataFrame:
         return pd.DataFrame(columns=['filename', 'site', 'filegroup',
                                      'config_filetype', 'filedate', 'filepath', 'filesize',
                                      'db_bucket', 'filemtime', 'numvars', 'numdatarows',
-                                     'id', 'freq', 'freqfrom', 'firstdate', 'lastdate'])
+                                     'id', 'freq', 'freqfrom', 'firstdate', 'lastdate',
+                                     'data_version', 'special_format', 'missed_IDs'])
 
     def get_results(self) -> pd.DataFrame:
         return self.filescanner_df
-
-    # def get_vars(self):
-    #     return self.varscanner_df
 
     def _detect_filetype(self, newfile) -> dict:
         """Assign filetype to found file"""
@@ -100,10 +96,6 @@ class FileScanner:
         # Loop through all available filetypes
         for filetype in self.conf_filetypes.keys():
             filetypeconf = self.conf_filetypes[filetype].copy()
-
-            # Check if filescanner is allowed to assign this filetype
-            if not filetypeconf['can_be_used_by_filescanner']:
-                continue
 
             # Assing filetype:
             # File must match filetype_id (e.g. "meteo*.a*"), filedate format (e.g. "meteo%Y%m%d%H.a%M")
@@ -225,18 +217,19 @@ class FileScanner:
 
                     newfile['data_version'] = filetypeconf['data_version']
 
-                    # Detect if file has special format that needs formatting
-                    # _is_special_format = \
-                    #     True if any(f in newfile['config_filetype'] for f in self.special_formats) else False
-
-                    for sf in self.special_formats:
-                        if sf in newfile['config_filetype']:
-                            newfile['special_format'] = sf
-                        else:
-                            newfile['special_format'] = False
+                    newfile = self._detect_special_format(newfile=newfile)
 
                     return newfile
 
+        return newfile
+
+    def _detect_special_format(self, newfile):
+        # Detect if file has special format that needs formatting
+        for sf in self.special_formats:
+            if sf in newfile['config_filetype']:
+                newfile['special_format'] = sf
+            else:
+                newfile['special_format'] = False
         return newfile
 
         # # Do not continue with empty files
@@ -251,6 +244,7 @@ class FileScanner:
 
     def run(self):
         filenum = 0
+        ignored_files = []
 
         for root, dirs, files in os.walk(str(self.dir_src)):
             root = Path(root)
@@ -260,7 +254,7 @@ class FileScanner:
                 ignore = False
 
                 # Ignore certain extensions
-                if Path(filename).suffix in self._ignore_extensions:
+                if Path(filename).suffix in self.ignored_extensions:
                     ignore = True
 
                 # Ignore files that contain certain strings
@@ -291,13 +285,34 @@ class FileScanner:
 
                 newfile = self._detect_filetype(newfile=newfile)
 
+                # Some filetypes are not allowed for filescanner
+                if newfile['config_filetype'] == '-ignored-':
+                    logtxt = (
+                        f"(!)Ignoring file {newfile['filepath']} "
+                        f"because this filetype is ignored, see settings in config "
+                        f"can_be_used_by_filescanner: false, which then sets "
+                        f"config_filetype={newfile['config_filetype']}"
+                    )
+                    self.logger.info(logtxt)
+                    # ignored_files.append(filename)
+                    # continue
+
+                # Check if filescanner df was initialized correctly
+                # All keys available for the new file must also be present in the filescanner df
+                available_keys = self.filescanner_df.columns.to_list()
+                required_keys = list(newfile.keys())
+                res = all(ele in available_keys for ele in required_keys)
+                if not res:
+                    raise Warning("Not all required keys were found in filescanner dataframe.")
+
                 for key in newfile.keys():
                     self.filescanner_df.loc[filenum, key] = newfile[key]
 
         self.logger.info(f"{self.class_id} Found {self.filescanner_df.__len__()} files.")
 
         # Filedate needs to be datetime, strings converted to NaT
-        self.filescanner_df['filedate'] = pd.to_datetime(self.filescanner_df['filedate'], errors='coerce')
+        self.filescanner_df['filedate'] = pd.to_datetime(self.filescanner_df['filedate'], errors='coerce',
+                                                         format='%Y-%m-%d %H:%M:%S')
 
         # Keep newest files
         if self.newestfiles > 0:
@@ -324,7 +339,7 @@ class FileScanner:
         for ix, row in self.filescanner_df.iterrows():
             self.logger.info(f"{self.class_id}  File #{ix}: {dict(row)}.")
 
-        logblocks._log_end(logger=self.logger, class_id=self.class_id)
+        logblocks.log_end(logger=self.logger, class_id=self.class_id)
 
     def _mtime(self, filepath) -> str:
         """File modification time"""
