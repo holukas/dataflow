@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.10.3 | 8 Dec 2023
+
+- Update: `dbc-influxdb` version was updated to `v0.10.2`
+
 ## v0.10.2 | 8 Dec 2023
 
 - Fixed bug in imports
