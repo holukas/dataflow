@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.10.1 | 8 Dec 2023
+
+- Downgraded `urllib3` package to version `1.26.18` because versions >2 require OpenSSL v1.1.1+ but on the
+  target system OpenSSL v1.0.2 is installed which cannot be updated. `yum install` on this Linux system only
+  finds v1.0.2.
+
 ## v0.10.0 | 8 Dec 2023
 
 ### Calculate raw data variables from other raw data
