@@ -20,7 +20,6 @@ try:
     from .filescanner.filescanner import FileScanner
     from .common import logger, cli
     from .common.times import make_run_id
-    import rawfuncs
     from .rawfuncs import ch_fru, common
 except ImportError:
     # For local machine

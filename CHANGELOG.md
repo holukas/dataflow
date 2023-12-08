@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.10.2 | 8 Dec 2023
+
+- Fixed bug in imports
+
 ## v0.10.1 | 8 Dec 2023
 
 - Downgraded `urllib3` package to version `1.26.18` because versions >2 require OpenSSL v1.1.1+ but on the
