@@ -1,22 +1,53 @@
 # Changelog
 
-## v0.10.0 | X XXX 2023
+## v0.10.0 | 8 Dec 2023
 
---> TODO fast way to upload many PRESS files
+### Calculate raw data variables from other raw data
 
-- `dbc-influxdb` version was updated to `v0.10.0`
-- Removed arg `mangle_dupe_cols` when using pandas `.read_csv()` (deprecated in pandas)
-- Updated all packages to newest versions
-- `FileScanner` now raises a warning if not all required keys are available as column in
+It is now possible to calculate variables from available data. This is sometimes necessary, e.g., when data
+were recorded with erroneous units due to a wrong calibration factor, or when not the final, required measurement
+was stored such as `SDP` instead of `SWC`.
+
+- New function to calculate soil water content `SWC` from `SDP` variables, at the time of this writing
+  this is possible for the site `CH-FRU`. The function to do the calculation was taken from the
+  previous MeteoScreening tool. Conversions for other sites follow later. (`rawfuncs.ch_fru.calc_swc_from_sdp`)
+- New function to calculate Boltzmann corrected long-wave radiation (variable `LW_IN` and `LW_OUT` in `W m-2`) from
+  temperature from radiation sensor in combination with *raw* LW_IN measurements from the
+  sensor. (`rawfuncs.common.calc_lwin`)
+- These calculations have to be defined directly in the `configs`.
+- The general logic is that all variables required for a specific `rawfunc` are first collected in a dedicated
+  dataframe, and then the new variables are calculated.
+
+#### Examples
+
+##### Calculate `SWC` from `SDP` for site CH-FRU
+
+Here are the settings in the `configs`:
+`Theta_11_AVG: { field: SDP_GF1_0.05_1, units: mV, gain: 1, rawfunc: [ calc_swc ], measurement: SDP }`
+
+The name of the `SWC` variable will accordingly be `SWC_GF1_0.05_1`.
+
+##### Calculate Boltzmann corrected `LW_IN` from raw units
+
+Here are the settings in the `configs`:
+`LWin_2_AVG: { field: LW_IN_RAW_T1_2_1, units: false, gain: 1, rawfunc: [ calc_lw, PT100_2_AVG, LWin_2_AVG, LW_IN_T1_2_1 ], measurement: _RAW }`
+`PT100_2_AVG: { field: T_RAD_T1_2_1, units: degC, gain: 1, rawfunc: [ calc_lw, PT100_2_AVG, LWin_2_AVG, LW_IN_T1_2_1 ], measurement: _instrumentmetrics }`
+
+This means that function `calc_lw` uses temperature variable `PT100_2_AVG` and recorded variable `LWin_2_AVG` to
+calculate the new variable `LW_IN_T1_2_1`. Note that both variables that are required for the `calc_lw` function
+(`LWin_2_AVG` and `PT100_2_AVG`) have the same `rawfunc:` setting.
+
+### Other
+
+- Addition: `FileScanner` now raises a warning if not all required keys are available as column in
   the filescanner dataframe. To solve this warning, the required key must be initialized as
   column then `filescanner_df` is first created in `filescanner.filescanner.FileScanner._init_df`.
   If the key is not in the dataframe, then pandas raises a future warning due to upcasting, more details:
     - future warning: https://pandas.pydata.org/docs/whatsnew/v2.1.0.html#deprecations
     - https://pandas.pydata.org/pdeps/0006-ban-upcasting.html
-- Soil water content `SWC` can now be calculated from `SDP` variables, at the time of this writing
-  this is possible for the site `CH-FRU`. The function to do the calculation was taken from the
-  previous MeteoScreening tool. Conversions for other sites follow later. (`rawfuncs.ch_fru.calc_swc_from_sdp`)
-- (`rawfuncs.common.calc_lwin`)
+- Change: Removed arg `mangle_dupe_cols` when using pandas `.read_csv()` (deprecated in pandas)
+- Update: `dbc-influxdb` version was updated to `v0.10.1`
+- Update: Updated all packages to newest versions
 
 ## v0.9.1 | 5 Apr 2023
 

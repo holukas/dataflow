@@ -24,21 +24,21 @@ from dataflow.local_run.calls import run
 # # DATATYPE='processing'
 # FILEGROUPS = ['10_meteo']
 
-# # CH-DAV
-# SITE = 'ch-dav'
-# DATATYPE = 'raw'
-# # DATATYPE='processing'
-# # FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_backup_eth',
-# #               '13_meteo_nabel', '15_meteo_snowheight', '17_meteo_profile', '30_profile_ghg',
-# #               '40_chambers_ghg']
-# FILEGROUPS = ['12_meteo_forestfloor']
-
-# CH-FRU
-SITE = 'ch-fru'
+# CH-DAV
+SITE = 'ch-dav'
 DATATYPE = 'raw'
 # DATATYPE='processing'
-# FILEGROUPS = ['10_meteo', '13_meteo_pressure']
+# FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_backup_eth',
+#               '13_meteo_nabel', '15_meteo_snowheight', '17_meteo_profile', '30_profile_ghg',
+#               '40_chambers_ghg']
 FILEGROUPS = ['10_meteo']
+
+# # CH-FRU
+# SITE = 'ch-fru'
+# DATATYPE = 'raw'
+# # DATATYPE='processing'
+# # FILEGROUPS = ['10_meteo', '13_meteo_pressure']
+# FILEGROUPS = ['10_meteo']
 
 # # CH-LAE
 # SITE = 'ch-lae'
@@ -71,15 +71,15 @@ SCRIPT = 'filescanner'
 ACCESS = 'server'
 DIRCONF = r'F:\Sync\luhk_work\20 - CODING\22 - POET\configs'
 # YEAR = list(range(2010, 2013))
-YEAR = 2005
+YEAR = 2023
 MONTH = None
 # MONTH = 9
 FILELIMIT = 0
 NEWESTFILES = 0
-# TESTUPLOAD = True
-TESTUPLOAD = False
-# N_ROWS = 100  # Only upload x number of rows of each file
-N_ROWS = None
+TESTUPLOAD = True
+# TESTUPLOAD = False
+N_ROWS = 100  # Only upload x number of rows of each file
+# N_ROWS = None
 
 kwargs = dict(script=SCRIPT, site=SITE, datatype=DATATYPE,
               access=ACCESS, dirconf=DIRCONF, year=YEAR,
