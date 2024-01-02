@@ -4,8 +4,8 @@ import argparse
 def validate_args(args):
     """Check validity of optional args"""
 
-    if args.script not in ['filescanner', 'varscanner', 'dbscanner']:
-        raise argparse.ArgumentTypeError("SCRIPT must be 'filescanner', 'varscanner' or 'XXX'.")
+    # if args.script not in ['filescanner', 'varscanner', 'dbscanner']:
+    #     raise argparse.ArgumentTypeError("SCRIPT must be 'filescanner', 'varscanner' or 'XXX'.")
 
     if not isinstance(args.site, str):
         raise argparse.ArgumentTypeError("SITE must be of type string.")
@@ -52,12 +52,12 @@ def get_args():
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Positional args
-    parser.add_argument('script', type=str,
-                        help="Script that is executed: 'filescanner', 'varscanner', 'dbscanner'")
+    # parser.add_argument('script', type=str,
+    #                     help="Script that is executed: 'filescanner', 'varscanner', 'dbscanner'")
     parser.add_argument('site', type=str,
                         help="Site abbreviation, e.g. ch-dav, ch-lae")
     parser.add_argument('datatype', type=str,
-                        help="Data type: 'raw' for raw data, 'proc' for processed data")
+                        help="Data type: 'raw' for raw data, 'processing' for processed data")
     parser.add_argument('access', type=str,
                         help="Access to data via 'server' address (e.g. outside gl-calcs) or "
                              "'mount' path (e.g. on gl-calcs)")

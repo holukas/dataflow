@@ -19,7 +19,7 @@ try:
     from ..common import logblocks
 except:
     # For BOX
-    from common import logblocks
+    from dataflow.common import logblocks
 
 
 class FileScanner:
@@ -80,9 +80,9 @@ class FileScanner:
     def _init_df(self) -> pd.DataFrame:
         return pd.DataFrame(columns=['filename', 'site', 'filegroup',
                                      'config_filetype', 'filedate', 'filepath', 'filesize',
-                                     'db_bucket', 'filemtime', 'numvars', 'numdatarows',
-                                     'id', 'freq', 'freqfrom', 'firstdate', 'lastdate',
-                                     'data_version', 'special_format', 'missed_IDs'])
+                                     'db_bucket', 'filemtime',
+                                     'id',
+                                     'data_version', 'special_format'])
 
     def get_results(self) -> pd.DataFrame:
         return self.filescanner_df

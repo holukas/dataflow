@@ -4,10 +4,10 @@ from pathlib import Path
 
 
 def setup_logger(run_id:str, dir_out_run:Path, name:str):
-    logfile_name = f"{run_id}.log"
+    logfile_name = f"0-0_{run_id}.log"
     logfile_path = dir_out_run / logfile_name
     logger = create_logger(logfile_path=logfile_path, name=name)
-    return logger
+    return logger, logfile_name
 
 
 def create_logger(name: str, logfile_path: Path = None):

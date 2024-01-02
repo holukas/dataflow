@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.11.0 | 2 Jan 2024
+
+### Major change
+
+`FileScanner` (FS) and `VarScanner` (VS) are no longer executed separately, but always sequentially. This way
+more processes can be started in parallel.
+
+FS searches for files and tries to assign a filetype to each found file, then VS uploads data to the database,
+file-by-file. The connection to the database is established before VS is started.
+
+I did some tests on how to handle data that are stored in a great number of raw data files. I found that the best
+solution seems to be to handle data file-by-file. The approach to first read in all files of a specific filetype
+to one single dataframe (with all file data merged) and then upload data from that large dataframe caused
+memory issues. Some high-resolution raw data files (1SEC) simply have too many records over the course of a
+year and the test computer ran out of memory. Handling data uploads file-by-file avoids memory issues.
+
+### Other changes
+
+- Added `FileTypeReader` class which was originally implemented in `dbc-influxdb`. I think it makes
+  more sense to include it in `dataflow`. (`dataflow.filetypereader.filetypereader.FileTypeReader`)
+- Now using `skip_blank_lines=False` instead of `skip_blank_lines=True` when reading with `.read_csv()`.
+- Added variable suffix `-PRF-QCL-` for special format `-ICOSSEQ-` if the data originated from the QCL profile
+  measurements. The non-QCL profile variables still have the same
+  suffix `-PRF-`. (`dataflow.filetypereader.special_format_icosseq.special_format_icosseq`)
+- Added class `DetectFrequency` to detect the time resolution of time series automatically. This class is based on a
+  similar implementation in the `diive` library. (`dataflow.common.times.DetectFrequency`)
+
 ## v0.10.3 | 8 Dec 2023
 
 - Update: `dbc-influxdb` version was updated to `v0.10.2`
