@@ -247,7 +247,7 @@ class DataFlow:
 
             if not df.empty:
                 # Special format -ALTERNATING- has a second set of data_vars
-                data_vars = filetypeconf['data_vars'] if df_ix == 0 else filetypeconf['data_vars2']
+                data_vars = filetypeconf['data_vars'].copy() if df_ix == 0 else filetypeconf['data_vars2'].copy()
 
                 data_raw_freq = filetypeconf['data_raw_freq']
                 if isinstance(data_raw_freq, str):
@@ -335,7 +335,6 @@ class DataFlow:
                         self.varscanner_df = pd.concat([self.varscanner_df, cur_varscanner_df],
                                                        axis=0, ignore_index=True)
 
-                # TODO HIER WEITER
                 self.log.info(f"Finished uploading data from file {filename} to database bucket {db_bucket}.")
                 self.log.info(f"Finished uploading data from file {filename} / "
                               f"dataframe #{df_ix + 1} of {cur_filedata_details['n_dataframes']} to database bucket {db_bucket}.")
@@ -639,7 +638,7 @@ class DataFlow:
                 skip.append(temp_col)
 
                 lw_raw_col = rawfunc[2]
-                copy_meta = data_vars[rawfunc[2]]
+                copy_meta = data_vars[rawfunc[2]].copy()
                 lw_raw_col_ix = collist.index(lw_raw_col)
                 lw_raw_col = rawfunc_df.columns[lw_raw_col_ix]
                 lw_raw = rawfunc_df[lw_raw_col]
@@ -665,7 +664,7 @@ class DataFlow:
                     continue
                 if self.site == 'ch-fru':
                     swc = ch_fru.calc_swc_from_sdp(series=series, depth=depth)
-                    copy_meta = data_vars[v[0]]
+                    copy_meta = data_vars[v[0]].copy()
                     new_series = swc
                     measurement = 'SWC'
                     units = "%"

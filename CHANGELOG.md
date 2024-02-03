@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.1 | 3 Feb 2024
+
+- Fixed bug in `rawfuncs` (`dataflow.main.DataFlow._execute_rawfuncs`)
+
 ## v0.11.0 | 2 Jan 2024
 
 ### Major change

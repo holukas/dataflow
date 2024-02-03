@@ -71,8 +71,8 @@ files = [
 
 [[package]]
 name = "dbc-influxdb"
-version = "0.10.1"
-description = ""
+version = "0.11.0"
+description = "database communication with InfluxDB v2"
 optional = false
 python-versions = ">=3.9,<3.11"
 files = []
