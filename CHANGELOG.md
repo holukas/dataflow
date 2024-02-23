@@ -1,5 +1,34 @@
 # Changelog
 
+## v0.11.2 | 23 Feb 2024
+ 
+- Updated packages to newest versions:
+
+  ```
+  > poetry update
+  
+  Updating dependencies
+  Resolving dependencies...
+  
+  Package operations: 0 installs, 16 updates, 0 removals
+  
+    • Updating typing-extensions (4.8.0 -> 4.9.0)
+    • Updating certifi (2023.7.22 -> 2024.2.2)
+    • Updating markupsafe (2.1.3 -> 2.1.5)
+    • Updating numpy (1.26.0 -> 1.26.4)
+    • Updating pytz (2023.3.post1 -> 2024.1)
+    • Updating setuptools (68.2.2 -> 69.1.0)
+    • Updating tzdata (2023.3 -> 2024.1)
+    • Updating urllib3 (2.0.4 -> 1.26.18)
+    • Updating blinker (1.6.2 -> 1.7.0)
+    • Updating importlib-metadata (6.8.0 -> 7.0.1)
+    • Updating influxdb-client (1.37.0 -> 1.40.0)
+    • Updating jinja2 (3.1.2 -> 3.1.3)
+    • Updating pandas (2.1.0 -> 2.2.0)
+    • Updating werkzeug (2.3.7 -> 3.0.1)
+    • Updating wcmatch (8.5 -> 8.5.1)
+  ```
+
 ## v0.11.1 | 3 Feb 2024
 
 - Fixed bug in `rawfuncs` (`dataflow.main.DataFlow._execute_rawfuncs`)
