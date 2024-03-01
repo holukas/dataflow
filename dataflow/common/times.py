@@ -183,6 +183,11 @@ class DetectFrequency:
         freq_timedelta, self.freqfrom_timedelta = timestamp_infer_freq_from_timedelta(timestamp_ix=self.index)
         freq_progressive, self.freqfrom_progressive = timestamp_infer_freq_progressively(timestamp_ix=self.index)
 
+        # Harmonize time string representations
+        freq_full = self.harmonize_timestring(freq=freq_full)
+        freq_timedelta = self.harmonize_timestring(freq=freq_timedelta)
+        freq_progressive = self.harmonize_timestring(freq=freq_progressive)
+
         if all(f for f in [freq_full, freq_timedelta, freq_progressive]):
 
             # List of {Set of detected freqs}
@@ -241,6 +246,12 @@ class DetectFrequency:
 
         else:
             self.freq = 'irregular'
+
+    @staticmethod
+    def harmonize_timestring(freq):
+        """Harmonize time string representations, e.g. use 'T' for 1-minute time resolution."""
+        freq = 'T' if freq == 'min' else freq
+        return freq
 
     def get(self) -> str:
         return self.freq

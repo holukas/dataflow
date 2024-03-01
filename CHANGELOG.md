@@ -1,7 +1,19 @@
 # Changelog
 
+## v0.11.3 | 1 Mar 2024
+
+- Added new method to harmonize time string representations when inferring the time resolution. Necessary because
+  pandas outputs the time string for one-minute data as `min`, but dataflow prefers to
+  use `T`. (`dataflow.common.times.DetectFrequency.harmonize_timestring`)
+- Change in environment: now using `conda` env with specific Python version `3.9.18`. `poetry` is still used for
+  dependency management but is now directly installed in the `conda` env. Before `poetry` was installed at system
+  level with the system level Python `3.9.7`. This setup has the advantage that the script is now completely
+  independent from the Python version installed at system level.
+- Added `environment.yml` for creating a complete `conda` environment which includes the required Python version
+  and all required packages.
+
 ## v0.11.2 | 23 Feb 2024
- 
+
 - Updated packages to newest versions:
 
   ```

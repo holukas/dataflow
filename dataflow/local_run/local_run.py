@@ -18,11 +18,11 @@ from dataflow.local_run.calls import run_dataflow
 # FILEGROUPS = ['10_meteo', '11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
 # # FILEGROUPS = ['11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
 
-# # CH-CHA
-# SITE = 'ch-cha'
-# DATATYPE = 'raw'
-# # DATATYPE='processing'
-# FILEGROUPS = ['10_meteo']
+# CH-CHA
+SITE = 'ch-cha'
+DATATYPE = 'raw'
+# DATATYPE='processing'
+FILEGROUPS = ['10_meteo']
 
 # # CH-DAV
 # SITE = 'ch-dav'
@@ -37,8 +37,8 @@ from dataflow.local_run.calls import run_dataflow
 # SITE = 'ch-fru'
 # DATATYPE = 'raw'
 # # DATATYPE='processing'
-# FILEGROUPS = ['10_meteo', '13_meteo_pressure']
-# # FILEGROUPS = ['10_meteo']
+# # FILEGROUPS = ['10_meteo', '13_meteo_pressure']
+# FILEGROUPS = ['10_meteo']
 
 # # CH-LAE
 # SITE = 'ch-lae'
@@ -53,19 +53,19 @@ from dataflow.local_run.calls import run_dataflow
 # # DATATYPE='processing'
 # FILEGROUPS = ['10_meteo']
 
-# CH-TAN
-SITE = 'ch-tan'
-DATATYPE = 'raw'
-# DATATYPE='processing'
-FILEGROUPS = ['10_meteo']
+# # CH-TAN
+# SITE = 'ch-tan'
+# DATATYPE = 'raw'
+# # DATATYPE='processing'
+# FILEGROUPS = ['10_meteo']
 
 # # Processing Level-0
-# SITE = 'ch-aws'
+# # SITE = 'ch-aws'
 # # SITE = 'ch-cha'
 # # SITE = 'ch-dav'
 # # SITE = 'ch-das'
 # # SITE = 'ch-fru'
-# # SITE = 'ch-lae'
+# SITE = 'ch-lae'
 # # SITE = 'ch-las'
 # # SITE = 'ch-oe2'
 # # SITE = 'ch-tan'

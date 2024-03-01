@@ -38,7 +38,7 @@ class FileScanner:
     ignored_extensions = [
         '.png', '.dll', '.log', '.exe', '.metadata', '.eddypro',
         '.settings', '.settingsOld', '.jpg', '.JPG', '.jpeg', '.JPEG',
-        '.gif'
+        '.gif', '.csv.gz'
     ]
 
     ignored_strings = [
