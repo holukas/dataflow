@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.4 | 2 Mar 2024
+
+- Updated `dbc-influxdb` to v0.11.1
+
 ## v0.11.3 | 1 Mar 2024
 
 - Added new method to harmonize time string representations when inferring the time resolution. Necessary because
