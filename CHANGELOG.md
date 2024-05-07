@@ -1,5 +1,43 @@
 # Changelog
 
+## v0.12.0 | 7 May 2024
+
+### Handling old meteo files
+
+- In the `configs` it is now possible to define multiple IDs that identify good data rows. In `dataflow` this is now
+  handled accordingly.
+- In the `configs`, this is done by specifying e.g. `data_keep_good_rows: [ 0, [ 102, 103 ], [ 202, 203 ] ]`, which
+  means that all data rows that start with either `102` or `103` are kept and use variable info in `data_vars`,
+  and `202` or `203` use the variable info given in `data_vars2`.
+- In case single integers are given instead of a list, then all records that start with that integer are kept. For
+  example, `data_keep_good_rows: [ 0, 102, 202 ]`, which means that all data rows that start with `102` are kept and use
+  variable info in `data_vars`, and all data rows that start with `202` use the variable info given in `data_vars2`.
+
+### Additions
+
+- Added new function to calculate soil water content `SWC` from `SDP` variables measured at the site `CH-CHA`. The
+  function to do the calculation was taken from the previous MeteoScreening tool. Conversions for other sites follow
+  later. (`dataflow.rawfuncs.ch_cha.calc_swc_from_sdp` and `dataflow.main.DataFlow._execute_rawfuncs`)
+- After reading the data file, all rows that do not contain a timestamp are now
+  removed. This is the case e.g. for the file `CH-CHA_iDL_BOX1_1min_20160930-1545.csv.gz` that contains the
+  string `ap>0.004216865` in the 3rd row of the timestamp column. (`dataflow.main.DataFlow._varscanner`)
+
+### Changes
+
+- Updated date offsets to be compliant with new versions of `pandas` (
+  see [here](https://pandas.pydata.org/docs/user_guide/timeseries.html#dateoffset-objects)). (`dataflow.common.times.timedelta_to_string`)
+- Adjusted check for missing IDs due to the new option in `data_keep_good_rows` as described
+  above (`dataflow.main.DataFlow._check_special_format_alternating_missed_ids`)
+- Updated detection of good rows for special format alternating, it can now handle multiple IDs that mark good
+  rows (`dataflow.filetypereader.special_format_alternating.special_format_alternating`)
+
+### Bugfixes
+
+- Fixed `EmptyDataError` bug when reading compressed `gzip` files that have filesize zero when uncompressed. This
+  error occurs when completely empty files are gzipped. In this case, the filesize of the compressed file is > 0.
+  When the script then tries to uncompress the file, the exception `pd.errors.EmptyDataError` is raised. There are now
+  more checks implented to avoid empty dataframes. (`dataflow.filetypereader.filetypereader.FileTypeReader._readfile`)
+
 ## v0.11.4 | 2 Mar 2024
 
 - Updated `dbc-influxdb` to v0.11.1

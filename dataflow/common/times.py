@@ -21,44 +21,45 @@ def timedelta_to_string(timedelta):
 
     This function is part of diive v0.67.0.
 
-    - Example notebook available in:
-        notebooks/TimeFunctions/times.ipynb
     """
     c = timedelta.components
     format = ''
     if c.days != 0:
         format += '%dD' % c.days
     if c.hours > 0:
-        format += '%dH' % c.hours
+        format += '%dh' % c.hours
     if c.minutes > 0:
-        format += '%dT' % c.minutes
+        format += '%dmin' % c.minutes
     if c.seconds > 0:
-        format += '%dS' % c.seconds
+        format += '%ds' % c.seconds
     if c.milliseconds > 0:
-        format += '%dL' % c.milliseconds
+        format += '%dms' % c.milliseconds
+        # old format: format += '%dL' % c.milliseconds
     if c.microseconds > 0:
-        format += '%dU' % c.microseconds
+        format += '%dus' % c.microseconds
+        # old format: format += '%dU' % c.microseconds
     if c.nanoseconds > 0:
-        format += '%dN' % c.nanoseconds
+        format += '%dns' % c.nanoseconds
+        # old format: format += '%dN' % c.nanoseconds
 
     # Remove leading `1` to represent e.g. daily resolution
     # This is in line with how pandas handles frequency strings,
-    # e.g., 1-minute time resolution is represented by `T` and
-    # not by `1T`.
+    # e.g., 1-minute time resolution is represented by `min` and
+    # not by `1min`.
     if format == '1D':
         format = 'D'
-    elif format == '1H':
-        format = 'H'
-    elif format == '1T':
-        format = 'T'
-    elif format == '1S':
-        format = 'S'
-    elif format == '1L':
-        format = 'L'
-    elif format == '1U':
-        format = 'U'
-    elif format == '1N':
-        format = 'N'
+    elif format == '1h':
+        format = 'h'
+    elif format == '1min':
+        format = 'min'
+    elif format == '1s':
+        format = 's'
+    elif format == '1ms':
+        format = 'ms'
+    elif format == '1us':
+        format = 'us'
+    elif format == '1ns':
+        format = 'ns'
 
     return format
 
@@ -134,7 +135,7 @@ def timestamp_infer_freq_from_fullset(timestamp_ix: pd.DatetimeIndex) -> tuple:
         timestamp_ix: Timestamp index
 
     Returns:
-        Frequency string, e.g. '10T' for 10-minute time resolution
+        Frequency string, e.g. '10min' for 10-minute time resolution
     """
     inferred_freq = None
     freqinfo = None
@@ -249,8 +250,8 @@ class DetectFrequency:
 
     @staticmethod
     def harmonize_timestring(freq):
-        """Harmonize time string representations, e.g. use 'T' for 1-minute time resolution."""
-        freq = 'T' if freq == 'min' else freq
+        """Harmonize time string representations, e.g. use 'min' for 1-minute time resolution."""
+        freq = 'min' if freq == 'T' else freq
         return freq
 
     def get(self) -> str:

@@ -80,18 +80,19 @@ class FileTypeReader:
 
         self.data_df = self._readfile()
 
-        # In case the timestamp was built from multiple columns with 'parse_dates',
-        # e.g. in EddyPro full output files from the 'date' and 'time' columns,
-        # the parsed column has to be set as the timestamp index
-        if isinstance(self.parse_dates, dict):
-            try:
-                self.data_df.set_index(('TIMESTAMP', '-'), inplace=True)
-            except KeyError:
-                pass
+        if not self.data_df.empty:
+            # In case the timestamp was built from multiple columns with 'parse_dates',
+            # e.g. in EddyPro full output files from the 'date' and 'time' columns,
+            # the parsed column has to be set as the timestamp index
+            if isinstance(self.parse_dates, dict):
+                try:
+                    self.data_df.set_index(('TIMESTAMP', '-'), inplace=True)
+                except KeyError:
+                    pass
 
-        # Timestamp
-        if self.build_timestamp:
-            self.data_df = self._build_timestamp()
+            # Timestamp
+            if self.build_timestamp:
+                self.data_df = self._build_timestamp()
 
     def get_data(self):
         return self.data_df
@@ -143,8 +144,17 @@ class FileTypeReader:
         try:
             # todo read header separately like in diive
             df = pd.read_csv(**args)
+        except pd.errors.EmptyDataError:
+            # EmptyDataError occurs when the file is completely empty.
+            # Normally, files with file size zero are filtered out before
+            # .read_csv(), however, in case a file is  compressed using gzip,
+            # the file size of completely empty files is > 0 when gzipped.
+            # This means it is possible that a gzip file with size > 0 arrives
+            # here but then cannot be read due because the uncompressed file size
+            # is zero. Example: file CH-CHA_iDL_BOX1_1min_20160319-0345.csv.gz
+            # has file size 59 Bytes, but is completely empty when unzipped.
+            df = pd.DataFrame()
         except ValueError:
-            print("STOP")
             # Found to occur when the first row is empty and the
             # second row has errors (e.g., too many columns).
             # Observed in file logger2013010423.a59 (CH-DAV).
@@ -191,8 +201,6 @@ class FileTypeReader:
 
             # pandas recognizes columns with these names as time columns
             df['TIMESTAMP'] = pd.to_datetime(df[['YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE']])
-
-
 
             # Remove rows where timestamp-building did not work
             locs_emptydate = df['TIMESTAMP'].isnull()

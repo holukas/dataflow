@@ -28,7 +28,12 @@ def special_format_alternating(data_df, goodrows_col, goodrows_ids, filetypeconf
         data_vars = 'data_vars' if idix == 0 else 'data_vars2'
 
         # Get data for ID
-        filter_data_rows = data_df.iloc[:, goodrows_col] == this_id
+        filter_data_rows = None
+        if isinstance(this_id, int):
+            filter_data_rows = data_df.iloc[:, goodrows_col] == this_id
+        elif isinstance(this_id, list):
+            filter_data_rows = data_df.iloc[:, goodrows_col].isin(this_id)
+
         df = data_df[filter_data_rows].copy()
         raw_varnames = list(filetypeconf[data_vars].keys())  # Varnames for this ID
         n_raw_varnames = len(raw_varnames)  # Number of vars for this ID

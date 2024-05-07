@@ -6,7 +6,7 @@
 import datetime as dt
 import fnmatch
 from pathlib import Path
-
+from itertools import chain
 import pandas as pd
 from dbc_influxdb import dbcInflux
 from pandas import DataFrame
@@ -22,7 +22,7 @@ try:
         remove_bad_data_rows, remove_orig_timestamp_cols, combine_duplicate_cols
     from .common import logger, cli, logblocks
     from .common.times import make_run_id, DetectFrequency
-    from .rawfuncs import ch_fru, common
+    from .rawfuncs import ch_cha, ch_fru, common
     from .filetypereader.special_format_alternating import special_format_alternating
     from .filetypereader.special_format_icosseq import special_format_icosseq
 except ImportError:
@@ -34,7 +34,7 @@ except ImportError:
         remove_bad_data_rows, remove_orig_timestamp_cols, combine_duplicate_cols
     from common import logger, cli, logblocks
     from common.times import make_run_id, DetectFrequency
-    from rawfuncs import ch_fru, common
+    from rawfuncs import ch_cha, ch_fru, common
     from filetypereader.special_format_alternating import special_format_alternating
     from filetypereader.special_format_icosseq import special_format_icosseq
 
@@ -189,11 +189,22 @@ class DataFlow:
                                      config_filetype=config_filetype,
                                      filetypeconf=filetypeconf)
 
+            # Remove rows that do not contain a timestamp
+            file_df.index = pd.to_datetime(file_df.index, format=filetypeconf['data_date_parser'], errors='coerce')
+            no_date = file_df.index.isnull()
+            file_df = file_df.loc[file_df.index[~no_date]]
+
+            # self.filescanner_df['filedate'] = pd.to_datetime(self.filescanner_df['filedate'], errors='coerce',
+            #                                                  format='%Y-%m-%d %H:%M:%S')
+
             # Skip empty dataframes
             # It is possible that a file contains data that result in an empty dataframe,
             # one example would be if the file only contains one row of data with '0,0,0,...'.
             # In such a case the filesize is > 0 and thus the previous filesize test is passed
             # but the file needs to be skipped.
+            # Similarly, the dataframe can be empty if an empty file was compressed (gzip),
+            # which yields filesizes > 0 and thus the script tries to read it. However, since
+            # data are completely empty, this yields an empty dataframe.
             if file_df.empty:
                 continue
 
@@ -221,22 +232,24 @@ class DataFlow:
     def _store_info_csv(self) -> None:
 
         # Info CSV with info about data for each file found across all filetypes
-        outfile = self.dir_out_run / f"2-0_{self.run_id}_filedata_details.csv"
-        self.filedata_details_df.to_csv(outfile, index=False)
+        if not self.filedata_details_df.empty:
+            outfile = self.dir_out_run / f"2-0_{self.run_id}_filedata_details.csv"
+            self.filedata_details_df.to_csv(outfile, index=False)
 
         # Info CSV for each variable found across all filetypes
-        outfile = self.dir_out_run / f"3-0_{self.run_id}_varscanner.csv"
-        self.varscanner_df.to_csv(outfile, index=False)
+        if not self.varscanner_df.empty:
+            outfile = self.dir_out_run / f"3-0_{self.run_id}_varscanner.csv"
+            self.varscanner_df.to_csv(outfile, index=False)
 
-        # Output found unique variables
-        varscanner_uniquevars_df = self.varscanner_df[['raw_varname']]
-        varscanner_uniquevars_df = varscanner_uniquevars_df.drop_duplicates()
-        outfile = self.dir_out_run / f"3-1_{self.run_id}_varscanner_vars_unique.csv"
-        varscanner_uniquevars_df.to_csv(outfile, index=False)
+            # Output found unique variables
+            varscanner_uniquevars_df = self.varscanner_df[['raw_varname']]
+            varscanner_uniquevars_df = varscanner_uniquevars_df.drop_duplicates()
+            outfile = self.dir_out_run / f"3-1_{self.run_id}_varscanner_vars_unique.csv"
+            varscanner_uniquevars_df.to_csv(outfile, index=False)
 
-        # Output variables that were not greenlit (not defined in configs)
-        outfile = self.dir_out_run / f"3-2_{self.run_id}_varscanner_vars_not_greenlit.csv"
-        self.varscanner_df.loc[self.varscanner_df['greenlit'] == '-not-greenlit-', :].to_csv(outfile, index=False)
+            # Output variables that were not greenlit (not defined in configs)
+            outfile = self.dir_out_run / f"3-2_{self.run_id}_varscanner_vars_not_greenlit.csv"
+            self.varscanner_df.loc[self.varscanner_df['greenlit'] == '-not-greenlit-', :].to_csv(outfile, index=False)
 
     def _loop_file_dataframes(self, filename, file_df, filetypeconf, config_filetype,
                               db_bucket, missed_ids):
@@ -255,7 +268,7 @@ class DataFlow:
                 elif isinstance(data_raw_freq, list):
                     # Special formats can have two different time resolutions
                     # Special format '-ALTERNATING-' can contain data with different time
-                    # resolutions, which are defined as a list in the config file, e.g., [30T, 10T].
+                    # resolutions, which are defined as a list in the config file, e.g., [30min, 10min].
                     # To continue processing, the list element is extracted and returned as string.
                     # For all other formats, the time resolution is already defined as a string
                     # in the config file.
@@ -533,10 +546,21 @@ class DataFlow:
 
         In case of special format -ALTERNATING-, there can be multiple integer IDs
         at the start of each data record, this method checks if there are any new and
-        undefined IDs
+        undefined IDs.
+
+        goodrows_ids can be given like this: [ [ 103, 104, 105 ], [ 203, 204, 205 ] ]
+        or as simple list: goodrows_ids can be given like this: [ 103, 203 ]
         """
         available_ids = file_df['ID'].dropna().unique().tolist()
-        missed_ids = [x for x in goodrows_ids if x not in available_ids]
+        # missed_ids = []
+        # available_ids = [103,203,204,999,6,5,4,5,3,2,1,5,6,5]
+        if all(isinstance(n, int) for n in goodrows_ids):
+            # IDs are provided as list of integers
+            goodrows_ids_flat = goodrows_ids
+        else:
+            # IDs are provided as list of lists
+            goodrows_ids_flat = list(chain.from_iterable(goodrows_ids))
+        missed_ids = [x for x in available_ids if x not in goodrows_ids_flat]
         missed_ids = 'all IDs defined' if len(missed_ids) == 0 else missed_ids
         return str(missed_ids)
 
@@ -558,6 +582,9 @@ class DataFlow:
 
     def _check_filesize_zero(self, filesize, filepath):
         """Skip files w/ filesize zero."""
+        import gzip
+        # TODO HIER WEITER GZIP uncompressed filesize 0
+
         if filesize == 0:
             logtxt = f"(!)Skipping file {filepath} " \
                      f"because filesize is {filesize}"
@@ -662,13 +689,17 @@ class DataFlow:
                     depth = float(vpos)
                 except ValueError:
                     continue
+
+                measurement = 'SWC'
+                units = "%"
+                calculated = "_from_SDP_"
+                swc = None
                 if self.site == 'ch-fru':
                     swc = ch_fru.calc_swc_from_sdp(series=series, depth=depth)
-                    copy_meta = data_vars[v[0]].copy()
-                    new_series = swc
-                    measurement = 'SWC'
-                    units = "%"
-                    calculated = "_from_SDP_"
+                elif self.site == 'ch-cha':
+                    swc = ch_cha.calc_swc_from_sdp(series=series, depth=depth)
+                copy_meta = data_vars[v[0]].copy()
+                new_series = swc
 
             newdata_df[new_series.name] = new_series
 

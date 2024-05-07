@@ -6,34 +6,25 @@ def calc_swc_from_sdp(series, depth):
     SDP variables were named Theta in original raw data files.
 
     """
-
     # Convert signal from mV to V
     series = series / 1000
 
     c = {}
 
+    # Chamau specific constants
     if depth <= .1:
-        c = {'L': .975,  # ml
-             'V_w': .85,  # mV
-             'W_w': 1.147,  # g
-             'V_d': .0563,  # mV
-             'W_d': .715}  # g
+        c = {'L': .950,  # ml
+             'V_w': .879,  # mV
+             'W_w': 1.443,  # g
+             'V_d': .0824,  # mV
+             'W_d': .966}  # g
 
-    elif depth <= .2:
-        c = {'L': .47,  # ml
-             'V_w': .603,  # mV
-             'W_w': .647,  # g
-             'V_d': .0442,  # mV
-             'W_d': .478}  # g
-
-    elif depth <= 1.2:
-        c = {'L': .45,  # ml
-             'V_w': .704,  # mV
-             'W_w': .756,  # g
-             'V_d': .0451,  # mV
-             'W_d': .558}  # g
     else:
-        print('(!)SWC calculation is not yet defined for depth >1.2m...')
+        c = {'L': .910,  # ml
+             'V_w': .863,  # mV
+             'W_w': 1.505,  # g
+             'V_d': .0661,  # mV
+             'W_d': 1.1134}  # g
 
     # Calculations
     e_w_sqr = 1.07 + 6.4 * c['V_w'] - 6.4 * c['V_w'] ** 2 + 4.7 * c['V_w'] ** 3
@@ -54,14 +45,15 @@ def calc_swc_from_sdp(series, depth):
 
     return series
 
-# def calc_swc_from_sdp(data, var, idx, param):
+# # Original code from meteosceening tool
+# def swc(data, var, idx, param):
 #     """
-#     Calculate soil water content (SWC) from xxx (SDP)
+#     Takes multiple SDP variables (measurements in milivolts)
+#     and calculates the SWC (soil water content)
 #
 #     Parameters: None
 #     """
 #     for i, v in enumerate(var):
-#         logging.debug('Calculating SWC for %s', v)
 #         x = data.loc[idx, v]
 #
 #         x = x / 1000
@@ -72,29 +64,20 @@ def calc_swc_from_sdp(series, depth):
 #             logging.warning('Could not get depth for %s, default to 0.05', v)
 #             depth = 0.05
 #
+#         # Chamau specific constants
 #         if depth <= .1:
-#             c = {'L': .975,       # ml
-#                  'V_w': .85,      # mV
-#                  'W_w': 1.147,    # g
-#                  'V_d': .0563,    # mV
-#                  'W_d': .715}     # g
+#             c = {'L': .950,       # ml
+#                  'V_w': .879,      # mV
+#                  'W_w': 1.443,    # g
+#                  'V_d': .0824,    # mV
+#                  'W_d': .966}     # g
 #
-#         elif depth <= .2:
-#             c = {'L': .47,        # ml
-#                  'V_w': .603,     # mV
-#                  'W_w': .647,     # g
-#                  'V_d': .0442,    # mV
-#                  'W_d': .478}     # g
-#
-#         elif depth <= 1.2:
-#             c = {'L': .45,        # ml
-#                  'V_w': .704,     # mV
-#                  'W_w': .756,     # g
-#                  'V_d': .0451,    # mV
-#                  'W_d': .558}     # g
 #         else:
-#             logging.error('SWC calculation is not yet defined for depth >1.2m...')
-#             continue
+#             c = {'L': .910,        # ml
+#                  'V_w': .863,     # mV
+#                  'W_w': 1.505,     # g
+#                  'V_d': .0661,    # mV
+#                  'W_d': 1.1134}     # g
 #
 #         # Calculations
 #         e_w_sqr = 1.07 + 6.4 * c['V_w'] - 6.4 * c['V_w']**2 + 4.7 * c['V_w']**3
