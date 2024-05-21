@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.12.1 | 21 May 2024
+
+### Changes
+
+- Variables are now strictly converted to `float`, because the automatic detection of datatypes confused the database
+  which lead to values being skipped because `int` was expected but `float` was
+  delivered (`dataflow.main.DataFlow._to_numeric`)
+- Columns of `objects` type are now officially
+  excluded `infer_objects=False` (`dataflow.main.DataFlow._convert_to_float_or_string`)
+
 ## v0.12.0 | 7 May 2024
 
 ### Handling old meteo files

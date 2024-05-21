@@ -7,6 +7,8 @@ import datetime as dt
 import fnmatch
 from pathlib import Path
 from itertools import chain
+
+import numpy as np
 import pandas as pd
 from dbc_influxdb import dbcInflux
 from pandas import DataFrame
@@ -445,7 +447,6 @@ class DataFlow:
         # desired (ICOSSEQ locations), or unwanted (in case of bad data rows)
         df = self._convert_to_float_or_string(df=df)
 
-        # todo check if this works Numeric data only
         df = self._to_numeric(df=df)
 
         # Remove bad data rows
@@ -534,10 +535,16 @@ class DataFlow:
     @staticmethod
     def _to_numeric(df) -> pd.DataFrame:
         """Make sure all data are numeric"""
-        try:
-            df = df.astype(float)  # Crashes if not possible
-        except ValueError as e:
-            df = df.apply(pd.to_numeric, errors='coerce')  # Does not crash
+
+        for col in df.columns:
+            try:
+                df[col] = df[col].astype(float)
+            except ValueError as e:
+                df[col] = df[col].apply(pd.to_numeric, errors='coerce')
+        # try:
+        #     df = df.astype(float)  # Crashes if not possible
+        # except ValueError as e:
+        #     df = df.apply(pd.to_numeric, errors='coerce')  # Does not crash
         return df
 
     @staticmethod
@@ -571,7 +578,7 @@ class DataFlow:
         float64 or string. NaNs are not converted to string, they
         are still recognized as missing after this step.
         """
-        df = df.convert_dtypes(convert_boolean=False, convert_integer=False)
+        df = df.convert_dtypes(infer_objects=False, convert_boolean=False, convert_integer=False)
 
         _found_dtypes = df.dtypes
         _is_dtype_string = _found_dtypes == 'string'

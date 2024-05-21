@@ -18,27 +18,27 @@ from dataflow.local_run.calls import run_dataflow
 # FILEGROUPS = ['10_meteo', '11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
 # # FILEGROUPS = ['11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
 
-# # CH-CHA
+# CH-CHA
 # SITE = 'ch-cha'
 # DATATYPE = 'raw'
 # # DATATYPE='processing'
 # FILEGROUPS = ['10_meteo']
 
-# # CH-DAV
-# SITE = 'ch-dav'
-# DATATYPE = 'raw'
-# # DATATYPE='processing'
-# # FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_backup_eth',
-# #               '13_meteo_nabel', '15_meteo_snowheight', '17_meteo_profile', '30_profile_ghg',
-# #               '40_chambers_ghg']
-# FILEGROUPS = ['30_profile_ghg']
-
-# CH-FRU
-SITE = 'ch-fru'
+# CH-DAV
+SITE = 'ch-dav'
 DATATYPE = 'raw'
 # DATATYPE='processing'
-# FILEGROUPS = ['10_meteo', '13_meteo_pressure']
-FILEGROUPS = ['10_meteo']
+# FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_backup_eth',
+#               '13_meteo_nabel', '15_meteo_snowheight', '17_meteo_profile', '30_profile_ghg',
+#               '40_chambers_ghg']
+FILEGROUPS = ['30_profile_ghg']
+
+# # CH-FRU
+# SITE = 'ch-fru'
+# DATATYPE = 'raw'
+# # DATATYPE='processing'
+# # FILEGROUPS = ['10_meteo', '13_meteo_pressure']
+# FILEGROUPS = ['10_meteo']
 
 # # CH-LAE
 # SITE = 'ch-lae'
@@ -76,29 +76,29 @@ FILEGROUPS = ['10_meteo']
 # Common xxx
 ACCESS = 'server'
 DIRCONF = r'F:\Sync\luhk_work\20 - CODING\22 - POET\configs'
-YEAR = 2024
-# MONTH = None
+# YEAR = 2021
+MONTH = None
 # MONTH = 12
 FILELIMIT = 0
 # FILELIMIT = 10
 NEWESTFILES = 0
-# TESTUPLOAD = True
-TESTUPLOAD = False
-# N_ROWS = 100  # Only upload x number of rows of each file
-N_ROWS = None
+TESTUPLOAD = True
+# TESTUPLOAD = False
+# N_ROWS = 5  # Only upload x number of rows of each file
+N_ROWS = 100
 
 # For parallel processing of months
-MONTHS = range(1, 13, 1)
-filegroup = '13_meteo_pressure'
+# MONTHS = range(1, 13, 1)
+YEARS = range(2020, 2022, 1)
 # filegroup = '10_meteo'
 
 kwargs = dict(site=SITE,
               datatype=DATATYPE,
               access=ACCESS,
               dirconf=DIRCONF,
-              year=YEAR,
-              filegroup=filegroup,
-              # month=MONTH,
+              # year=YEAR,
+              # filegroup=filegroup,
+              month=MONTH,
               filelimit=FILELIMIT,
               newestfiles=NEWESTFILES,
               testupload=TESTUPLOAD,
@@ -109,16 +109,16 @@ if __name__ == '__main__':
     tic = time.perf_counter()
     processes = []
 
-    # Run filegroups in parallel
-    # for yr in YEAR:
-    #     kwargs['year'] = yr
-    # for filegroup in FILEGROUPS:
-    for month in MONTHS:
-        kwargs['month'] = month
-        # kwargs['filegroup'] = filegroup
-        p = multiprocessing.Process(target=run_dataflow, kwargs=kwargs)
-        p.start()
-        processes.append(p)
+    # Run years and all filegroups in parallel
+    # for month in MONTHS:
+    #     kwargs['month'] = month
+    for year in YEARS:
+        kwargs['year'] = year
+        for filegroup in FILEGROUPS:
+            kwargs['filegroup'] = filegroup
+            p = multiprocessing.Process(target=run_dataflow, kwargs=kwargs)
+            p.start()
+            processes.append(p)
 
     for p in processes:
         p.join()

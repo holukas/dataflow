@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dataflow"
-version = "0.12.0"
+version = "0.12.1"
 description = ""
 authors = ["Lukas Hörtnagl <31772692+holukas@users.noreply.github.com>"]
 readme = "README.md"
