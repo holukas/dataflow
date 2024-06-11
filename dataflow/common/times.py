@@ -3,12 +3,13 @@ import datetime as dt
 import pandas as pd
 
 
-def make_run_id(prefix: str = None) -> str:
+def make_run_id(prefix: str = None, suffix: str=None) -> str:
     """Make run identifier based on current datetime"""
     now_time_dt = dt.datetime.now()
-    now_time_str = now_time_dt.strftime("%Y%m%d-%H%M%S")
+    now_time_str = now_time_dt.strftime("%Y%m%d-%H%M%S-%f")
     prefix = prefix if prefix else "RUN"
-    run_id = f"{prefix}-{now_time_str}"
+    suffix = f"_{suffix}" if suffix else ""
+    run_id = f"{prefix}-{now_time_str}{suffix}"
     return run_id
 
 

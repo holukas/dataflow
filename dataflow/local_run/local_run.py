@@ -19,25 +19,25 @@ from dataflow.local_run.calls import run_dataflow
 # # FILEGROUPS = ['11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
 
 # CH-CHA
-# SITE = 'ch-cha'
-# DATATYPE = 'raw'
-# # DATATYPE='processing'
-# FILEGROUPS = ['10_meteo']
-
-# CH-DAV
-SITE = 'ch-dav'
+SITE = 'ch-cha'
 DATATYPE = 'raw'
 # DATATYPE='processing'
+FILEGROUPS = ['10_meteo']
+
+# # CH-DAV
+# SITE = 'ch-dav'
+# DATATYPE = 'raw'
+# # DATATYPE='processing'
 # FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_backup_eth',
 #               '13_meteo_nabel', '15_meteo_snowheight', '17_meteo_profile', '30_profile_ghg',
 #               '40_chambers_ghg']
-FILEGROUPS = ['30_profile_ghg']
+# # FILEGROUPS = ['10_meteo']
 
 # # CH-FRU
 # SITE = 'ch-fru'
 # DATATYPE = 'raw'
-# # DATATYPE='processing'
-# # FILEGROUPS = ['10_meteo', '13_meteo_pressure']
+# DATATYPE='processing'
+# FILEGROUPS = ['10_meteo', '13_meteo_pressure']
 # FILEGROUPS = ['10_meteo']
 
 # # CH-LAE
@@ -64,7 +64,9 @@ FILEGROUPS = ['30_profile_ghg']
 # SITE = 'ch-cha'
 # SITE = 'ch-dav'
 # SITE = 'ch-das'
+# SITE = 'ch-for'
 # SITE = 'ch-fru'
+# SITE = 'ch-hon'
 # SITE = 'ch-lae'
 # SITE = 'ch-las'
 # SITE = 'ch-oe2'
@@ -76,20 +78,22 @@ FILEGROUPS = ['30_profile_ghg']
 # Common xxx
 ACCESS = 'server'
 DIRCONF = r'F:\Sync\luhk_work\20 - CODING\22 - POET\configs'
-# YEAR = 2021
+# YEAR = 2017
 MONTH = None
-# MONTH = 12
+# MONTH = 6
 FILELIMIT = 0
 # FILELIMIT = 10
 NEWESTFILES = 0
-TESTUPLOAD = True
-# TESTUPLOAD = False
+# TESTUPLOAD = True
+TESTUPLOAD = False
 # N_ROWS = 5  # Only upload x number of rows of each file
-N_ROWS = 100
+N_ROWS = None
+INGEST = True
+# INGEST = False
 
-# For parallel processing of months
+# For parallel processing of months or years
 # MONTHS = range(1, 13, 1)
-YEARS = range(2020, 2022, 1)
+YEARS = range(2005, 2021, 1)
 # filegroup = '10_meteo'
 
 kwargs = dict(site=SITE,
@@ -102,7 +106,8 @@ kwargs = dict(site=SITE,
               filelimit=FILELIMIT,
               newestfiles=NEWESTFILES,
               testupload=TESTUPLOAD,
-              nrows=N_ROWS)
+              nrows=N_ROWS,
+              ingest=INGEST)
 
 if __name__ == '__main__':
     # https://machinelearningmastery.com/multiprocessing-in-python/

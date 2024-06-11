@@ -16,7 +16,8 @@ def run_dataflow(**kwargs):
              dirconf=kwargs.dirconf,
              newestfiles=kwargs.newestfiles,
              filelimit=kwargs.filelimit,
-             testupload=kwargs.testupload)
+             testupload=kwargs.testupload,
+             ingest=kwargs.ingest)
 
 
 def dict_to_namespace(kwargs):

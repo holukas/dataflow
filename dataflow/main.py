@@ -59,7 +59,8 @@ class DataFlow:
             filelimit: int = 0,
             newestfiles: int = 0,
             nrows: int = None,
-            testupload: bool = False
+            testupload: bool = False,
+            ingest: bool = True
     ):
 
         # Args
@@ -74,6 +75,7 @@ class DataFlow:
         self.newestfiles = newestfiles
         self.nrows = nrows
         self.testupload = testupload  # If True, upload data to 'test' bucket in database
+        self.ingest = ingest  # If False, the upload part of the script will be skipped
 
         # Read configs
         (self.conf_filetypes,
@@ -82,7 +84,8 @@ class DataFlow:
          self.conf_db) = self._read_configs()
 
         # Run ID
-        self.run_id = make_run_id(prefix="DF")
+        _month = "ALL" if not self.month else str(self.month).zfill(2)
+        self.run_id = make_run_id(prefix="DF", suffix=f"{self.year}-{_month}")
 
         # Set directories
         (self.dir_out_run,
@@ -307,6 +310,7 @@ class DataFlow:
                     to_bucket=db_bucket,
                     config_filetype=config_filetype,
                     filetypeconf=filetypeconf,
+                    ingest=self.ingest,
                     logger=self.log,
                     timezone_of_timestamp='UTC+01:00')  # todo timezone should be part of config file
 

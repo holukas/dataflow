@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.12.2 | 11 Jun 2024
+
+### Changes
+
+- Run ID now also includes nanoseconds to better differentiate between (many) log files of runs that were started in
+  parallel (`dataflow.common.times.make_run_id`)
+- Added parameter to add an optional `suffix` to Run ID
+- Updated `dbc-influxdb` dependency to `v0.11.3`
+
 ## v0.12.1 | 21 May 2024
 
 ### Changes
