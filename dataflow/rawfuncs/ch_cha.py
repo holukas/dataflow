@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 def calc_swc_from_sdp(series, depth):
     """Calculate soil water content (SWC) in % from xxx (SDP) in mV.
 
@@ -44,6 +47,7 @@ def calc_swc_from_sdp(series, depth):
     series.name = (varname, series.name[1])
 
     return series
+
 
 # # Original code from meteosceening tool
 # def swc(data, var, idx, param):
@@ -93,3 +97,20 @@ def calc_swc_from_sdp(series, depth):
 #         data.loc[idx, var_out] = theta*100
 #
 #     return data
+
+def correct_o2(o2: pd.Series, temperature: pd.Series) -> pd.Series:
+    """Correct O2 measurements for temperature.
+
+    From the old Python MeteoScreening tool:
+
+        using
+        O2_AVG_GF5_0.2_1 as x[0]
+        TO2_AVG_GF5_0.2_1 as x[1]
+        to calculate O2C_AVG_GF5_0.2_1
+        using the equation:
+            x[0] + 1.975044 - 0.1037942 * x[1]
+
+
+    """
+    o2_corrected = o2 + 1.975044 - (0.1037942 * temperature)
+    return o2_corrected

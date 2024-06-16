@@ -1,4 +1,21 @@
 from pandas import Series
+import pandas as pd
+
+
+def apply_gain_between_dates(start: str, stop: str, gain: float, series: Series) -> Series:
+
+    startdatetime = pd.to_datetime(str(start), format='%Y-%m-%d %H:%M:%S')
+    stopdatetime = pd.to_datetime(str(stop), format='%Y-%m-%d %H:%M:%S')
+
+    # Start and stop needed in same timezone as series timestamp
+    current_timezone = series.index.tz
+    startdatetime = startdatetime.tz_localize(current_timezone)
+    stopdatetime = stopdatetime.tz_localize(current_timezone)
+
+    locs = (series.index >= startdatetime) & (series.index <= stopdatetime)
+    if locs.sum() > 0:
+        pass
+    return series
 
 
 def calc_lwin(temp: Series, lwinraw: Series) -> Series:

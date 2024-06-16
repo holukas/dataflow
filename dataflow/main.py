@@ -5,10 +5,9 @@
 # https://docs.influxdata.com/influxdb/cloud/tools/client-libraries/python/#query-data-from-influxdb-with-python
 import datetime as dt
 import fnmatch
-from pathlib import Path
 from itertools import chain
+from pathlib import Path
 
-import numpy as np
 import pandas as pd
 from dbc_influxdb import dbcInflux
 from pandas import DataFrame
@@ -593,7 +592,6 @@ class DataFlow:
 
     def _check_filesize_zero(self, filesize, filepath):
         """Skip files w/ filesize zero."""
-        import gzip
         # TODO HIER WEITER GZIP uncompressed filesize 0
 
         if filesize == 0:
@@ -666,6 +664,45 @@ class DataFlow:
             calculated = None
             copy_meta = None
 
+            if rawfunc[0] == 'apply_gain_between_dates':
+                # Example from configs:
+                # rawfunc: [ apply_gain_between_dates, "2010-03-31 10:30:00", "2010-07-28 09:30:00", 1.0115667782544568, SHF_2_AVG ]
+                collist = rawfunc_df.columns.get_level_values(0).to_list()
+
+                gain = float(rawfunc[3])
+                series_col = str(rawfunc[4])
+                copy_meta = data_vars[series_col].copy()
+                series_col_ix = collist.index(series_col)
+                series_col = rawfunc_df.columns[series_col_ix]
+                series = rawfunc_df[series_col].copy()
+                skip.append(series_col)
+
+                series = common.apply_gain_between_dates(series=series,
+                                                         start=str(rawfunc[1]),
+                                                         stop=str(rawfunc[2]),
+                                                         gain=gain)
+
+                # # temp_col = rawfunc[1]
+                # temp_col_ix = collist.index(temp_col)
+                # temp_col = rawfunc_df.columns[temp_col_ix]
+                # temp = rawfunc_df[temp_col]
+                # skip.append(temp_col)
+                #
+                # # lw_raw_col = rawfunc[2]
+                # copy_meta = data_vars[rawfunc[2]].copy()
+                # lw_raw_col_ix = collist.index(lw_raw_col)
+                # lw_raw_col = rawfunc_df.columns[lw_raw_col_ix]
+                # lw_raw = rawfunc_df[lw_raw_col]
+                # skip.append(lw_raw_col)
+                #
+                # lw_col = (rawfunc[3], 'W m-2')
+                # lw = common.calc_lwin(temp=temp, lwinraw=lw_raw)
+                # lw.name = lw_col
+                # new_series = lw
+                # measurement = "LW"
+                # units = "W m-2"
+                # calculated = f"_calculated_from_{lw_raw_col[0]}_and_{temp_col[0]}_"
+
             if rawfunc[0] == 'calc_lw':
                 collist = rawfunc_df.columns.get_level_values(0).to_list()
 
@@ -689,6 +726,33 @@ class DataFlow:
                 measurement = "LW"
                 units = "W m-2"
                 calculated = f"_calculated_from_{lw_raw_col[0]}_and_{temp_col[0]}_"
+
+            if rawfunc[0] == 'correct_o2':
+                collist = rawfunc_df.columns.get_level_values(0).to_list()
+
+                o2_col = rawfunc[1]
+                copy_meta = data_vars[o2_col].copy()
+                o2_col_ix = collist.index(o2_col)
+                o2_col = rawfunc_df.columns[o2_col_ix]
+                o2 = rawfunc_df[o2_col]
+                skip.append(o2_col)
+
+                temp_o2_col = rawfunc[2]
+                temp_o2_col_ix = collist.index(temp_o2_col)
+                temp_o2_col = rawfunc_df.columns[temp_o2_col_ix]
+                temp_o2 = rawfunc_df[temp_o2_col]
+                skip.append(temp_o2_col)
+
+                o2_corrected_col = (rawfunc[3], '%')
+
+                o2_corrected = None
+                if self.site == 'ch-cha':
+                    o2_corrected = ch_cha.correct_o2(o2=o2, temperature=temp_o2)
+                o2_corrected.name = o2_corrected_col
+                new_series = o2_corrected
+                measurement = "O2"
+                units = "%"
+                calculated = f"_calculated_from_{o2_col[0]}_and_{temp_o2_col[0]}_"
 
             if rawfunc[0] == 'calc_swc':
                 series = rawfunc_df[v].copy()

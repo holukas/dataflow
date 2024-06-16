@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13.0 | XX Jun 2024
+
+- (`dataflow.rawfuncs.common.apply_gain_between_dates`)
+- Added new rawfunc to correct O2 measurements using temperature, used at
+  site `CH-CHA` (`dataflow.rawfuncs.ch_cha.correct_o2`)
+
 ## v0.12.2 | 11 Jun 2024
 
 ### Changes
