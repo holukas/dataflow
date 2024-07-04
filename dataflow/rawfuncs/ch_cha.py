@@ -1,16 +1,33 @@
 import pandas as pd
 
 
-def calc_swc_from_sdp(series, depth):
-    """Calculate soil water content (SWC) in % from xxx (SDP) in mV.
+def calc_swc_from_sdp(series, depth) -> tuple[pd.Series, pd.Series]:
+    """Calculate soil water content (SWC) in % from Theta (SDP) in mV.
 
     Originally based on Werner Eugster's script logger-cleaning.R
 
     SDP variables were named Theta in original raw data files.
 
+    Equation from the old MeteoScreeningTool Excel config file to calculate SDP (unitless) from mV signal:
+    Quote: "calculates SDP from VOLT (mV/1000) measurement. This step got lost, was done in the
+    previous screening though. mV range [850,950], SDP range [20,35]. Equation from current
+    loggerprogram where these sensors are still measured. Originally from Werner's logger-cleaning.R"
+    SDP_AVG_GF1_0.05_1, (1.07+6.4*(x[0]/1000)-6.4*(x[0]/1000)**2+4.7*(x[0]/1000)**3)**2
+
+
+    Args:
+        series: the measured time series of theta in mV
+        depth: measurement depth
+
+    Returns:
+        Two series: SWC (%) and SDP (unitless)
     """
+
     # Convert signal from mV to V
     series = series / 1000
+
+    # Calculate SDP, is only returned by function, but not further used
+    sdp = (1.07 + 6.4 * series - 6.4 * series ** 2 + 4.7 * series ** 3) ** 2
 
     c = {}
 
@@ -37,16 +54,17 @@ def calc_swc_from_sdp(series, depth):
     a_1 = (e_w_sqr - e_d_sqr) / theta_w
 
     # theta in m3 m-3
-    theta = (1.07 + 6.4 * series - 6.4 * series ** 2 + 4.7 * series ** 3 - a_0) / a_1
+    swc = series.copy()
+    theta = (1.07 + 6.4 * swc - 6.4 * swc ** 2 + 4.7 * swc ** 3 - a_0) / a_1
 
-    series = theta * 100
+    swc = theta * 100
 
     # Assign correct variable name
-    varname = series.name[0]
+    varname = swc.name[0]
     varname = str(varname).replace('SDP', 'SWC')
-    series.name = (varname, series.name[1])
+    swc.name = (varname, swc.name[1])
 
-    return series
+    return swc, sdp
 
 
 # # Original code from meteosceening tool
@@ -98,7 +116,7 @@ def calc_swc_from_sdp(series, depth):
 #
 #     return data
 
-def correct_o2(o2: pd.Series, temperature: pd.Series) -> pd.Series:
+def correct_o2(o2: pd.Series, o2_temperature: pd.Series) -> pd.Series:
     """Correct O2 measurements for temperature.
 
     From the old Python MeteoScreening tool:
@@ -110,7 +128,13 @@ def correct_o2(o2: pd.Series, temperature: pd.Series) -> pd.Series:
         using the equation:
             x[0] + 1.975044 - 0.1037942 * x[1]
 
+    Args:
+        o2: O2 measurement in %
+        o2_temperature: temperature in °C
 
+    Returns:
+        O2 measurements corrected for temperature
     """
-    o2_corrected = o2 + 1.975044 - (0.1037942 * temperature)
+    o2_corrected = o2 + 1.975044 - (0.1037942 * o2_temperature)
+    o2_corrected.name = o2.name
     return o2_corrected

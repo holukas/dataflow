@@ -117,7 +117,7 @@ def remove_index_duplicates(data: pd.DataFrame or pd.Series, keep='last') -> pd.
 
 
 def sort_timestamp(df) -> pd.DataFrame:
-    df.sort_index(inplace=True)
+    df = df.sort_index(inplace=False)
     return df
 
 

@@ -9,9 +9,14 @@ from itertools import chain
 from pathlib import Path
 
 import pandas as pd
-from dbc_influxdb import dbcInflux
+from influxdb_client import InfluxDBClient
+from influxdb_client import WriteOptions
 from pandas import DataFrame
 from single_source import get_version
+
+# Ignore future warnings for pandas 3.0
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # check imports
 try:
@@ -22,7 +27,7 @@ try:
         rename_unnamed_units, add_units_row, remove_index_duplicates, sort_timestamp, sanitize_data, \
         remove_bad_data_rows, remove_orig_timestamp_cols, combine_duplicate_cols
     from .common import logger, cli, logblocks
-    from .common.times import make_run_id, DetectFrequency
+    from .common.times import make_run_id, DetectFrequency, add_timezone_to_timestamp
     from .rawfuncs import ch_cha, ch_fru, common
     from .filetypereader.special_format_alternating import special_format_alternating
     from .filetypereader.special_format_icosseq import special_format_icosseq
@@ -34,7 +39,7 @@ except ImportError:
         rename_unnamed_units, add_units_row, remove_index_duplicates, sort_timestamp, sanitize_data, \
         remove_bad_data_rows, remove_orig_timestamp_cols, combine_duplicate_cols
     from common import logger, cli, logblocks
-    from common.times import make_run_id, DetectFrequency
+    from common.times import make_run_id, DetectFrequency, add_timezone_to_timestamp
     from rawfuncs import ch_cha, ch_fru, common
     from filetypereader.special_format_alternating import special_format_alternating
     from filetypereader.special_format_icosseq import special_format_icosseq
@@ -42,6 +47,26 @@ except ImportError:
 pd.set_option('display.width', 1000)
 pd.set_option('display.max_columns', 15)
 pd.set_option('display.max_rows', 20)
+
+# Column names of columns that are used as tags in the database
+tags = [
+    'site',
+    'varname',
+    'units',
+    'raw_varname',
+    'raw_units',
+    'hpos',
+    'vpos',
+    'repl',
+    'data_raw_freq',
+    'freq',
+    # 'freqfrom',
+    'filegroup',
+    'config_filetype',
+    'data_version',
+    'gain',
+    'offset'
+]
 
 
 class DataFlow:
@@ -73,7 +98,7 @@ class DataFlow:
         self.filelimit = filelimit
         self.newestfiles = newestfiles
         self.nrows = nrows
-        self.testupload = testupload  # If True, upload data to 'test' bucket in database
+        self.testupload = testupload  # If True, upload data to 'a' bucket in database
         self.ingest = ingest  # If False, the upload part of the script will be skipped
 
         # Read configs
@@ -83,12 +108,12 @@ class DataFlow:
          self.conf_db) = self._read_configs()
 
         # Run ID
+        _year = "ALL" if not self.year else str(self.year).zfill(4)
         _month = "ALL" if not self.month else str(self.month).zfill(2)
         self.run_id = make_run_id(prefix="DF", suffix=f"{self.year}-{_month}")
 
         # Set directories
-        (self.dir_out_run,
-         self.dir_source) = self._setdirs()
+        self.dir_out_run, self.dir_source = self._setdirs()
 
         # Logger
         (self.log,
@@ -98,12 +123,13 @@ class DataFlow:
         self._log_start()
 
         # Inititate variable for connection to database, only filled if varscanner is executed
-        self.dbc = None
+        # self.dbc = None
 
         self.filepath_filescanner_filetypes_df = None  # Found files with defined filetypes
         self.filescanner_filetypes_df = pd.DataFrame()  # Collect info about found files
         self.varscanner_df = pd.DataFrame()  # Collect info for each variable
         self.filedata_details_df = pd.DataFrame()  # Collect info about data for each file
+        self.vars_empty_not_uploaded = []  # Variables that were found to contain no data
 
         self.run()
 
@@ -118,6 +144,7 @@ class DataFlow:
 
     def _filescanner(self) -> tuple[pd.DataFrame, Path]:
         """Call FileScanner"""
+        self.log.info(f"")
         self.log.info(f"Calling FileScanner ...")
         filescanner = FileScanner(dir_src=self.dir_source,
                                   site=self.site,
@@ -142,6 +169,11 @@ class DataFlow:
             filescanner_filetypes_df[~filescanner_filetypes_df['filename'].duplicated(keep='first')]
         filescanner_filetypes_df.to_csv(filepath_filescanner_filetypes_df, index=False)
 
+        self.log.info(f"FILESCANNER found a filetype for "
+                      f"{len(filescanner_filetypes_df)} of {len(filescanner_df)} files:")
+        for rix, row in filescanner_filetypes_df.iterrows():
+            self.log.info(f"    {row['filename']}  -->  {row['config_filetype']}")
+
         # Files without filetypes
         outfile = self.dir_out_run / f"1-2_{self.run_id}_filescanner_filetype_not_defined.csv"
         filescanner_df.loc[filescanner_df['config_filetype'] == '-not-defined-', :].to_csv(outfile, index=False)
@@ -156,12 +188,14 @@ class DataFlow:
     def _varscanner(self):
         """Scan files found by 'filescanner' for variables and upload to database
 
-        Using the 'dbc' package.
-
         """
 
         # Establish connection to database
-        self.dbc = dbcInflux(dirconf=str(self.dirconf))
+        # self.dbc = dbcInflux(dirconf=str(self.dirconf))
+
+        self.client = InfluxDBClient(url=self.conf_db['url'], token=self.conf_db['token'], org=self.conf_db['org'],
+                                     timeout=999_000, enable_gzip=True)
+        # self.client = get_client(conf_db=self.conf_db)
 
         # Log
         logblocks.log_varscanner_start(log=self.log,
@@ -194,12 +228,8 @@ class DataFlow:
                                      filetypeconf=filetypeconf)
 
             # Remove rows that do not contain a timestamp
-            file_df.index = pd.to_datetime(file_df.index, format=filetypeconf['data_date_parser'], errors='coerce')
             no_date = file_df.index.isnull()
             file_df = file_df.loc[file_df.index[~no_date]]
-
-            # self.filescanner_df['filedate'] = pd.to_datetime(self.filescanner_df['filedate'], errors='coerce',
-            #                                                  format='%Y-%m-%d %H:%M:%S')
 
             # Skip empty dataframes
             # It is possible that a file contains data that result in an empty dataframe,
@@ -222,13 +252,38 @@ class DataFlow:
             # Special formats can return two dataframes stored in a list, make consistent
             file_df = [file_df] if not isinstance(file_df, list) else file_df
 
-            self._loop_file_dataframes(
-                filename=file_info['filename'],
-                file_df=file_df,
-                filetypeconf=filetypeconf,
-                config_filetype=config_filetype,
-                db_bucket=file_info['db_bucket'],
-                missed_ids=missed_ids)
+            # todo from loopvars in dbc
+            # todo include dbc here?
+
+            # write_api = get_write_api(client=client)
+
+            # The WriteApi in batching mode (default mode) is suppose to run as a singleton.
+            # To flush all your data you should wrap the execution using with
+            # client.write_api(...) as write_api: statement or call write_api.close()
+            # at the end of your script.
+            # https://influxdb-client.readthedocs.io/en/stable/usage.html#write
+            # https://influxdb-client.readthedocs.io/en/stable/usage.html#batching
+            with self.client.write_api(
+                    write_options=WriteOptions(batch_size=5_000,  # the number of data point to collect in a batch
+                                               flush_interval=1_000,
+                                               # the number of milliseconds before the batch is written
+                                               # flush_interval=10_000,
+                                               jitter_interval=0,
+                                               # the number of milliseconds to increase the batch flush interval by a random amount
+                                               retry_interval=5_000,
+                                               max_retries=5,
+                                               max_retry_delay=30_000,
+                                               exponential_base=2)) as write_api:
+                # with self.write_api as write_api:
+
+                self._loop_file_dataframes(
+                    filename=file_info['filename'],
+                    file_df=file_df,
+                    filetypeconf=filetypeconf,
+                    config_filetype=config_filetype,
+                    db_bucket=file_info['db_bucket'],
+                    missed_ids=missed_ids,
+                    write_api=write_api)
 
         # Store info about filetypes and found variables to CSV files
         self._store_info_csv()
@@ -252,116 +307,469 @@ class DataFlow:
             varscanner_uniquevars_df.to_csv(outfile, index=False)
 
             # Output variables that were not greenlit (not defined in configs)
-            outfile = self.dir_out_run / f"3-2_{self.run_id}_varscanner_vars_not_greenlit.csv"
+            outfile = self.dir_out_run / f"3-3_{self.run_id}_varscanner_vars_not_greenlit.csv"
             self.varscanner_df.loc[self.varscanner_df['greenlit'] == '-not-greenlit-', :].to_csv(outfile, index=False)
 
+    def _set_data_raw_freq(self, filetypeconf, df_ix) -> str:
+        data_raw_freq = filetypeconf['data_raw_freq']
+        if isinstance(data_raw_freq, str):
+            pass
+        elif isinstance(data_raw_freq, list):
+            # Special formats can have two different time resolutions
+            # Special format '-ALTERNATING-' can contain data with different time
+            # resolutions, which are defined as a list in the config file, e.g., [30min, 10min].
+            # To continue processing, the list element is extracted and returned as string.
+            # For all other formats, the time resolution is already defined as a string
+            # in the config file.
+            if filetypeconf['data_special_format'] == '-ALTERNATING-':
+                data_raw_freq = str(filetypeconf['data_raw_freq'][0]) if df_ix == 0 else str(
+                    filetypeconf['data_raw_freq'][1])
+            else:
+                raise Exception(f"Only -ALTERNATING- filetypes can have a list of time "
+                                f"resolutions, so this settings for 'data_raw_freq' "
+                                f"does not work: {data_raw_freq}")
+        return data_raw_freq
+
     def _loop_file_dataframes(self, filename, file_df, filetypeconf, config_filetype,
-                              db_bucket, missed_ids):
+                              db_bucket, missed_ids, write_api):
 
         # Format data collection, for each df in list
         for df_ix, df in enumerate(file_df):
             df = self._format_data(df=df, filetypeconf=filetypeconf)
 
-            if not df.empty:
-                # Special format -ALTERNATING- has a second set of data_vars
-                data_vars = filetypeconf['data_vars'].copy() if df_ix == 0 else filetypeconf['data_vars2'].copy()
+            if df.empty:
+                continue
 
-                data_raw_freq = filetypeconf['data_raw_freq']
-                if isinstance(data_raw_freq, str):
-                    pass
-                elif isinstance(data_raw_freq, list):
-                    # Special formats can have two different time resolutions
-                    # Special format '-ALTERNATING-' can contain data with different time
-                    # resolutions, which are defined as a list in the config file, e.g., [30min, 10min].
-                    # To continue processing, the list element is extracted and returned as string.
-                    # For all other formats, the time resolution is already defined as a string
-                    # in the config file.
-                    if filetypeconf['data_special_format'] == '-ALTERNATING-':
-                        data_raw_freq = str(filetypeconf['data_raw_freq'][0]) if df_ix == 0 else str(
-                            filetypeconf['data_raw_freq'][1])
-                    else:
-                        raise Exception(f"Only -ALTERNATING- filetypes can have a list of time "
-                                        f"resolutions, so this settings for 'data_raw_freq' "
-                                        f"does not work: {data_raw_freq}")
+            # Special format -ALTERNATING- has a second set of data_vars
+            data_vars = filetypeconf['data_vars'].copy() if df_ix == 0 else filetypeconf['data_vars2'].copy()
 
-                cur_filedata_details = self._collect_filedata_details(
-                    df=df,
-                    df_ix=df_ix,
-                    file_df=file_df,
-                    filename=filename,
-                    config_filetype=config_filetype,
-                    data_raw_freq=data_raw_freq,
-                    db_bucket=db_bucket,
-                    filetypeconf=filetypeconf,
-                    missed_ids=missed_ids)
+            data_raw_freq = self._set_data_raw_freq(filetypeconf=filetypeconf, df_ix=df_ix)
 
-                # Merge filedata details info
-                self.filedata_details_df = pd.concat([self.filedata_details_df,
-                                                      pd.DataFrame.from_dict([cur_filedata_details])],
-                                                     axis=0, ignore_index=True)
+            detected_freqs = self._detect_frequency(df=df, data_raw_freq=data_raw_freq)
 
-                # Upload dataframe to database
-                cur_varscanner_df = self.dbc.upload_filetype(
-                    file_df=df,
+            # Collect info about current data
+            cur_filedata_details = {
+                'filename': filename,
+                'filetype': config_filetype,
+                'dataframe': df_ix,
+                'n_dataframes': len(file_df),
+                'freq_detected': detected_freqs['freq_detected'],
+                'freqfrom_full': detected_freqs['freqfrom_full'],
+                'freqfrom_timedelta': detected_freqs['freqfrom_timedelta'],
+                'freqfrom_progressive': detected_freqs['freqfrom_progressive'],
+                'freq_config': data_raw_freq,
+                'freq_match': detected_freqs['freq_match'],
+                'firstdate': str(df.index[0]),
+                'lastdate': str(df.index[-1]),
+                'n_datarows': len(df.index),
+                'n_vars': len(df.columns),
+                'db_bucket': db_bucket,
+                'special_format': filetypeconf['data_special_format'],
+                'missed_ids': str(missed_ids)
+            }
+
+            # Merge filedata details info
+            self.filedata_details_df = pd.concat([self.filedata_details_df,
+                                                  pd.DataFrame.from_dict([cur_filedata_details])],
+                                                 axis=0, ignore_index=True)
+
+            # Add timezone info
+            if not df.index.tzinfo:
+                timezone_offset_to_utc_hours = int(filetypeconf['data_timestamp_timezone_offset_to_utc_hours'])
+                df.index = add_timezone_to_timestamp(timezone_offset_to_utc_hours=timezone_offset_to_utc_hours,
+                                                     timestamp_index=df.index)
+
+            numvars = len(df.columns)
+            counter = 0
+            newvar = {}
+
+            # Check if any functions need to be executed on raw data, if yes, execute
+            newdata_df, newdata_vars = self._create_rawfunc_vars(df=df, data_vars=data_vars)
+
+            # Check for already existing columns in df
+            # In case rawfunc modified an existing variable, the modified version is
+            # using the same column name as the original version. This happens e.g.
+            # when a gain is applied via rawfunc. If this is the case, the original
+            # version if removed from df before the modified version from newdata_df
+            # is added.
+            if isinstance(newdata_df, pd.DataFrame):
+                existing_cols = df.columns
+                new_cols = newdata_df.columns
+                if any(i in existing_cols for i in new_cols):
+                    for c in new_cols:
+                        if c in existing_cols:
+                            df = df.drop(c, axis=1, inplace=False)
+                # Add new variables calculated with rawfuncs to main dataframe
+                df = pd.concat([df, newdata_df], axis=1).copy()
+                df = df.sort_index(axis=0, inplace=False)
+                df = df.sort_index(axis=1, inplace=False)
+                data_vars = {**data_vars, **newdata_vars}  # Merge two dicts
+
+            # Loop over variables
+            for var in df.columns.to_list():
+                counter += 1
+                isavailable = self._check_if_vardata_available(series=df[var])
+                if not isavailable:
+                    continue
+
+                # Collect varinfo
+                newvar = self.create_varentry(
+                    rawvar=var,
                     data_vars=data_vars,
+                    filetypeconf=filetypeconf,
+                    config_filetype=config_filetype,
+                    to_bucket=db_bucket,
                     data_raw_freq=data_raw_freq,
                     freq=cur_filedata_details['freq_detected'],
-                    to_bucket=db_bucket,
-                    config_filetype=config_filetype,
-                    filetypeconf=filetypeconf,
-                    ingest=self.ingest,
-                    logger=self.log,
-                    timezone_of_timestamp='UTC+01:00')  # todo timezone should be part of config file
+                    first_date=df[var].index[0],
+                    last_date=df[var].index[-1]
+                )
 
-                # Merge info
-                # Merge varscanner results for this dataframe with overall varscanner results
-                # for this filetype. Necessary because this is a loop over all dataframes in
-                # the dataframe collection, and varscanner scans the (up to) two dataframes
-                # separately because of the loop.
-                self.varscanner_df = pd.concat([self.varscanner_df, cur_varscanner_df], axis=0, ignore_index=True)
+                if newvar['greenlit']:
+                    # Initiate dataframe that will collect data and tags for current var
 
-                # Check if any raw data variables are calculated or corrected with a *rawfunc* function
-                rawfunc_cols = self._search_rawfunc_vars(data_vars_dict=data_vars.items())
-                if rawfunc_cols:
-                    self.log.info("")
-                    self.log.info(f"Executing additional functions on raw data, using the setting 'rawfunc' ...")
-                    rawfunc_df = df[rawfunc_cols].copy()
-                    if not rawfunc_df.empty:
-                        # Apply functions to raw data and update metadata
-                        newdata_df, newdata_vars = self._execute_rawfuncs(
-                            rawfunc_df=rawfunc_df,
-                            data_vars=data_vars)
-                        self.log.info(
-                            f"The following new or corrected columns were created: {newdata_df.columns.tolist()}")
+                    # Depending on the format of the file (regular or one of the
+                    # special formats), the columns that contains the data for the
+                    # current var has to be addressed differently:
+                    #   - Regular formats have original varnames ('raw_varname') and
+                    #     original units ('raw_units') in df.
+                    #   - Special formats have *renamed* varnames ('field') and
+                    #     original units ('raw_units') in df.
+                    varcol = 'raw_varname' if not filetypeconf['data_special_format'] == '-ICOSSEQ-' else 'field'
+                    varcol = (newvar[varcol], newvar['raw_units'])  # Column name to access var in df
+                    var_df = df[[varcol]].copy()
 
-                        # Upload new variables that were calculated with rawfunc function
-                        cur_varscanner_df = self.dbc.upload_filetype(
-                            file_df=newdata_df,
-                            data_vars=newdata_vars,
-                            data_raw_freq=data_raw_freq,
-                            freq=cur_filedata_details['freq_detected'],
-                            to_bucket=db_bucket,
-                            config_filetype=config_filetype,
-                            filetypeconf=filetypeconf,
-                            logger=self.log,
-                            timezone_of_timestamp='UTC+01:00')
+                    # Apply gain (gain = 1 (float) if no gain is specified in filetype settings)
+                    var_df[varcol] = var_df[varcol].multiply(newvar['gain'])
 
-                        # Merge varscanner results for this dataframe with overall varscanner results
-                        # for this filetype. Necessary because this is a loop over all dataframes in
-                        # the dataframe collection, and varscanner scans the (up to) two dataframes
-                        # separately because of the loop.
-                        self.varscanner_df = pd.concat([self.varscanner_df, cur_varscanner_df],
-                                                       axis=0, ignore_index=True)
+                    # Add offset (offset = 0 if no offset is specified in filetype settings)
+                    var_df[varcol] = var_df[varcol].add(newvar['offset'])
 
-                self.log.info(f"Finished uploading data from file {filename} to database bucket {db_bucket}.")
-                self.log.info(f"Finished uploading data from file {filename} / "
-                              f"dataframe #{df_ix + 1} of {cur_filedata_details['n_dataframes']} to database bucket {db_bucket}.")
+                    # Ignore data after the datetime given for `ignore_after` in configs
+                    if newvar['ignore_after'] or newvar['ignore_between']:
+                        firstdate = var_df.index[0]
+                        current_timezone = firstdate.tz
+
+                        if newvar['ignore_after']:
+                            lastalloweddate = pd.to_datetime(newvar['ignore_after'], format='%Y-%m-%d %H:%M:%S')
+                            lastalloweddate = lastalloweddate.tz_localize(current_timezone)
+                            var_df = var_df.loc[firstdate:lastalloweddate].copy()
+                        elif newvar['ignore_between']:
+                            firstignoreddate = pd.to_datetime(newvar['ignore_between'][0], format='%Y-%m-%d %H:%M:%S')
+                            lastignoreddate = pd.to_datetime(newvar['ignore_between'][1], format='%Y-%m-%d %H:%M:%S')
+                            firstignoreddate = firstignoreddate.tz_localize(current_timezone)
+                            lastignoreddate = lastignoreddate.tz_localize(current_timezone)
+                            mask = (var_df.index >= firstignoreddate) & (var_df.index <= lastignoreddate)
+                            if mask.sum() == 0:
+                                pass
+                            else:
+                                var_df = var_df.loc[~mask].copy()
+
+                    # Remove units row (units stored as tag)
+                    var_df.columns = var_df.columns.droplevel(1)
+
+                    # 'var_df' currently has only one column containing the variable data.
+                    # Get name of the column so we can rename it
+                    varcol = var_df.iloc[:, 0].name
+                    var_df = var_df.rename(columns={varcol: newvar['field']}, inplace=False)
+
+                    # Remove empty rows
+                    var_df = var_df.dropna(inplace=False)
+
+                    # Add tags as columns
+                    # Some tags in newvar are already stored as complete series, e.g. from rawfunc.
+                    for tag in tags:
+                        var_df[tag] = newvar[tag]
+                    var_df['varname'] = newvar['field']  # Store 'field' ('_field' in influxdb) also as tag
+
+                    if self.ingest:
+                        # Write to db
+                        # Output also the source file to log
+                        logtxt = f"--> UPLOAD TO DATABASE BUCKET {newvar['db_bucket']}:  " \
+                                 f"{newvar['raw_varname']} as {newvar['field']}  " \
+                                 f"Var #{counter} of {numvars}"
+                        self.log.info(logtxt) if self.log else print(logtxt)
+
+                        write_api.write(newvar['db_bucket'],
+                                        record=var_df,
+                                        data_frame_measurement_name=newvar['measurement'],
+                                        data_frame_tag_columns=tags,
+                                        write_precision='s')
+                    else:
+                        logtxt = f"XXX ingest={self.ingest} SELECTED XXX NO UPLOAD XXX TO DATABASE BUCKET {newvar['db_bucket']}:  " \
+                                 f"{newvar['raw_varname']} as {newvar['field']}  " \
+                                 f"Var #{counter} of {numvars}"
+
+                        self.log.info(logtxt) if self.log else print(logtxt)
+
+                # todo Add var to found vars in overview of found variables
+                self.varscanner_df = pd.concat([self.varscanner_df, pd.DataFrame.from_dict([newvar])],
+                                               axis=0, ignore_index=True)
+
+            if self.log:
+                self.log.info(f"\n")
+                self.log.info(f"*** FINISHED DATA UPLOAD FOR FILETYPE {newvar['config_filetype']}.")
+                self.log.info(f"*** database bucket: {newvar['db_bucket']}.")
+                self.log.info(f"*** first date: {newvar['first_date']}")
+                self.log.info(f"*** last date: {newvar['last_date']}")
+                self.log.info(f"\n")
+
+            self.log.info(f"Finished uploading data from file {filename} to database bucket {db_bucket}.")
+            self.log.info(f"Finished uploading data from file {filename} / "
+                          f"dataframe #{df_ix + 1} of {cur_filedata_details['n_dataframes']} to database bucket {db_bucket}.")
+
+    def _create_rawfunc_vars(self, df, data_vars):
+        # Check if any raw data variables are calculated or corrected with a *rawfunc* function
+        newdata_df = None
+        newdata_vars = None
+        rawfunc_cols = self._search_rawfunc_vars(data_vars_dict=data_vars.items())
+        # Check which rawfunc columns are available
+        rawfunc_cols = [col for col in rawfunc_cols if col in df.columns] if rawfunc_cols else None
+
+        if rawfunc_cols:
+            rawfunc_df = df[rawfunc_cols].copy()
+
+            if not rawfunc_df.empty:
+                # Apply functions to raw data and update metadata
+                newdata_df, newdata_vars = self._execute_rawfuncs(
+                    rawfunc_df=rawfunc_df,
+                    data_vars=data_vars)
+                self.log.info("")
+                self.log.info(f">>> Executed additional functions using "
+                              f"columns {rawfunc_cols}, using the setting 'rawfunc' ...")
+                self.log.info(f"The following new or corrected columns were created: "
+                              f"{newdata_df.columns.tolist()}")
+        return newdata_df, newdata_vars
+
+    def create_varentry(self, rawvar, data_vars, filetypeconf, config_filetype, to_bucket,
+                        data_raw_freq, freq, first_date, last_date):
+        """Loop through variables in file and collect info for each var
+
+        Collects the following varinfo:
+            - raw_varname, raw_units
+            - config_filetype, filetypeconf
+            - measurement, field, varname (= same as field), units
+            - hpos, vpos, repl
+            - first date, last date
+
+        """
+
+        assigned_units = None
+        gain = None
+        offset = None
+        is_greenlit = False
+        rawfunc = False
+        ignore_after = False
+        ignore_between = False
+
+        # Collect varinfo as tags in dict
+        newvar = dict(
+            site=self.site.upper(),
+            config_filetype=config_filetype,
+            filegroup=filetypeconf['filegroup'],
+            data_version=filetypeconf['data_version'],
+            db_bucket=to_bucket,
+            data_raw_freq=data_raw_freq,
+            freq=freq,
+            raw_units=rawvar[1],
+            raw_varname='',
+            measurement='',  # Not a tag, stored as _measurement in database
+            field='',  # Not a tag, stored as _field in database
+            varname='',  # Same as field, but is stored additionally as tag so the varname can be accessed via tags
+            units='',
+            hpos='',
+            vpos='',
+            repl='',
+            gain='',
+            offset='',
+            greenlit='',  # Stored but not used as database tag
+            first_date=first_date,  # Stored but not used as database tag
+            last_date=last_date,  # Stored but not used as database tag
+            rawfunc=''  # Stored but not used as database tag
+        )
+
+        # Get var settings from configuration
+        if rawvar[0] in data_vars.keys():
+            # Variable name in file data is the same as given in settings
+            newvar, assigned_units, gain, is_greenlit, ignore_after, rawfunc, offset, ignore_between = \
+                self._match_exact_name(newvar=newvar, rawvar=rawvar, data_vars=data_vars)
+
+        elif filetypeconf['data_special_format'] == '-ICOSSEQ-':
+            # If rawvar is *not* given with the exact name in data_vars
+            #
+            # This is the case with e.g. ICOSSEQ files that store measurements
+            # at different heights in different rows (instead of different
+            # columns). In such case, the file is converted so that each
+            # different height is in its separate column. That means that
+            # the rawvar names for each column are generated dynamically
+            # from info in the file and that therefore the rawvar cannot
+            # be given with the *exact* name in the config file.
+
+            # Assigned units from config file and measurement
+            for dv in data_vars:
+                if rawvar[0].startswith(dv):
+                    newvar['raw_varname'] = f"{dv}"
+                    newvar['measurement'] = data_vars[dv]['measurement']
+                    newvar['field'] = rawvar[0]  # Already correct name
+                    assigned_units = data_vars[dv]['units']
+
+                    # Gain from config file if provided, else set to 1 (float)
+                    # Float is used because if the gain is specifically given it is typically
+                    # a float and then the complete series becomes float.
+                    gain = data_vars[dv]['gain'] \
+                        if 'gain' in data_vars[dv] else float(1)
+
+                    # Offset from config file if provided, else set to 0 (float)
+                    # Float is used because if an offset is specifically given it can be
+                    # a float and then the complete series becomes float.
+                    offset = data_vars[dv]['offset'] \
+                        if 'offset' in data_vars[dv] else float(0)
+
+                    # ignore_after date from config file, else set to None
+                    if 'ignore_after' in data_vars[dv]:
+                        ignore_after = data_vars[dv]['ignore_after']
+                    else:
+                        ignore_after = False
+
+                    # ignore_between date from config file, else set to None
+                    if 'ignore_between' in data_vars[dv]:
+                        ignore_between = data_vars[dv]['ignore_between']
+                    else:
+                        ignore_between = False
+
+                    # Indicate that var was found in config file
+                    is_greenlit = True
+                    break
+        else:
+            pass
+
+        if not is_greenlit:
+            # If script arrives here, no valid entry for current var
+            # was found in the config file
+            _varinfo_not_greenlit = dict(raw_varname=rawvar[0],
+                                         measurement='-not-greenlit-',
+                                         field='-not-greenlit-',
+                                         varname='-not-greenlit-',
+                                         units='-not-greenlit-',
+                                         hpos='-not-greenlit-',
+                                         vpos='-not-greenlit-',
+                                         repl='-not-greenlit-',
+                                         gain='-not-greenlit-',
+                                         offset='-not-greenlit-')
+            for k in _varinfo_not_greenlit.keys():
+                newvar[k] = _varinfo_not_greenlit[k]
+            newvar['greenlit'] = False
+            return newvar
+
+        newvar['greenlit'] = True
+
+        # Naming convention: units
+        newvar['units'] = self._get_units_naming_convention(
+            raw_units=newvar['raw_units'],
+            assigned_units=assigned_units,
+            conf_unitmapper=self.conf_unitmapper)
+
+        # Position indices from field (the name of the variable)
+        # For e.g. eddy covariance variables the indices are not
+        # given in the yaml filetype settings, leave empty
+        newvar['hpos'] = '-not-given-'
+        newvar['vpos'] = '-not-given-'
+        newvar['repl'] = '-not-given-'
+        if filetypeconf['data_vars_parse_pos_indices']:
+            try:
+                newvar['hpos'] = newvar['field'].split('_')[-3]
+                newvar['vpos'] = newvar['field'].split('_')[-2]
+                newvar['repl'] = newvar['field'].split('_')[-1]
+            except:
+                pass
+
+        newvar['varname'] = newvar['field']
+        newvar['gain'] = gain
+        newvar['offset'] = offset
+        newvar['ignore_after'] = ignore_after if ignore_after else False
+        newvar['ignore_between'] = ignore_between if ignore_between else False
+        newvar['rawfunc'] = rawfunc if rawfunc else False
+
+        return newvar
 
     @staticmethod
-    def _collect_filedata_details(df, df_ix, file_df, filename,
-                                  config_filetype, data_raw_freq, db_bucket, filetypeconf, missed_ids) -> dict:
-        """Detect time resolution from timestamp index."""
+    def _get_varname_naming_convention(raw_varname, data_vars) -> str:
+        """Map standarized naming convention varname to raw varname, stored as *field* in db"""
+        if raw_varname in data_vars:
+            field = data_vars[raw_varname]['field'] \
+                if data_vars[raw_varname]['field'] else raw_varname
+        else:
+            field = '-not-defined-'
+        return field
 
+    @staticmethod
+    def _get_units_naming_convention(conf_unitmapper, raw_units, assigned_units) -> str:
+        """Map standarized naming convention units to raw units
+        - Assigned units are prioritized over units found in the file
+        - Variables that do not have units in file will use assigned units
+        """
+        if assigned_units:
+            raw_units = assigned_units
+        if raw_units in conf_unitmapper:
+            # Only map if given
+            units = conf_unitmapper[raw_units] if conf_unitmapper[raw_units] else raw_units
+        else:
+            units = '-not-defined-'
+        return units
+
+    def _match_exact_name(self, newvar, rawvar, data_vars):
+        """Match variable name from data with variable name from settings ('data_vars')"""
+        # If rawvar is given as variable in data_vars
+        newvar['raw_varname'] = rawvar[0]
+        newvar['measurement'] = data_vars[rawvar[0]]['measurement']
+
+        # Naming convention: variable name
+        newvar['field'] = self._get_varname_naming_convention(raw_varname=newvar['raw_varname'], data_vars=data_vars)
+
+        # Assigned units from config file
+        assigned_units = data_vars[rawvar[0]]['units']
+
+        # Gain from config file if provided, else set to 1 (float)
+        # Float is used because if the gain is specifically given it is typically
+        # a float and then the complete series becomes float.
+        gain = data_vars[rawvar[0]]['gain'] \
+            if 'gain' in data_vars[rawvar[0]] else float(1)
+
+        # Offset from config file if provided, else set to 0 (float)
+        # Float is used because if an offset is specifically given it can be
+        # a float and then the complete series becomes float.
+        offset = data_vars[rawvar[0]]['offset'] \
+            if 'offset' in data_vars[rawvar[0]] else float(0)
+
+        # ignore_after date from config file, else set to None
+        if 'ignore_after' in data_vars[rawvar[0]]:
+            ignore_after = data_vars[rawvar[0]]['ignore_after']
+        else:
+            ignore_after = False
+
+        # ignore_between date from config file, else set to None
+        if 'ignore_between' in data_vars[rawvar[0]]:
+            ignore_between = data_vars[rawvar[0]]['ignore_between']
+        else:
+            ignore_between = False
+
+        # Indicate that var was found in config file
+        is_greenlit = True
+
+        rawfunc = data_vars[rawvar[0]]['rawfunc'] if 'rawfunc' in data_vars[rawvar[0]] else False
+
+        return newvar, assigned_units, gain, is_greenlit, ignore_after, rawfunc, offset, ignore_between
+
+    def _check_if_vardata_available(self, series: pd.Series) -> bool:
+        isavailable = True
+        if series.dropna().empty:
+            isavailable = False
+            self.vars_empty_not_uploaded.append(series.name)
+            logtxt = f"### (!)VARIABLE WARNING: NO DATA ###: Variable {series.name} is empty and will be skipped."
+            self.log.info(logtxt) if self.log else print(logtxt)
+        return isavailable
+
+    def _detect_frequency(self, df, data_raw_freq) -> dict:
         # Time resolution cannot be detected for files which
         # contain only one single record.
         if len(df.index) == 1:
@@ -377,26 +785,11 @@ class DataFlow:
             freqfrom_full = f.freqfrom_full
             freqfrom_timedelta = f.freqfrom_timedelta
             freqfrom_progressive = f.freqfrom_progressive
-        filedata_details = {
-            'filename': filename,
-            'filetype': config_filetype,
-            'dataframe': df_ix,
-            'n_dataframes': len(file_df),
-            'freq_detected': freq_detected,
-            'freqfrom_full': freqfrom_full,
-            'freqfrom_timedelta': freqfrom_timedelta,
-            'freqfrom_progressive': freqfrom_progressive,
-            'freq_config': data_raw_freq,
-            'freq_match': freq_match,
-            'firstdate': str(df.index[0]),
-            'lastdate': str(df.index[-1]),
-            'n_datarows': len(df.index),
-            'n_vars': len(df.columns),
-            'db_bucket': db_bucket,
-            'special_format': filetypeconf['data_special_format'],
-            'missed_ids': str(missed_ids)
-        }
-        return filedata_details
+        return {'freq_detected': freq_detected,
+                'freq_match': freq_match,
+                'freqfrom_full': freqfrom_full,
+                'freqfrom_timedelta': freqfrom_timedelta,
+                'freqfrom_progressive': freqfrom_progressive}
 
     def _collect_var_info(self, incoming_df, ufileinfo, varscanner_df) -> pd.DataFrame:
         """Collect variable info, for each found variable."""
@@ -526,7 +919,9 @@ class DataFlow:
         self.log.info(f"")
         self.log.info(f"")
         self.log.info(f"")
-        self.log.info(f"Reading file {filepath} ...")
+        self.log.info(f">>> Reading file {filepath} ...")
+        self.log.info(f">>>     filetype: {config_filetype}")
+        self.log.info(f">>> ")
         # filetypeconf = self.conf_filetypes[filetype]
         file_df = FileTypeReader(filepath=filepath,
                                  filetype=config_filetype,
@@ -651,111 +1046,104 @@ class DataFlow:
         # considered during looping. It does not matter if the loop finds
         # v2 or v3 first, the respective other variable is part of the
         # equation.
-        skip = []
+        skipcols = []
 
-        for v in rawfunc_df.columns:
-            if v in skip:
+        for rfcol in rawfunc_df.columns:
+            if rfcol in skipcols:
                 continue
-            rawfunc = data_vars[v[0]]['rawfunc']
-            field = data_vars[v[0]]['field']  # Field follows naming convention
+
+            rawfunc = data_vars[rfcol[0]]['rawfunc']
+            field = data_vars[rfcol[0]]['field']  # Field follows naming convention
             new_series = None
-            measurement = None
-            units = None
-            calculated = None
-            copy_meta = None
+            new_series_meta = None
 
             if rawfunc[0] == 'apply_gain_between_dates':
+                # Replaces existing series of selected variable
                 # Example from configs:
-                # rawfunc: [ apply_gain_between_dates, "2010-03-31 10:30:00", "2010-07-28 09:30:00", 1.0115667782544568, SHF_2_AVG ]
+                # rawfunc: [ apply_gain_between_dates, "2010-03-31 10:30:00", "2010-07-28 09:30:00", 1.0115667782544568 ]
+                # Important: new_series is the same as series, only the metadata are changed (gain)
+                new_gain = float(rawfunc[3])
+                series = rawfunc_df[rfcol].copy()
+                skipcols.append(rfcol)
+                regular_gain = data_vars[rfcol[0]]['gain']
+                new_series, complete_gain_series \
+                    = common.apply_gain_between_dates(series=series,
+                                                      new_gain=new_gain,
+                                                      regular_gain=regular_gain,
+                                                      start=str(rawfunc[1]),
+                                                      stop=str(rawfunc[2]))
+                new_series_meta = data_vars[rfcol[0]].copy()
+
+                # In this case the gain is stored as a complete series of gain values,
+                # which is later directly used as tag
+                new_series_meta['gain'] = complete_gain_series
+
+                new_series_meta['rawfunc'] = (f"apply_gain_between_dates, calculated by applying gain {new_gain} "
+                                              f"to {rfcol} between {rawfunc[1]} and {rawfunc[2]}, "
+                                              f"replacing the original measurement")
+
+            elif rawfunc[0] == 'add_offset_between_dates':
+                # Replaces existing series of selected variable
+                # Example from configs:
+                # rawfunc: [ add_offset_between_dates, "2018-11-04 17:59:00", "2018-12-20 10:33:00", 52 ]
+                # Important: new_series is the same as series, only the metadata are changed (offset)
+                new_offset = float(rawfunc[3])
+                series = rawfunc_df[rfcol].copy()
+                skipcols.append(rfcol)
+                regular_offset = data_vars[rfcol[0]]['offset']
+                new_series, complete_offset_series \
+                    = common.add_offset_between_dates(series=series,
+                                                      new_offset=new_offset,
+                                                      regular_offset=regular_offset,
+                                                      start=str(rawfunc[1]),
+                                                      stop=str(rawfunc[2]))
+                new_series_meta = data_vars[rfcol[0]].copy()
+
+                # In this case the gain is stored as a complete series of gain values,
+                # which is later directly used as tag
+                new_series_meta['offset'] = complete_offset_series
+
+                new_series_meta['rawfunc'] = (f"add_offset_between_dates, calculated by adding offset {new_offset} "
+                                              f"to {rfcol} between {rawfunc[1]} and {rawfunc[2]}, "
+                                              f"replacing the original measurement")
+
+            elif rawfunc[0] == 'correct_o2':
+                # Replaces existing series of O2 measurement
+                # Example from configs:
+                # rawfunc: [ correct_o2, O2_GF4_0x1_1_Avg, TO2_GF4_0x1_1_Avg ]
                 collist = rawfunc_df.columns.get_level_values(0).to_list()
-
-                gain = float(rawfunc[3])
-                series_col = str(rawfunc[4])
-                copy_meta = data_vars[series_col].copy()
-                series_col_ix = collist.index(series_col)
-                series_col = rawfunc_df.columns[series_col_ix]
-                series = rawfunc_df[series_col].copy()
-                skip.append(series_col)
-
-                series = common.apply_gain_between_dates(series=series,
-                                                         start=str(rawfunc[1]),
-                                                         stop=str(rawfunc[2]),
-                                                         gain=gain)
-
-                # # temp_col = rawfunc[1]
-                # temp_col_ix = collist.index(temp_col)
-                # temp_col = rawfunc_df.columns[temp_col_ix]
-                # temp = rawfunc_df[temp_col]
-                # skip.append(temp_col)
-                #
-                # # lw_raw_col = rawfunc[2]
-                # copy_meta = data_vars[rawfunc[2]].copy()
-                # lw_raw_col_ix = collist.index(lw_raw_col)
-                # lw_raw_col = rawfunc_df.columns[lw_raw_col_ix]
-                # lw_raw = rawfunc_df[lw_raw_col]
-                # skip.append(lw_raw_col)
-                #
-                # lw_col = (rawfunc[3], 'W m-2')
-                # lw = common.calc_lwin(temp=temp, lwinraw=lw_raw)
-                # lw.name = lw_col
-                # new_series = lw
-                # measurement = "LW"
-                # units = "W m-2"
-                # calculated = f"_calculated_from_{lw_raw_col[0]}_and_{temp_col[0]}_"
-
-            if rawfunc[0] == 'calc_lw':
-                collist = rawfunc_df.columns.get_level_values(0).to_list()
-
-                temp_col = rawfunc[1]
-                temp_col_ix = collist.index(temp_col)
-                temp_col = rawfunc_df.columns[temp_col_ix]
-                temp = rawfunc_df[temp_col]
-                skip.append(temp_col)
-
-                lw_raw_col = rawfunc[2]
-                copy_meta = data_vars[rawfunc[2]].copy()
-                lw_raw_col_ix = collist.index(lw_raw_col)
-                lw_raw_col = rawfunc_df.columns[lw_raw_col_ix]
-                lw_raw = rawfunc_df[lw_raw_col]
-                skip.append(lw_raw_col)
-
-                lw_col = (rawfunc[3], 'W m-2')
-                lw = common.calc_lwin(temp=temp, lwinraw=lw_raw)
-                lw.name = lw_col
-                new_series = lw
-                measurement = "LW"
-                units = "W m-2"
-                calculated = f"_calculated_from_{lw_raw_col[0]}_and_{temp_col[0]}_"
-
-            if rawfunc[0] == 'correct_o2':
-                collist = rawfunc_df.columns.get_level_values(0).to_list()
-
-                o2_col = rawfunc[1]
-                copy_meta = data_vars[o2_col].copy()
-                o2_col_ix = collist.index(o2_col)
-                o2_col = rawfunc_df.columns[o2_col_ix]
-                o2 = rawfunc_df[o2_col]
-                skip.append(o2_col)
-
-                temp_o2_col = rawfunc[2]
-                temp_o2_col_ix = collist.index(temp_o2_col)
-                temp_o2_col = rawfunc_df.columns[temp_o2_col_ix]
-                temp_o2 = rawfunc_df[temp_o2_col]
-                skip.append(temp_o2_col)
-
-                o2_corrected_col = (rawfunc[3], '%')
-
-                o2_corrected = None
+                kwargs = dict(collist=collist, rawfunc_df=rawfunc_df, skipcols=skipcols)
+                o2, skipcols = self._extract_skip_columns(col=rawfunc[1], **kwargs)
+                o2_temperature, skipcols = self._extract_skip_columns(col=rawfunc[2], **kwargs)
                 if self.site == 'ch-cha':
-                    o2_corrected = ch_cha.correct_o2(o2=o2, temperature=temp_o2)
-                o2_corrected.name = o2_corrected_col
-                new_series = o2_corrected
-                measurement = "O2"
-                units = "%"
-                calculated = f"_calculated_from_{o2_col[0]}_and_{temp_o2_col[0]}_"
+                    new_series = ch_cha.correct_o2(o2=o2, o2_temperature=o2_temperature)
+                new_series_meta = data_vars[rawfunc[1]].copy()
+                new_series_meta['measurement'] = "_SD" if "_SD_" in new_series_meta['field'] else "O2"
+                new_series_meta['units'] = "%"
+                new_series_meta['rawfunc'] = (f"correct_o2, calculated from {o2.name[0]} and {o2_temperature.name[0]}, "
+                                              f"replacing the original O2 measurement {rawfunc[1]}, site-specific")
 
-            if rawfunc[0] == 'calc_swc':
-                series = rawfunc_df[v].copy()
+            elif rawfunc[0] == 'calc_lw':
+                # Creates new variable
+                # Example from configs:
+                # rawfunc: [ calc_lw, PT100_2_AVG, LWin_2_AVG, LW_IN_T1_2_1 ]
+                collist = rawfunc_df.columns.get_level_values(0).to_list()
+                kwargs = dict(collist=collist, rawfunc_df=rawfunc_df, skipcols=skipcols)
+                temperature, skipcols = self._extract_skip_columns(col=rawfunc[1], **kwargs)
+                lw_in_raw, skipcols = self._extract_skip_columns(col=rawfunc[2], **kwargs)
+                new_series = common.calc_lwin(temperature=temperature, lwinraw=lw_in_raw)
+                new_series.name = (rawfunc[3], 'W m-2')
+                new_series_meta = data_vars[rawfunc[2]].copy()
+                new_series_meta['field'] = rawfunc[3]
+                new_series_meta['measurement'] = "_SD" if "_SD_" in rawfunc[3] else "LW"
+                new_series_meta['units'] = "W m-2"
+                new_series_meta['rawfunc'] = f"calc_lw, calculated from {lw_in_raw.name[0]} and {temperature.name[0]}"
+
+            elif str(rawfunc[0]).startswith('calc_swc'):
+                # Creates new variable SWC from SDP (Theta) measurements
+                # Example from configs
+                # rawfunc: [ calc_swc ]
+                series = rawfunc_df[rfcol].copy()
                 if series.dropna().empty:
                     continue
                 series.name = (field, series.name[1])  # Use name according to naming convention, needed as tuple
@@ -764,37 +1152,49 @@ class DataFlow:
                     depth = float(vpos)
                 except ValueError:
                     continue
-
-                measurement = 'SWC'
-                units = "%"
-                calculated = "_from_SDP_"
-                swc = None
+                new_series = None
                 if self.site == 'ch-fru':
-                    swc = ch_fru.calc_swc_from_sdp(series=series, depth=depth)
+                    new_series = ch_fru.calc_swc_from_sdp(series=series, depth=depth)
                 elif self.site == 'ch-cha':
-                    swc = ch_cha.calc_swc_from_sdp(series=series, depth=depth)
-                copy_meta = data_vars[v[0]].copy()
-                new_series = swc
+                    # For CHA, also SDP is calculated, but new_series is SWC
+                    new_series, sdp = ch_cha.calc_swc_from_sdp(series=series, depth=depth)
+
+                    if rawfunc[0] == 'calc_swc_sdp':
+                        # SDP has to added in this extra step, because it is the secondary variable
+                        # that is calculated:
+                        sdp_meta = data_vars[rfcol[0]].copy()
+                        sdp_meta['measurement'] = "_SD" if "_SD_" in sdp.name[0] else "SDP"
+                        sdp_meta['field'] = sdp.name[0]
+                        sdp_meta['units'] = "unitless"
+                        sdp_meta['rawfunc'] = "calc_swc, calculated from Theta, site-specific"
+                        newdata_df[sdp.name] = sdp
+                        newdata_vars[sdp.name[0]] = sdp_meta  # Copied metadata from base variable
+
+                # SWC is new_series
+                new_series_meta = data_vars[rfcol[0]].copy()
+                new_series_meta['measurement'] = "_SD" if "_SD_" in new_series.name[0] else "SWC"
+                new_series_meta['field'] = new_series.name[0]
+                new_series_meta['units'] = "%"
+                new_series_meta['rawfunc'] = "calc_swc, calculated from SDP/Theta, site-specific"
 
             newdata_df[new_series.name] = new_series
-
-            # Update metadata
-            # The original metadata for the SDP variable is duplicated, then
-            # the metadata are updated
-            newkey = new_series.name[0]  # Variable name, stored as main key for this variable
-            newdata_vars[newkey] = copy_meta  # Copied metadata from base variable
-            newdata_vars[newkey]['field'] = newkey  # Variable name, stored as field for database
-            newdata_vars[newkey]['units'] = units  # Update units for new var
-            newdata_vars[newkey]['rawfunc'] = calculated  # Info about source variable(s)
-            measurement = "_SD" if "_SD_" in newkey else measurement  # Find correct measurement
-            newdata_vars[newkey]['measurement'] = measurement
+            newdata_vars[new_series.name[0]] = new_series_meta  # Copied metadata from base variable
 
         # Restore columns MultiIndex
         newdata_df.columns = pd.MultiIndex.from_tuples(newdata_df.columns)
 
         return newdata_df, newdata_vars
 
-    def _search_rawfunc_vars(self, data_vars_dict: dict) -> list:
+    @staticmethod
+    def _extract_skip_columns(col, collist, rawfunc_df, skipcols):
+        col_ix = collist.index(col)
+        multiindex_col = rawfunc_df.columns[col_ix]
+        series = rawfunc_df[multiindex_col].copy()
+        skipcols.append(multiindex_col)
+        return series, skipcols
+
+    @staticmethod
+    def _search_rawfunc_vars(data_vars_dict: dict) -> list:
         rawfunc_vars = []
         for var, sett in data_vars_dict:
             if 'rawfunc' in sett:
@@ -825,7 +1225,7 @@ class DataFlow:
         if self.datatype == 'raw':
             dir_filegroups = self.dirconf / 'filegroups' / self.datatype / self.site / self.filegroup
         # Filetypes for processed data are the same across sites
-        elif self.datatype == 'processing':
+        elif self.datatype == 'processed':
             dir_filegroups = self.dirconf / 'filegroups' / self.datatype / self.filegroup
         return dir_filegroups
 
@@ -852,9 +1252,13 @@ class DataFlow:
     def _set_source_dir(self):
         """Set source dir"""
         dir_base = f"{self.datatype}_{self.access}"
-        dir_source = Path(self.conf_dirs[dir_base]) \
-                     / Path(self.conf_dirs[self.site]) \
-                     / self.filegroup
+
+        if self.access == 'local':
+            dir_source = Path(self.conf_dirs[dir_base])
+        else:
+            dir_source = Path(self.conf_dirs[dir_base]) \
+                         / Path(self.conf_dirs[self.site]) \
+                         / self.filegroup
 
         if self.year:
             dir_source = dir_source / str(self.year)
@@ -889,6 +1293,7 @@ class DataFlow:
         self._log_filetype_overview()
 
     def _log_filetype_overview(self):
+        self.log.info("")
         self.log.info("[AVAILABLE FILETYPES]")
         self.log.info(f"for {self.site}  {self.filegroup}")
         for ft in self.conf_filetypes.keys():

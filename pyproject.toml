@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dataflow"
-version = "0.13.0"
+version = "0.20.0"
 description = ""
 authors = ["Lukas Hörtnagl <31772692+holukas@users.noreply.github.com>"]
 readme = "README.md"
@@ -14,13 +14,13 @@ argparse = "^1.4.0"
 single-source = "^0.3.0"
 wcmatch = "^8.5"
 urllib3 = "1.26.18"
-# deactivate next line during dev, activate only for production
+influxdb-client = "^1.44.0"
+# no longer required: deactivate next line during dev, activate only for production
 #dbc-influxdb = {url = "https://github.com/holukas/dbc-influxdb/archive/refs/tags/v0.11.3.tar.gz"}
 
-
 [tool.poetry.dev-dependencies]
-# activate next line only during dev, deactivate for production
-dbc-influxdb = { path = "../dbc-influxdb", develop = true }
+# no longer required: activate next line only during dev, deactivate for production
+#dbc-influxdb = { path = "../dbc-influxdb", develop = true }
 
 [tool.poetry.scripts]
 dataflow = "dataflow:main.main"

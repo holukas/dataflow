@@ -7,11 +7,11 @@ def validate_args(args):
     if not isinstance(args.site, str):
         raise argparse.ArgumentTypeError("SITE must be of type string.")
 
-    if args.datatype not in ['raw', 'processing']:
-        raise argparse.ArgumentTypeError("DATATYPE must be 'raw' or 'proc'.")
+    if args.datatype not in ['raw', 'processed']:
+        raise argparse.ArgumentTypeError("DATATYPE must be 'raw' or 'processed'.")
 
-    if args.access not in ['server', 'mount']:
-        raise argparse.ArgumentTypeError("ACCESS must be 'server' or 'mount'.")
+    if args.access not in ['server', 'mount', 'local']:
+        raise argparse.ArgumentTypeError("ACCESS must be 'server', 'mount' or 'local'.")
 
     if not isinstance(args.filegroup, str):
         raise argparse.ArgumentTypeError("FILEGROUP must be of type string.")
@@ -31,7 +31,7 @@ def get_args():
     parser.add_argument('site', type=str,
                         help="Site abbreviation, e.g. ch-dav, ch-lae")
     parser.add_argument('datatype', type=str,
-                        help="Data type: 'raw' for raw data, 'processing' for processed data")
+                        help="Data type: 'raw' for raw data, 'processed' for processed data")
     parser.add_argument('access', type=str,
                         help="Access to data via 'server' address (e.g. outside gl-calcs) or "
                              "'mount' path (e.g. on gl-calcs)")
