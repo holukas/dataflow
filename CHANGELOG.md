@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.20.1 | 4 Jul 2024
+
+- Fixed release
+
 ## v0.20.0 | 4 Jul 2024
 
 - This is a major update that refactors many parts of the code
