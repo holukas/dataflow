@@ -1,6 +1,6 @@
 # dataflow
 
-`dataflow` is a CLI script running on the `gl-calcs` server that hosts the
+`dataflow` is a CLI script running on the `gl-calcs` Linux server that hosts the
 InfluxDB time series database. The script scans folders for files and tries
 to assign a `filetype` to each found file. If a `filetype` was successfully
 assigned to a specific file, `dataflow` uploads the data of the respective
@@ -47,7 +47,7 @@ dataflow
                                                                                                                                                                      
 positional arguments:                                                                                                                                                
   site                  Site abbreviation, e.g. ch-dav, ch-lae                                                                                                       
-  datatype              Data type: 'raw' for raw data, 'processing' for processed data                                                                                     
+  datatype              Data type: 'raw' for raw data, 'processed' for processed data                                                                                     
   access                Access to data via 'server' address (e.g. outside gl-calcs) or 'mount' path (e.g. on gl-calcs)                                               
   filegroup             Data group, e.g. '10_meteo'                                                                                                                  
   dirconf               Path to folder with configuration settings                                                                                                   

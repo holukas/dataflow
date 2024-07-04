@@ -1,11 +1,62 @@
+import pandas as pd
 from pandas import Series
 
 
-def calc_lwin(temp: Series, lwinraw: Series) -> Series:
+def add_offset_between_dates(start: str, stop: str, series: Series,
+                             regular_offset: float, new_offset: float) -> tuple[Series, Series]:
+    startdatetime = pd.to_datetime(str(start), format='%Y-%m-%d %H:%M:%S')
+    stopdatetime = pd.to_datetime(str(stop), format='%Y-%m-%d %H:%M:%S')
+
+    # Start and stop needed in same timezone as series timestamp
+    current_timezone = series.index.tz
+    startdatetime = startdatetime.tz_localize(current_timezone)
+    stopdatetime = stopdatetime.tz_localize(current_timezone)
+
+    # Create series of current gain
+    regular_offset_series = pd.Series(regular_offset, index=series.index)
+    complete_offset_series = regular_offset_series.copy()
+
+    # Identify locations where gain needs to be adjusted
+    locs = (series.index >= startdatetime) & (series.index <= stopdatetime)
+
+    # Check if the time period that requires gain adjustment overlaps
+    # with the time periods of current data
+    if locs.sum() > 0:
+        new_offset_series = pd.Series(new_offset, index=series.index)
+        complete_offset_series.loc[locs] = new_offset_series.loc[locs]
+    return series, complete_offset_series
+
+
+def apply_gain_between_dates(start: str, stop: str, series: Series,
+                             regular_gain: float, new_gain: float) -> tuple[Series, Series]:
+    startdatetime = pd.to_datetime(str(start), format='%Y-%m-%d %H:%M:%S')
+    stopdatetime = pd.to_datetime(str(stop), format='%Y-%m-%d %H:%M:%S')
+
+    # Start and stop needed in same timezone as series timestamp
+    current_timezone = series.index.tz
+    startdatetime = startdatetime.tz_localize(current_timezone)
+    stopdatetime = stopdatetime.tz_localize(current_timezone)
+
+    # Create series of current gain
+    regular_gain_series = pd.Series(regular_gain, index=series.index)
+    complete_gain_series = regular_gain_series.copy()
+
+    # Identify locations where gain needs to be adjusted
+    locs = (series.index >= startdatetime) & (series.index <= stopdatetime)
+
+    # Check if the time period that requires gain adjustment overlaps
+    # with the time periods of current data
+    if locs.sum() > 0:
+        new_gain_series = pd.Series(new_gain, index=series.index)
+        complete_gain_series.loc[locs] = new_gain_series.loc[locs]
+    return series, complete_gain_series
+
+
+def calc_lwin(temperature: Series, lwinraw: Series) -> Series:
     """
     Calculate Boltzmann corrected for LW_IN
 
-    Calculate LW_IN from LW_IN_RAW and T_RAD
+    Calculate LW_IN from LW_IN_RAW (raw signal in mV) and T_RAD (°C)
 
     T_RAD ... temperature from radiation sensor
 
@@ -26,5 +77,5 @@ def calc_lwin(temp: Series, lwinraw: Series) -> Series:
     File in old Python MeteoScreening tool:
     metscr.screening_functions.builtins.calculate
     """
-    lwin = 5.67037e-8 * (temp + 273.15) ** 4 + lwinraw
+    lwin = 5.67037e-8 * (temperature + 273.15) ** 4 + lwinraw
     return lwin

@@ -49,95 +49,76 @@ class FileTypeReader:
         # This causes problems when dealing with different files that use sometimes
         # None, sometimes 0. To be specific that index_col is not used, the value
         # -9999 is set in the yaml file.
-        self.index_col = None if filetypeconf['data_index_col'] == -9999 else filetypeconf['data_index_col']
-        self.date_format = filetypeconf['data_date_parser']
-        # self.date_parser = self._get_date_parser(parser=filetypeconf['data_date_parser'])  # deprecated in pandas
+        self.timestamp_col \
+            = None if filetypeconf['data_timestamp_column'] == -9999 else filetypeconf['data_timestamp_column']
+        self.timestamp_format = filetypeconf['data_timestamp_format']
         self.na_values = filetypeconf['data_na_values']
         self.delimiter = filetypeconf['data_delimiter']
-        self.keep_date_col = filetypeconf['data_keep_date_col']
-
-        # Format parse_dates arg for .read_csv()
-        # Necessary if date is parsed from named columns
-        if filetypeconf['data_parse_dates']:
-            self.parse_dates = self._convert_timestamp_idx_col(var=filetypeconf['data_parse_dates'])
-            parsed_index_col = ('TIMESTAMP', '-')
-            # self.parse_dates = filetypeconf['data_parse_dates']
-            self.parse_dates = {parsed_index_col: self.parse_dates}
-        else:
-            self.parse_dates = False
-
         self.build_timestamp = filetypeconf['data_build_timestamp']
         self.data_encoding = filetypeconf['data_encoding']
 
-        # self.file_info = dict(
-        #     filepath=self.filepath,
-        #     filetype=self.filetype,
-        #     special_format=self.special_format
-        # )
-
-        # Config is also needed later
         self.filetypeconf = filetypeconf
 
+        self.data_df = None
+
+        self._read()
+
+    def _read(self):
         self.data_df = self._readfile()
 
-        if not self.data_df.empty:
-            # In case the timestamp was built from multiple columns with 'parse_dates',
-            # e.g. in EddyPro full output files from the 'date' and 'time' columns,
-            # the parsed column has to be set as the timestamp index
-            if isinstance(self.parse_dates, dict):
-                try:
-                    self.data_df.set_index(('TIMESTAMP', '-'), inplace=True)
-                except KeyError:
-                    pass
+        if self.data_df.empty:
+            return
 
-            # Timestamp
-            if self.build_timestamp:
-                self.data_df = self._build_timestamp()
+        self.data_df = self._add_timestamp()
+
+    def _add_timestamp(self) -> pd.DataFrame:
+
+        df = self.data_df.copy()
+
+        timestamp_col = None
+        # Name of timestamp column from provided name
+        if isinstance(self.timestamp_col, str):
+            timestamp_col = self.timestamp_col
+        # Get name of timestamp column by index
+        elif isinstance(self.timestamp_col, int):
+            timestamp_col = df.columns[self.timestamp_col]
+
+        # Timestamp from single column
+        if timestamp_col:
+            df[timestamp_col] = pd.to_datetime(df[timestamp_col], format=self.timestamp_format, errors='coerce')
+            df = df.set_index(timestamp_col, inplace=False)
+
+        # Timestamp from multiple columns
+        elif self.build_timestamp:
+            df = self._build_timestamp(df=self.data_df.copy())
+
+        df.index.name = 'TIMESTAMP'
+        return df
 
     def get_data(self):
         return self.data_df
 
-    @staticmethod
-    def _convert_timestamp_idx_col(var):
-        """Convert to list of tuples if needed
-
-        Since YAML is not good at processing list of tuples,
-        they are given as list of lists,
-            e.g. [ [ "date", "[yyyy-mm-dd]" ], [ "time", "[HH:MM]" ] ].
-        In this case, convert to list of tuples,
-            e.g.  [ ( "date", "[yyyy-mm-dd]" ), ( "time", "[HH:MM]" ) ].
-        """
-        new = var
-        if isinstance(var[0], int):
-            pass
-        elif isinstance(var[0], list):
-            for idx, c in enumerate(var):
-                new[idx] = (c[0], c[1])
-        return new
-
     def _readfile(self):
-        """Read data file"""
+        """Read data file, timestamp is created later."""
         args = dict(filepath_or_buffer=self.filepath,
                     skiprows=self.skiprows,
                     header=self.header,
                     na_values=self.na_values,
                     encoding=self.data_encoding,
                     delimiter=self.delimiter,
-                    # mangle_dupe_cols=self.mangle_dupe_cols,  # deprecated in pandas
-                    keep_date_col=self.keep_date_col,
-                    parse_dates=self.parse_dates,
-                    date_format=self.date_format,
-                    # date_parser=self.date_format,  # deprecated in pandas
-                    index_col=self.index_col,
-                    # engine='c',
+                    index_col=None,
                     engine='python',
-                    # nrows=5,
                     nrows=self.nrows,
                     compression=self.compression,
-                    on_bad_lines='warn',  # in pandas v1.3.0
-                    usecols=None,
+                    on_bad_lines='warn',
                     names=self.names,
-                    skip_blank_lines=False
+                    skip_blank_lines=False,
+                    # date_format=self.date_format,
+                    # index_col=['TIMESTAMP_END'],
+                    # parse_dates=self.parse_dates,  # deprecated in pandas
+                    # keep_date_col=self.keep_date_col,  # deprecated in pandas
+                    # date_parser=self.date_format,  # deprecated in pandas
+                    # mangle_dupe_cols=self.mangle_dupe_cols,  # deprecated in pandas
                     )
 
         # Try to read with args
@@ -155,6 +136,7 @@ class FileTypeReader:
             # has file size 59 Bytes, but is completely empty when unzipped.
             df = pd.DataFrame()
         except ValueError:
+            # todo test logger2013010423.a59 (CH-DAV)
             # Found to occur when the first row is empty and the
             # second row has errors (e.g., too many columns).
             # Observed in file logger2013010423.a59 (CH-DAV).
@@ -178,12 +160,10 @@ class FileTypeReader:
 
         return df
 
-    def _build_timestamp(self) -> pd.DataFrame:
+    def _build_timestamp(self, df) -> pd.DataFrame:
         """
         Build full datetime timestamp by combining several cols
         """
-
-        df = self.data_df.copy()
 
         # Build from columns by index, column names not available
         if self.build_timestamp == 'YEAR0+MONTH1+DAY2+HOUR3+MINUTE4':
@@ -200,17 +180,19 @@ class FileTypeReader:
             df = df[~_not_possible]
 
             # pandas recognizes columns with these names as time columns
-            df['TIMESTAMP'] = pd.to_datetime(df[['YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE']])
+            cols = ['YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE']
+            df['TIMESTAMP'] = pd.to_datetime(df[cols])
+            df = df.drop(columns=cols, axis=1, inplace=False)
 
             # Remove rows where timestamp-building did not work
             locs_emptydate = df['TIMESTAMP'].isnull()
             df = df.loc[~locs_emptydate, :]
 
             # Set as index
-            df.set_index('TIMESTAMP', inplace=True)
+            df = df.set_index('TIMESTAMP', inplace=False)
 
         # Build from columns by name, column names available
-        if self.build_timestamp == 'YEAR+DOY+TIME':
+        elif self.build_timestamp == 'YEAR+DOY+TIME':
             # Remove rows where date info is missing
             _not_possible = df['YEAR'].isnull()
             df = df[~_not_possible]
@@ -236,9 +218,9 @@ class FileTypeReader:
                               + df['_minutes']
 
             dropcols = ['_basedate', '_doy_timedelta', '_hours', '_minutes', '_time', '_time_str']
-            df.drop(dropcols, axis=1, inplace=True)
+            df = df.drop(dropcols, axis=1, inplace=False)
             locs_emptydate = df['TIMESTAMP'].isnull()
             df = df.loc[~locs_emptydate, :]
-            df.set_index('TIMESTAMP', inplace=True)
+            df = df.set_index('TIMESTAMP', inplace=False)
 
         return df

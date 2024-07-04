@@ -38,7 +38,7 @@ class FileScanner:
     ignored_extensions = [
         '.png', '.dll', '.log', '.exe', '.metadata', '.eddypro',
         '.settings', '.settingsOld', '.jpg', '.JPG', '.jpeg', '.JPEG',
-        '.gif', '.csv.gz'
+        '.gif', '.gz'
     ]
 
     ignored_strings = [
@@ -70,8 +70,8 @@ class FileScanner:
         # Destination bucket in database
         # v0.2.0: Target bucket is now determined from site
         # and datatype instead of from filetypeconf.
-        # During test uploads, data are uploaded to 'test' bucket.
-        self.db_bucket = f"{self.site}_{self.datatype}" if not self.testupload else 'test'
+        # During test uploads, data are uploaded to 'a' bucket.
+        self.db_bucket = f"{self.site}_{self.datatype}" if not self.testupload else 'a'
 
         logblocks.log_start(logger=self.logger, class_id=self.class_id)
 
@@ -89,7 +89,6 @@ class FileScanner:
 
     def _detect_filetype(self, newfile) -> dict:
         """Assign filetype to found file"""
-        # filedate = filetype = configfile = db_bucket = id = data_version = '-not-defined-'
         newfile['filedate'] = newfile['config_filetype'] = \
             newfile['db_bucket'] = newfile['id'] = '-not-defined-'
 
@@ -118,9 +117,11 @@ class FileScanner:
             # Continue if match was found
             if fnmatch_success:
 
-                # Level-0 fluxes must be in a subfolder that is named 'Level-0'
+                # Check: Level-0 fluxes must be in a subfolder that is named 'Level-0',
+                # otherwise continue with next file. Basically, this allows Level-0
+                # flux data to be uploaded.
                 if filetypeconf['filegroup'] == '20_ec_fluxes' \
-                        and filetypeconf['data_version'] == 'Level-0' \
+                        and filetypeconf['data_version'] == 'eddypro_level-0' \
                         and not 'Level-0' in str(newfile['filepath'].parent):
                     continue
 
@@ -195,30 +196,9 @@ class FileScanner:
                     newfile['filedate'] = filedate
                     newfile['config_filetype'] = filetype
                     newfile['db_bucket'] = self.db_bucket
-                    # newfile['db_bucket'] = filetypeconf['db_bucket']
                     newfile['id'] = filetypeconf['filetype_id']
-
-                    # Detect data version
-
-                    # For raw data, the data version is always 'raw'
-                    if filetypeconf['data_version'] == 'raw':
-                        pass
-
-                    # For eddy covariance data, there exist different processing levels
-                    # Level-0 data is in a 'Level-0' subfolder, therefore this
-                    # subfolder must be in 'filepath'
-                    elif (filetypeconf['data_version'] == 'Level-0') \
-                            & ('Level-0' in newfile['filepath'].parts):
-                        pass
-
-                    # In case no option is valid, try next filetype
-                    else:
-                        continue
-
                     newfile['data_version'] = filetypeconf['data_version']
-
                     newfile = self._detect_special_format(newfile=newfile)
-
                     return newfile
 
         return newfile
@@ -317,8 +297,10 @@ class FileScanner:
         # Keep newest files
         if self.newestfiles > 0:
             # Changed in v0.9.0: 10 newest files detected by modification time instead of filedate
-            self.filescanner_df.sort_values(by='filemtime', axis=0, inplace=True, ascending=False)
-            # self.filescanner_df.sort_values(by='filedate', axis=0, inplace=True, ascending=False)
+            self.filescanner_df \
+                = self.filescanner_df.sort_values(by='filemtime', axis=0, inplace=False, ascending=False)
+            # self.filescanner_df \
+            #     = self.filescanner_df.sort_values(by='filedate', axis=0, inplace=False, ascending=False)
             self.filescanner_df = self.filescanner_df.head(self.newestfiles)
             self.logger.info(f"{self.class_id} Keeping {self.newestfiles} newest files, "
                              f"based on file modification time.")
@@ -327,7 +309,7 @@ class FileScanner:
 
         # Sort
         _sortby = 'filename'
-        self.filescanner_df.sort_values(by=_sortby, axis=0, inplace=True)
+        self.filescanner_df = self.filescanner_df.sort_values(by=_sortby, axis=0, inplace=False)
         self.logger.info(f"{self.class_id} Sorting found files by {_sortby}.")
 
         # Reset index, starting at 1

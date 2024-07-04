@@ -3,7 +3,29 @@ import datetime as dt
 import pandas as pd
 
 
-def make_run_id(prefix: str = None, suffix: str=None) -> str:
+def add_timezone_to_timestamp(timezone_offset_to_utc_hours: int,
+                              timestamp_index: pd.Timestamp) -> pd.Timestamp:
+    """Add timezone info to timestamp index.
+
+    No data are changed, only the timezone info is added to the timestamp.
+
+    Args:
+        timezone_offset_to_utc_hours: the offset in hours of the used timestamp in relation to UTC,
+            e.g. 'timezone_offset_to_utc_hours=1' for CET.
+        timestamp_index: the timestamp index of a Series or Dataframe
+
+    Returns:
+        Timestamp index with timezone info added.
+
+    """
+    sign = '+' if timezone_offset_to_utc_hours >= 0 else '-'
+    hours_minutes = f"{str(timezone_offset_to_utc_hours).zfill(2)}:00"
+    timezone_utc = f'UTC{sign}{hours_minutes}'
+    timezoned_ix = timestamp_index.tz_localize(timezone_utc)
+    return timezoned_ix
+
+
+def make_run_id(prefix: str = None, suffix: str = None) -> str:
     """Make run identifier based on current datetime"""
     now_time_dt = dt.datetime.now()
     now_time_str = now_time_dt.strftime("%Y%m%d-%H%M%S-%f")

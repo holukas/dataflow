@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.20.0 | 4 Jul 2024
+
+- This is a major update that refactors many parts of the code
+- Removed: `dbc-influxdb` dependency, required functionality is now directly built into `dataflow`
+- Adjusted how `.read_csv()` reads data files, to comply with current pandas requirements. For all filetypes, the
+  timestamp is now built in a separate step after reading the file, never during
+  reading. (`dataflow.filetypereader.filetypereader.FileTypeReader._add_timestamp`)
+- Refactored the way `rawfunc` is handled. `rawfunc` variables are now created and added to the main dataframe before
+  looping through the main dataframe. This means that `rawfunc` variables are now handled like the variables from the
+  data files. All relevant tag entries are adjusted during the execution of the respective `rawfunc`.
+- Uploading to the database does not require the Python dependency `dbc-influxdb` anymore. `dataflow` uses its own
+  uploading routine. This was necessary to guarantee faster execution and cleaner code.
+- Added new function to apply gain between two dates (`dataflow.rawfuncs.common.apply_gain_between_dates`)
+- Added new function to add offset between to dates(`dataflow.rawfuncs.common.add_offset_between_dates`)
+- Added new rawfunc to correct O2 measurements using temperature, used at
+  site `CH-CHA` (`dataflow.rawfuncs.ch_cha.correct_o2`)
+- `gain` is now set to `1` as a float if not specifically given, before it was an integer
+- Added new database tag `offset`
+- Added new database tag `site`
+
 ## v0.12.2 | 11 Jun 2024
 
 ### Changes
