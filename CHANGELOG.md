@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.21.0 | 8 Jul 2024
+
+- Added new function to parse position indices for specific variables. In the config files, the
+  setting `parse_pos_indices` can be set for single variables where position indices are available.
+
 ## v0.20.1 | 4 Jul 2024
 
 - Fixed release
