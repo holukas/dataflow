@@ -42,11 +42,11 @@ from dataflow.local_run.calls import run_dataflow
 # # FILEGROUPS = ['10_meteo', '13_meteo_pressure']
 # FILEGROUPS = ['10_meteo']
 
-# # CH-HON
-# SITE = 'ch-hon'
-# DATATYPE = 'raw'
-# # FILEGROUPS = ['10_meteo', '13_meteo_pressure']
-# FILEGROUPS = ['10_meteo']
+# CH-HON
+SITE = 'ch-hon'
+DATATYPE = 'raw'
+# FILEGROUPS = ['10_meteo', '13_meteo_pressure']
+FILEGROUPS = ['10_meteo']
 
 # # CH-LAE
 # SITE = 'ch-lae'
@@ -64,22 +64,22 @@ from dataflow.local_run.calls import run_dataflow
 # DATATYPE = 'raw'
 # FILEGROUPS = ['10_meteo']
 
-# Processing Level-0
-# SITE = 'ch-aws'
-# SITE = 'ch-cha'
+# # Processing Level-0
+# # SITE = 'ch-aws'
+# # SITE = 'ch-cha'
 # SITE = 'ch-dav'
-# SITE = 'ch-das'
-# SITE = 'ch-for'
-# SITE = 'ch-fru'
-# SITE = 'ch-hon'
-# SITE = 'ch-lae'
-# SITE = 'ch-las'
-# SITE = 'ch-oe2'
-SITE = 'ch-tan'
-DATATYPE = 'processed'  # New name!
-FILEGROUPS = ['20_ec_fluxes']
+# # SITE = 'ch-das'
+# # SITE = 'ch-for'
+# # SITE = 'ch-fru'
+# # SITE = 'ch-hon'
+# # SITE = 'ch-lae'
+# # SITE = 'ch-las'
+# # SITE = 'ch-oe2'
+# # SITE = 'ch-tan'
+# DATATYPE = 'processed'  # New name!
+# FILEGROUPS = ['20_ec_fluxes']
 
-# MeteoScreeningTool files
+# # MeteoScreeningTool files
 # SITE = 'ch-cha'
 # ACCESS = 'local'
 # DATATYPE = 'processed'  # New name!
@@ -88,7 +88,23 @@ FILEGROUPS = ['20_ec_fluxes']
 # MONTH = None
 
 # # FLUXNET files
-# SITE = 'ch-cha'
+# SITE = 'ch-oe2'
+# ACCESS = 'local'
+# DATATYPE = 'processed'  # New name!
+# FILEGROUPS = ['20_ec_fluxes']
+# YEAR = None
+# MONTH = None
+
+# # ICOS FLUXNET L2 files
+# SITE = 'ch-dav'
+# ACCESS = 'local'
+# DATATYPE = 'processed'  # New name!
+# FILEGROUPS = ['20_ec_fluxes']
+# YEAR = None
+# MONTH = None
+
+# # MS FEIGENWINTER/KREBS
+# SITE = 'ch-das'
 # ACCESS = 'local'
 # DATATYPE = 'processed'  # New name!
 # FILEGROUPS = ['20_ec_fluxes']
@@ -98,23 +114,23 @@ FILEGROUPS = ['20_ec_fluxes']
 
 # Common xxx
 ACCESS = 'server'
-DIRCONF = r'L:\Sync\luhk_work\20 - CODING\22 - POET\configs'
-YEAR = 2023
-MONTH = None
-# MONTH = 6
+DIRCONF = r'F:\Sync\luhk_work\20 - CODING\22 - POET\configs'
+YEAR = 2024
+# MONTH = None
+# MONTH = 7
 FILELIMIT = 0
 # FILELIMIT = 10
 # NEWESTFILES = 5
 NEWESTFILES = 0
 # TESTUPLOAD = True
 TESTUPLOAD = False
-# N_ROWS = 99  # Only upload x number of rows of each file
+# N_ROWS = 999  # Only upload x number of rows of each file
 N_ROWS = None
 INGEST = True
 # INGEST = False  # If False, VarScanner will run normally, but no data uploaded (faster)
 
 # For parallel processing of months or years
-# MONTHS = range(1, 13, 1)
+MONTHS = range(1, 13, 1)
 # YEARS = range(2020, 2023, 1)
 # filegroup = '10_meteo'
 
@@ -124,7 +140,7 @@ kwargs = dict(site=SITE,
               dirconf=DIRCONF,
               year=YEAR,
               # filegroup=filegroup,
-              month=MONTH,
+              # month=MONTH,
               filelimit=FILELIMIT,
               newestfiles=NEWESTFILES,
               testupload=TESTUPLOAD,
@@ -137,15 +153,15 @@ if __name__ == '__main__':
     processes = []
 
     # Run years and all filegroups in parallel
-    # for month in MONTHS:
-    #     kwargs['month'] = month
+    for month in MONTHS:
+        kwargs['month'] = month
     # for year in YEARS:
     #     kwargs['year'] = year
-    for filegroup in FILEGROUPS:
-        kwargs['filegroup'] = filegroup
-        p = multiprocessing.Process(target=run_dataflow, kwargs=kwargs)
-        p.start()
-        processes.append(p)
+        for filegroup in FILEGROUPS:
+            kwargs['filegroup'] = filegroup
+            p = multiprocessing.Process(target=run_dataflow, kwargs=kwargs)
+            p.start()
+            processes.append(p)
 
     for p in processes:
         p.join()

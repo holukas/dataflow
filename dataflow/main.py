@@ -490,6 +490,9 @@ class DataFlow:
                                  f"Var #{counter} of {numvars}"
                         self.log.info(logtxt) if self.log else print(logtxt)
 
+                        if var_df['varname'].iloc[0] == 'RH_T1_4_1':
+                            print("X")
+
                         write_api.write(newvar['db_bucket'],
                                         record=var_df,
                                         data_frame_measurement_name=newvar['measurement'],
@@ -561,6 +564,8 @@ class DataFlow:
         rawfunc = False
         ignore_after = False
         ignore_between = False
+        parse_pos_indices = False
+
 
         # Collect varinfo as tags in dict
         newvar = dict(
@@ -591,7 +596,8 @@ class DataFlow:
         # Get var settings from configuration
         if rawvar[0] in data_vars.keys():
             # Variable name in file data is the same as given in settings
-            newvar, assigned_units, gain, is_greenlit, ignore_after, rawfunc, offset, ignore_between = \
+            (newvar, assigned_units, gain, is_greenlit, ignore_after,
+             rawfunc, offset, ignore_between, parse_pos_indices) = \
                 self._match_exact_name(newvar=newvar, rawvar=rawvar, data_vars=data_vars)
 
         elif filetypeconf['data_special_format'] == '-ICOSSEQ-':
@@ -675,7 +681,10 @@ class DataFlow:
         newvar['hpos'] = '-not-given-'
         newvar['vpos'] = '-not-given-'
         newvar['repl'] = '-not-given-'
-        if filetypeconf['data_vars_parse_pos_indices']:
+        # The key 'data_vars_parse_pos_indices' is in relation to all
+        # variables in the file, while the boolean 'parse_pos_indices'
+        # is only for the current variable.
+        if filetypeconf['data_vars_parse_pos_indices'] or parse_pos_indices:
             try:
                 newvar['hpos'] = newvar['field'].split('_')[-3]
                 newvar['vpos'] = newvar['field'].split('_')[-2]
@@ -735,6 +744,17 @@ class DataFlow:
         gain = data_vars[rawvar[0]]['gain'] \
             if 'gain' in data_vars[rawvar[0]] else float(1)
 
+        # Some data files contain variables that have position information
+        # for some but not all variables in the file. In these cases, the
+        # config setting 'parse_pos_indices' can be set, the position indices
+        # will then be parsed from the respective (field) variable names.
+        if 'parse_pos_indices' in data_vars[rawvar[0]]:
+            parse_pos_indices = data_vars[rawvar[0]]['parse_pos_indices']
+            if not isinstance(parse_pos_indices, bool):
+                raise ValueError('parse_pos_indices must be a boolean value')
+        else:
+            parse_pos_indices = False
+
         # Offset from config file if provided, else set to 0 (float)
         # Float is used because if an offset is specifically given it can be
         # a float and then the complete series becomes float.
@@ -758,7 +778,8 @@ class DataFlow:
 
         rawfunc = data_vars[rawvar[0]]['rawfunc'] if 'rawfunc' in data_vars[rawvar[0]] else False
 
-        return newvar, assigned_units, gain, is_greenlit, ignore_after, rawfunc, offset, ignore_between
+        return (newvar, assigned_units, gain, is_greenlit, ignore_after,
+                rawfunc, offset, ignore_between, parse_pos_indices)
 
     def _check_if_vardata_available(self, series: pd.Series) -> bool:
         isavailable = True
