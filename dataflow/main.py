@@ -5,6 +5,8 @@
 # https://docs.influxdata.com/influxdb/cloud/tools/client-libraries/python/#query-data-from-influxdb-with-python
 import datetime as dt
 import fnmatch
+# Ignore future warnings for pandas 3.0
+import warnings
 from itertools import chain
 from pathlib import Path
 
@@ -14,8 +16,6 @@ from influxdb_client import WriteOptions
 from pandas import DataFrame
 from single_source import get_version
 
-# Ignore future warnings for pandas 3.0
-import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # check imports
@@ -308,7 +308,7 @@ class DataFlow:
 
             # Output variables that were not greenlit (not defined in configs)
             outfile = self.dir_out_run / f"3-3_{self.run_id}_varscanner_vars_not_greenlit.csv"
-            self.varscanner_df.loc[self.varscanner_df['greenlit'] == '-not-greenlit-', :].to_csv(outfile, index=False)
+            self.varscanner_df.loc[self.varscanner_df['greenlit'] == False, :].to_csv(outfile, index=False)
 
     def _set_data_raw_freq(self, filetypeconf, df_ix) -> str:
         data_raw_freq = filetypeconf['data_raw_freq']
@@ -490,9 +490,6 @@ class DataFlow:
                                  f"Var #{counter} of {numvars}"
                         self.log.info(logtxt) if self.log else print(logtxt)
 
-                        if var_df['varname'].iloc[0] == 'RH_T1_4_1':
-                            print("X")
-
                         write_api.write(newvar['db_bucket'],
                                         record=var_df,
                                         data_frame_measurement_name=newvar['measurement'],
@@ -565,7 +562,6 @@ class DataFlow:
         ignore_after = False
         ignore_between = False
         parse_pos_indices = False
-
 
         # Collect varinfo as tags in dict
         newvar = dict(

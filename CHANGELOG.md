@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.21.1 | 5 Sep 2024
+
+- Fixed bug: output file that contains variables that were not greenlit was not created correctly (
+  `dataflow.main.DataFlow._store_info_csv`)
+
 ## v0.21.0 | 8 Jul 2024
 
 - Added new function to parse position indices for specific variables. In the config files, the
@@ -73,7 +78,8 @@
 ### Changes
 
 - Updated date offsets to be compliant with new versions of `pandas` (
-  see [here](https://pandas.pydata.org/docs/user_guide/timeseries.html#dateoffset-objects)). (`dataflow.common.times.timedelta_to_string`)
+  see [here](https://pandas.pydata.org/docs/user_guide/timeseries.html#dateoffset-objects)). (
+  `dataflow.common.times.timedelta_to_string`)
 - Adjusted check for missing IDs due to the new option in `data_keep_good_rows` as described
   above (`dataflow.main.DataFlow._check_special_format_alternating_missed_ids`)
 - Updated detection of good rows for special format alternating, it can now handle multiple IDs that mark good
