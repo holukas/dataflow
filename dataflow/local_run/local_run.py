@@ -11,11 +11,11 @@ import time
 
 from dataflow.local_run.calls import run_dataflow
 
-# # CH-AWS
-# SITE = 'ch-aws'
-# DATATYPE = 'raw'
-# FILEGROUPS = ['10_meteo', '11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
-# # # FILEGROUPS = ['11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
+# CH-AWS
+SITE = 'ch-aws'
+DATATYPE = 'raw'
+FILEGROUPS = ['10_meteo', '11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
+# # FILEGROUPS = ['11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
 
 # # CH-CHA
 # SITE = 'ch-cha'
@@ -59,10 +59,10 @@ from dataflow.local_run.calls import run_dataflow
 # DATATYPE = 'raw'
 # FILEGROUPS = ['10_meteo']
 
-# CH-TAN
-SITE = 'ch-tan'
-DATATYPE = 'raw'
-FILEGROUPS = ['10_meteo']
+# # CH-TAN
+# SITE = 'ch-tan'
+# DATATYPE = 'raw'
+# FILEGROUPS = ['10_meteo']
 
 # # Processing Level-0
 # # SITE = 'ch-aws'
@@ -117,15 +117,15 @@ FILEGROUPS = ['10_meteo']
 ACCESS = 'server'
 DIRCONF = r'L:\Sync\luhk_work\20 - CODING\22 - POET\configs'
 YEAR = 2024
-# MONTH = None
-MONTH = 9
+MONTH = None
+# MONTH = 9
 FILELIMIT = 0
 # FILELIMIT = 10
 # NEWESTFILES = 5
 NEWESTFILES = 0
 TESTUPLOAD = True
 # TESTUPLOAD = False
-N_ROWS = 999  # Only upload x number of rows of each file
+N_ROWS = 99  # Only upload x number of rows of each file
 # N_ROWS = None
 INGEST = True
 # INGEST = False  # If False, VarScanner will run normally, but no data uploaded (faster)
