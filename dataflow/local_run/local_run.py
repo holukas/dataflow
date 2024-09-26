@@ -11,16 +11,16 @@ import time
 
 from dataflow.local_run.calls import run_dataflow
 
-# CH-AWS
-SITE = 'ch-aws'
-DATATYPE = 'raw'
-FILEGROUPS = ['10_meteo', '11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
-# # FILEGROUPS = ['11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
-
-# # CH-CHA
-# SITE = 'ch-cha'
+# # CH-AWS
+# SITE = 'ch-aws'
 # DATATYPE = 'raw'
-# FILEGROUPS = ['10_meteo']
+# FILEGROUPS = ['10_meteo', '11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
+# # # FILEGROUPS = ['11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
+
+# CH-CHA
+SITE = 'ch-cha'
+DATATYPE = 'raw'
+FILEGROUPS = ['10_meteo']
 
 # # CH-DAV
 # SITE = 'ch-dav'
@@ -115,8 +115,8 @@ FILEGROUPS = ['10_meteo', '11_meteo_valley', '12_meteo_rainfall', '13_meteo_pres
 
 # Common xxx
 ACCESS = 'server'
-DIRCONF = r'L:\Sync\luhk_work\20 - CODING\22 - POET\configs'
-YEAR = 2024
+DIRCONF = r'F:\Sync\luhk_work\20 - CODING\22 - POET\configs'
+# YEAR = 2022
 MONTH = None
 # MONTH = 9
 FILELIMIT = 0
@@ -125,21 +125,21 @@ FILELIMIT = 0
 NEWESTFILES = 0
 TESTUPLOAD = True
 # TESTUPLOAD = False
-N_ROWS = 99  # Only upload x number of rows of each file
-# N_ROWS = None
+# N_ROWS = 99  # Only upload x number of rows of each file
+N_ROWS = None
 INGEST = True
 # INGEST = False  # If False, VarScanner will run normally, but no data uploaded (faster)
 
 # For parallel processing of months or years
 # MONTHS = range(1, 13, 1)
-# YEARS = range(2020, 2025, 1)
+YEARS = range(2020, 2025, 1)
 # filegroup = '10_meteo'
 
 kwargs = dict(site=SITE,
               datatype=DATATYPE,
               access=ACCESS,
               dirconf=DIRCONF,
-              year=YEAR,
+              # year=YEAR,
               # filegroup=filegroup,
               month=MONTH,
               filelimit=FILELIMIT,
@@ -156,13 +156,13 @@ if __name__ == '__main__':
     # Run years and all filegroups in parallel
     # for month in MONTHS:
     #     kwargs['month'] = month
-    # for year in YEARS:
-    #     kwargs['year'] = year
-    for filegroup in FILEGROUPS:
-        kwargs['filegroup'] = filegroup
-        p = multiprocessing.Process(target=run_dataflow, kwargs=kwargs)
-        p.start()
-        processes.append(p)
+    for year in YEARS:
+        kwargs['year'] = year
+        for filegroup in FILEGROUPS:
+            kwargs['filegroup'] = filegroup
+            p = multiprocessing.Process(target=run_dataflow, kwargs=kwargs)
+            p.start()
+            processes.append(p)
 
     for p in processes:
         p.join()
