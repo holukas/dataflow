@@ -885,52 +885,6 @@ class DataFlow:
 
         return df
 
-        # todo
-        #
-        #             varscanner_allfiles_df = \
-        #                 pd.concat([varscanner_allfiles_df, varscanner_df],
-        #                           axis=0, ignore_index=True)
-        #
-        #             filescanner_df = self._update(
-        #                 ix=fs_file_ix,
-        #                 filescanner_df=filescanner_df,
-        #                 numvars=len(df.columns),
-        #                 numdatarows=len(df),
-        #                 freq=freq,
-        #                 freqfrom=freqfrom,
-        #                 firstdate=df.index[0],
-        #                 lastdate=df.index[-1],
-        #                 missed_IDs=missed_ids)
-        #
-        #         else:
-        #             filescanner_df = self._update(
-        #                 ix=fs_file_ix,
-        #                 filescanner_df=filescanner_df,
-        #                 numvars='-data-empty-',
-        #                 numdatarows='-data-empty-',
-        #                 freq='-data-empty-',
-        #                 freqfrom='-data-empty-',
-        #                 firstdate='-data-empty-',
-        #                 lastdate='-data-empty-',
-        #                 missed_IDs='-data-empty-')
-        #
-        # if not varscanner_allfiles_df.empty:
-        #     self._output_info_csv_files(
-        #         root=root,
-        #         found_run_id=found_run_id,
-        #         filescanner_df=filescanner_df,
-        #         varscanner_allfiles_df=varscanner_allfiles_df)
-        # else:
-        #     _logger.info("")
-        #     _logger.info(f"{'=' * 40} ")
-        #     _logger.info("(!)No files available for VarScanner.")
-        #     _logger.info("(!)This can happen e.g. when all files found by FileScanner were ignored.")
-        #     _logger.info("(!)Ignored files are e.g. files that contain erroneous data.")
-        #     _logger.info("(!)Ignored filetypes end with the suffix -IGNORE.")
-        #     _logger.info("(!)Check the output file filescanner.csv, there ignored files have "
-        #                  "the config_filetype=*-IGNORE")
-        #     _logger.info("(!)Check the list of ignored files in the output folder.")
-
     def _readfile(self, filepath, config_filetype, filetypeconf):
         # Read data of current file
         self.log.info(f"")
