@@ -11,24 +11,30 @@ import time
 
 from dataflow.local_run.calls import run_dataflow
 
+# # todo CH-AES
+# SITE = 'ch-aes'
+# DATATYPE = 'raw'
+# FILEGROUPS = ['10_meteo']
+
 # # CH-AWS
 # SITE = 'ch-aws'
 # DATATYPE = 'raw'
-# FILEGROUPS = ['10_meteo']
-# # # FILEGROUPS = ['11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure', '15_meteo_snowheight']
+# # FILEGROUPS = ['10_meteo']
+# FILEGROUPS = ['10_meteo', '11_meteo_valley', '12_meteo_rainfall', '15_meteo_snowheight']
+# FILEGROUPS = ['10_meteo', '11_meteo_valley', '12_meteo_rainfall', '13_meteo_pressure (EC pressure)', '15_meteo_snowheight']
 
 # # CH-CHA
 # SITE = 'ch-cha'
 # DATATYPE = 'raw'
 # FILEGROUPS = ['10_meteo']
 
-# CH-DAV
-SITE = 'ch-dav'
-DATATYPE = 'raw'
+# # CH-DAV
+# SITE = 'ch-dav'
+# DATATYPE = 'raw'
 # FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_backup_eth',
 #               '13_meteo_nabel', '15_meteo_snowheight', '17_meteo_profile', '30_profile_ghg',
 #               '40_chambers_ghg']
-FILEGROUPS = ['12_meteo_forestfloor']
+# # FILEGROUPS = ['12_meteo_forestfloor']
 
 # # CH-FOR
 # SITE = 'ch-for'
@@ -92,13 +98,13 @@ FILEGROUPS = ['12_meteo_forestfloor']
 # YEAR = None
 # MONTH = None
 
-# # FLUXNET files
-# SITE = 'ch-oe2'
-# ACCESS = 'local'
-# DATATYPE = 'processed'  # New name!
-# FILEGROUPS = ['20_ec_fluxes']
-# YEAR = None
-# MONTH = None
+# FLUXNET files
+SITE = 'ch-aws'
+ACCESS = 'local'  # See configs for local location
+DATATYPE = 'processed'  # New name!
+FILEGROUPS = ['20_ec_fluxes']
+YEAR = None
+MONTH = None
 
 # # ICOS FLUXNET L2 files
 # SITE = 'ch-dav'
@@ -119,18 +125,17 @@ FILEGROUPS = ['12_meteo_forestfloor']
 
 
 # Common xxx
-ACCESS = 'server'
-# DIRCONF = r'C:\Users\holukas\Sync\luhk_work\20 - CODING\22 - POET\configs'
+# ACCESS = 'server'
 DIRCONF = r'F:\Sync\luhk_work\20 - CODING\22 - POET\configs'
-YEAR = 2025
-MONTH = 11
+# YEAR = 2025
+# MONTH = 6
 # MONTH = None
 # FILELIMIT = 10
 FILELIMIT = 0
 # NEWESTFILES = 5
 NEWESTFILES = 0
-TESTUPLOAD = True
-# TESTUPLOAD = False
+# TESTUPLOAD = True
+TESTUPLOAD = False
 # N_ROWS = 100  # Only upload x number of rows of each file
 N_ROWS = None  # All rows
 # INGEST = False  # If False, VarScanner will run normally, but no data uploaded (faster)
@@ -138,7 +143,7 @@ INGEST = True
 
 # For parallel processing of months or years
 # MONTHS = range(1, 13, 1)
-# YEARS = range(2015, 2020, 1)
+# YEARS = range(2020, 2027, 1)
 # filegroup = '10_meteo'
 
 kwargs = dict(site=SITE,
