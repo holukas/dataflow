@@ -54,11 +54,11 @@ from dataflow.local_run.calls import run_dataflow
 # # FILEGROUPS = ['10_meteo', '13_meteo_pressure']
 # FILEGROUPS = ['10_meteo']
 
-# # CH-LAE
-# SITE = 'ch-lae'
-# DATATYPE = 'raw'
+# CH-LAE, CH-LAS, CH-LS2
+SITE = 'ch-lae'
+DATATYPE = 'raw'
 # FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_nabel']
-# # FILEGROUPS = ['13_meteo_nabel']
+FILEGROUPS = ['12_meteo_forestfloor']
 
 # # CH-OE2
 # SITE = 'ch-oe2'
@@ -98,13 +98,13 @@ from dataflow.local_run.calls import run_dataflow
 # YEAR = None
 # MONTH = None
 
-# FLUXNET files
-SITE = 'ch-aws'
-ACCESS = 'local'  # See configs for local location
-DATATYPE = 'processed'  # New name!
-FILEGROUPS = ['20_ec_fluxes']
-YEAR = None
-MONTH = None
+# # FLUXNET files
+# SITE = 'ch-aws'
+# ACCESS = 'local'  # See configs for local location
+# DATATYPE = 'processed'  # New name!
+# FILEGROUPS = ['20_ec_fluxes']
+# YEAR = None
+# MONTH = None
 
 # # ICOS FLUXNET L2 files
 # SITE = 'ch-dav'
@@ -125,19 +125,19 @@ MONTH = None
 
 
 # Common xxx
-# ACCESS = 'server'
-DIRCONF = r'F:\Sync\luhk_work\20 - CODING\22 - POET\configs'
-# YEAR = 2025
-# MONTH = 6
+ACCESS = 'server'
+DIRCONF = r'F:\dev\poet\configs'
+YEAR = 2025
+MONTH = 6
 # MONTH = None
 # FILELIMIT = 10
 FILELIMIT = 0
 # NEWESTFILES = 5
 NEWESTFILES = 0
-# TESTUPLOAD = True
-TESTUPLOAD = False
-# N_ROWS = 100  # Only upload x number of rows of each file
-N_ROWS = None  # All rows
+TESTUPLOAD = True
+# TESTUPLOAD = False
+N_ROWS = 100  # Only upload x number of rows of each file
+# N_ROWS = None  # All rows
 # INGEST = False  # If False, VarScanner will run normally, but no data uploaded (faster)
 INGEST = True
 

@@ -6,33 +6,148 @@ to assign a `filetype` to each found file. If a `filetype` was successfully
 assigned to a specific file, `dataflow` uploads the data of the respective
 file using the settings for the respectively assigned `filetype`.
 
-`dataflow` scans folders for files. Then, `dataflow` uses the `POET` script `dbc-influxdb` for:
+`dataflow` scans folders for files and then, for each found file, it:
 
-- reading found files
-- scanning found files for variables
-- uploading found data to the database
+- reads found files
+- scans found files for variables
+- uploads found data to the database
+
+The database functionality (reading, scanning and uploading) is built directly into `dataflow` via
+the `influxdb-client` library; the previously required `dbc-influxdb` dependency is no longer used.
 
 `dataflow` configurations, including the different `filetypes`, are given in the `configs` folder.
 
 Configurations for accessing the database are not included in the `configs` folder for security reasons.
 
-`dataflow` uses `poetry` for dependency management.
+`dataflow` uses `uv` for dependency management and runs on Python 3.12.
 
 ## Currently defined filetypes
 
 Filetypes are defined in the `configs`, see here: [Filetypes](https://github.com/holukas/configs/tree/main/filegroups)
 
+## Development setup
+
+`dataflow` uses [`uv`](https://docs.astral.sh/uv/) and Python 3.12.
+
+```
+uv sync          # create the virtual environment and install all dependencies
+uv run dataflow -h   # run the CLI inside the managed environment
+uv build         # build the source archive (.tar.gz) and wheel into ./dist
+```
+
+`uv` reads the pinned Python version (3.12) and the locked dependencies (`uv.lock`) automatically and
+will download Python 3.12 if it is not already available.
+
 ## Installation on the database server gl-calcs using pipx
 
-- `gl-calcs` is a Linux computer running CentOS 7
-- Source archive is built via `poetry` with `poetry build`.
-    - Example: `dataflow-0.3.0.tar.gz`
-- The resulting `.tar.gz` file is uploaded to the server `gl-calcs`.
-- On the server, the script is installed using `pipx`, e.g., `pipx install /path/to/file/dataflow-0.3.0.tar.gz`.
-- This also installs the script `dbc-influxdb` for uploading data to the database.
-- The script can also be installed directly from source to install a specific version
-  with `pipx install https://github.com/holukas/dataflow/archive/refs/tags/v0.10.3.tar.gz`. This example would
-  install script v0.10.3.
+`gl-calcs` is a Linux computer running **Red Hat Enterprise Linux (RHEL) 8.9**. `dataflow` is
+installed there as an isolated CLI tool with [`pipx`](https://pipx.pypa.io/).
+
+> [!IMPORTANT]
+> `dataflow` requires **Python 3.12**. RHEL 8.9 ships Python 3.6 as its default `python3`, so `pipx`
+> must be pointed at a separately provided Python 3.12 interpreter (see step 1). If you install with
+> the system Python, the install fails with an "unsupported Python version" / "requires-python" error.
+
+### 1. Make a Python 3.12 interpreter available
+
+On RHEL 8.9, install Python 3.12 from the AppStream repository (requires `sudo`):
+
+```bash
+sudo dnf install -y python3.12
+which python3.12             # -> /usr/bin/python3.12
+```
+
+This is used as `<py312>` below. Installing `python3.12` does **not** change the system default
+`python3`, so it is safe.
+
+If `sudo` is not available, let `uv` provide a standalone Python 3.12 in user space instead (RHEL
+8.9's glibc is new enough for uv's prebuilt CPython):
+
+```bash
+# install uv once (https://docs.astral.sh/uv/getting-started/installation/)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+uv python install 3.12
+uv python find 3.12          # -> e.g. /home/holukas/.local/share/uv/python/cpython-3.12.x/bin/python3.12
+```
+
+### 1b. Find the path to the Python 3.12 interpreter
+
+`<py312>` in the `pipx install` command below is a **placeholder** — replace it with the full path to
+the Python 3.12 executable you just installed. How to find that path:
+
+If you installed via `dnf`, the executable is `python3.12` on the `PATH`. Get its full path with:
+
+```bash
+which python3.12
+# -> /usr/bin/python3.12
+```
+
+If you installed via `uv`, ask uv directly:
+
+```bash
+uv python find 3.12
+# -> /home/holukas/.local/share/uv/python/cpython-3.12.x/bin/python3.12
+```
+
+Verify the path you found really is Python 3.12 before using it (replace the path with your own):
+
+```bash
+/usr/bin/python3.12 --version
+# -> Python 3.12.x
+```
+
+Use that exact path as `<py312>` in step 3. For example, if `which python3.12` returned
+`/usr/bin/python3.12`, the install command becomes:
+
+```bash
+pipx install --python /usr/bin/python3.12 /path/to/dataflow-0.22.0.tar.gz
+```
+
+> [!TIP]
+> If `which python3.12` prints nothing, the interpreter is not on your `PATH` — re-check step 1, or
+> use the absolute path that `dnf`/`uv` installed it to.
+
+### 2. Build the distribution
+
+On the dev machine, build the source archive and wheel:
+
+```bash
+uv build                     # writes dataflow-0.22.0.tar.gz (+ .whl) into ./dist
+```
+
+Copy the resulting `dist/dataflow-0.22.0.tar.gz` to `gl-calcs`.
+
+### 3. Install with pipx (pinned to Python 3.12)
+
+```bash
+pipx install --python <py312> /path/to/dataflow-0.22.0.tar.gz
+```
+
+This creates an isolated environment for `dataflow` and puts the `dataflow` command on the `PATH`
+(usually `~/.local/bin`; run `pipx ensurepath` once if it is not on the `PATH` yet). Verify with:
+
+```bash
+dataflow -h
+```
+
+Alternatively, install a specific tagged version directly from GitHub (still pinning 3.12):
+
+```bash
+pipx install --python <py312> https://github.com/holukas/dataflow/archive/refs/tags/v0.22.0.tar.gz
+```
+
+### 4. Upgrade / reinstall / uninstall
+
+```bash
+pipx install --force --python <py312> /path/to/dataflow-0.22.0.tar.gz   # replace with a new build
+pipx uninstall dataflow
+```
+
+> [!TIP]
+> Since the project already uses `uv`, you can skip `pipx` entirely and manage the tool with
+> `uv tool install --python 3.12 /path/to/dataflow-0.22.0.tar.gz` (and `uv tool upgrade` /
+> `uv tool uninstall`). This installs the same isolated `dataflow` command without needing `pipx`.
 
 ## Starting the script using the CLI
 
@@ -82,18 +197,18 @@ With the `dataflow` script installed via `pipx` (see above) it can be called wit
 
 This command can easily be used to automate execution e.g. via `cronjobs`.
 
-Alternatively the script can be called directly using the local Python version and source code: 
+Alternatively the script can be called directly from the source code via the `uv`-managed environment:
 
-`python .\main.py ch-aws raw mount 10_meteo /home/holukas/source_code/configs -y 2023 -n 10`
+`uv run python .\main.py ch-aws raw mount 10_meteo /home/holukas/source_code/configs -y 2023 -n 10`
 
 
 ### Example for starting the script locally on a Windows computer
 
 This example executes the script on a Windows computer using the CLI.
 
-`python .\main.py ch-aws raw server 10_meteo "F:\Sync\luhk_work\20 - CODING\22 - POET\configs" -y 2023 -n 1`
+`uv run python .\main.py ch-aws raw server 10_meteo "F:\Sync\luhk_work\20 - CODING\22 - POET\configs" -y 2023 -n 1`
 
-- `python` is the used Python version, e.g. in a `conda` environment
+- `uv run python` runs Python 3.12 inside the `uv`-managed environment for this project
 - `main.py` is the entry point for the script
 - `ch-aws` is the site
 - `raw` is the datatype, in this case we want to upload raw data
