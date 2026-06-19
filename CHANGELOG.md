@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.22.0 | 19 Jun 2026
+
+- Switched dependency management and build tooling from `poetry` to [`uv`](https://docs.astral.sh/uv/).
+  The project is now built with `uv build` (using the `hatchling` build backend) instead of
+  `poetry build`. Dependencies are locked in `uv.lock`.
+- Updated the required Python version from `>=3.9,<3.11` to `3.12` (pinned via `.python-version` and
+  `requires-python`).
+- Converted `pyproject.toml` to the PEP 621 `[project]` format. The console script entry point is now
+  `dataflow.main:main`.
+- Removed the now-obsolete `poetry.lock` and `environment.yml` (`conda`) files.
+
 ## v0.21.1 | 5 Sep 2024
 
 - Fixed bug: output file that contains variables that were not greenlit was not created correctly (
