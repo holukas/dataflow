@@ -337,7 +337,7 @@ class DataFlow:
         for df_ix, df in enumerate(file_df):
             df = self._format_data(df=df, filetypeconf=filetypeconf)
 
-            if df.empty:
+            if df.dropna().empty:
                 continue
 
             # Special format -ALTERNATING- has a second set of data_vars

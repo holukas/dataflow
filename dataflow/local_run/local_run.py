@@ -28,13 +28,13 @@ from dataflow.local_run.calls import run_dataflow
 # DATATYPE = 'raw'
 # FILEGROUPS = ['10_meteo']
 
-# # CH-DAV
-# SITE = 'ch-dav'
-# DATATYPE = 'raw'
+# CH-DAV
+SITE = 'ch-dav'
+DATATYPE = 'raw'
 # FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_backup_eth',
 #               '13_meteo_nabel', '15_meteo_snowheight', '17_meteo_profile', '30_profile_ghg',
 #               '40_chambers_ghg']
-# # FILEGROUPS = ['12_meteo_forestfloor']
+FILEGROUPS = ['13_meteo_nabel']
 
 # # CH-FOR
 # SITE = 'ch-for'
@@ -54,11 +54,11 @@ from dataflow.local_run.calls import run_dataflow
 # # FILEGROUPS = ['10_meteo', '13_meteo_pressure']
 # FILEGROUPS = ['10_meteo']
 
-# CH-LAE, CH-LAS, CH-LS2
-SITE = 'ch-lae'
-DATATYPE = 'raw'
-# FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_nabel']
-FILEGROUPS = ['12_meteo_forestfloor']
+# # CH-LAE, CH-LAS, CH-LS2
+# SITE = 'ch-lae'
+# DATATYPE = 'raw'
+# # FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_nabel']
+# FILEGROUPS = ['12_meteo_forestfloor']
 
 # # CH-OE2
 # SITE = 'ch-oe2'
@@ -128,16 +128,16 @@ FILEGROUPS = ['12_meteo_forestfloor']
 ACCESS = 'server'
 DIRCONF = r'F:\dev\poet\configs'
 YEAR = 2025
-MONTH = 6
+MONTH = 2
 # MONTH = None
 # FILELIMIT = 10
 FILELIMIT = 0
 # NEWESTFILES = 5
 NEWESTFILES = 0
-TESTUPLOAD = True
-# TESTUPLOAD = False
-N_ROWS = 100  # Only upload x number of rows of each file
-# N_ROWS = None  # All rows
+# TESTUPLOAD = True
+TESTUPLOAD = False
+# N_ROWS = 100  # Only upload x number of rows of each file
+N_ROWS = None  # All rows
 # INGEST = False  # If False, VarScanner will run normally, but no data uploaded (faster)
 INGEST = True
 

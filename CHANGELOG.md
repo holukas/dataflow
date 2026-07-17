@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.22.1 | XX XXX 2026
+
+- Check if dataframe is empty now includes .dropna(), done after formatting the data (in
+  `dataflow.main.DataFlow._loop_file_dataframes`)
+
 ## v0.22.0 | 19 Jun 2026
 
 - Switched dependency management and build tooling from `poetry` to [`uv`](https://docs.astral.sh/uv/).
