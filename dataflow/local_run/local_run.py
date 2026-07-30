@@ -28,13 +28,13 @@ from dataflow.local_run.calls import run_dataflow
 # DATATYPE = 'raw'
 # FILEGROUPS = ['10_meteo']
 
-# CH-DAV
-SITE = 'ch-dav'
-DATATYPE = 'raw'
-# FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_backup_eth',
-#               '13_meteo_nabel', '15_meteo_snowheight', '17_meteo_profile', '30_profile_ghg',
-#               '40_chambers_ghg']
-FILEGROUPS = ['13_meteo_nabel']
+# # CH-DAV
+# SITE = 'ch-dav'
+# DATATYPE = 'raw'
+# # FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_backup_eth',
+# #               '13_meteo_nabel', '15_meteo_snowheight', '17_meteo_profile', '30_profile_ghg',
+# #               '40_chambers_ghg']
+# FILEGROUPS = ['13_meteo_nabel']
 
 # # CH-FOR
 # SITE = 'ch-for'
@@ -98,13 +98,13 @@ FILEGROUPS = ['13_meteo_nabel']
 # YEAR = None
 # MONTH = None
 
-# # FLUXNET files
-# SITE = 'ch-aws'
-# ACCESS = 'local'  # See configs for local location
-# DATATYPE = 'processed'  # New name!
-# FILEGROUPS = ['20_ec_fluxes']
-# YEAR = None
-# MONTH = None
+# FLUXNET files
+SITE = 'ch-oe2'
+ACCESS = 'local'  # See configs for local location
+DATATYPE = 'processed'  # New name!
+FILEGROUPS = ['20_ec_fluxes']
+YEAR = None
+MONTH = None
 
 # # ICOS FLUXNET L2 files
 # SITE = 'ch-dav'
@@ -125,10 +125,10 @@ FILEGROUPS = ['13_meteo_nabel']
 
 
 # Common xxx
-ACCESS = 'server'
+# ACCESS = 'server'
 DIRCONF = r'F:\dev\poet\configs'
-YEAR = 2025
-MONTH = 2
+# YEAR = 2025
+# MONTH = 2
 # MONTH = None
 # FILELIMIT = 10
 FILELIMIT = 0
