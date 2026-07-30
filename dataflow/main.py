@@ -337,7 +337,11 @@ class DataFlow:
         for df_ix, df in enumerate(file_df):
             df = self._format_data(df=df, filetypeconf=filetypeconf)
 
-            if df.dropna().empty:
+            # Skip if the dataframe contains no data at all. Note that 'how="all"' is
+            # essential here: with the default 'how="any"' a single all-NaN column (e.g.,
+            # from a dead sensor) would remove all rows and the complete file would be
+            # skipped, although it contains data.
+            if df.dropna(how='all').empty:
                 continue
 
             # Special format -ALTERNATING- has a second set of data_vars

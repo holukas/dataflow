@@ -2,8 +2,10 @@
 
 ## v0.22.1 | XX XXX 2026
 
-- Check if dataframe is empty now includes .dropna(), done after formatting the data (in
-  `dataflow.main.DataFlow._loop_file_dataframes`)
+- Check if dataframe is empty now includes `.dropna(how='all')`, done after formatting the data (in
+  `dataflow.main.DataFlow._loop_file_dataframes`). Only dataframes where *all* values are missing
+  are skipped. Using the `dropna` default (`how='any'`) would skip the complete file if it contains
+  at least one all-NaN column, because then every row has a missing value.
 
 ## v0.22.0 | 19 Jun 2026
 
