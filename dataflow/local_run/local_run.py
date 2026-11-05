@@ -75,20 +75,21 @@ from dataflow.local_run.calls import run_dataflow
 # DATATYPE = 'raw'
 # FILEGROUPS = ['10_meteo']
 
-# # Processing Level-0
-# # SITE = 'ch-aws'
-# # SITE = 'ch-cha'
-# # SITE = 'ch-dav'
-# # SITE = 'ch-das'
-# # SITE = 'ch-for'
-# # SITE = 'ch-fru'
-# # SITE = 'ch-hon'
-# # SITE = 'ch-lae'
-# # SITE = 'ch-las'
+# Processing Level-0
+# SITE = 'ch-aws'
+# SITE = 'ch-cha'
+# SITE = 'ch-dav'
+# SITE = 'ch-das'
+# SITE = 'ch-for'
+# SITE = 'ch-fru'
+# SITE = 'ch-hon'
+# SITE = 'ch-lae'
+# SITE = 'ch-las'
+SITE = 'ch-ls2'
 # SITE = 'ch-oe2'
-# # SITE = 'ch-tan'
-# DATATYPE = 'processed'  # New name!
-# FILEGROUPS = ['20_ec_fluxes']
+# SITE = 'ch-tan'
+DATATYPE = 'processed'  # New name!
+FILEGROUPS = ['20_ec_fluxes']
 
 # # MeteoScreeningTool files
 # SITE = 'ch-oe2'
@@ -98,13 +99,13 @@ from dataflow.local_run.calls import run_dataflow
 # YEAR = None
 # MONTH = None
 
-# FLUXNET files
-SITE = 'ch-oe2'
-ACCESS = 'local'  # See configs for local location
-DATATYPE = 'processed'  # New name!
-FILEGROUPS = ['20_ec_fluxes']
-YEAR = None
-MONTH = None
+# # FLUXNET files
+# SITE = 'ch-oe2'
+# ACCESS = 'local'  # See configs for local location
+# DATATYPE = 'processed'  # New name!
+# FILEGROUPS = ['20_ec_fluxes']
+# YEAR = None
+# MONTH = None
 
 # # ICOS FLUXNET L2 files
 # SITE = 'ch-dav'
@@ -125,21 +126,21 @@ MONTH = None
 
 
 # Common xxx
-# ACCESS = 'server'
+ACCESS = 'server'
 DIRCONF = r'F:\dev\poet\configs'
-# YEAR = 2025
+YEAR = 2026
 # MONTH = 2
-# MONTH = None
+MONTH = None
 # FILELIMIT = 10
 FILELIMIT = 0
 # NEWESTFILES = 5
 NEWESTFILES = 0
-# TESTUPLOAD = True
-TESTUPLOAD = False
-# N_ROWS = 100  # Only upload x number of rows of each file
-N_ROWS = None  # All rows
-# INGEST = False  # If False, VarScanner will run normally, but no data uploaded (faster)
-INGEST = True
+TESTUPLOAD = True
+# TESTUPLOAD = False
+N_ROWS = 100  # Only upload x number of rows of each file
+# N_ROWS = None  # All rows
+INGEST = False  # If False, VarScanner will run normally, but no data uploaded (faster)
+# INGEST = True
 
 # For parallel processing of months or years
 # MONTHS = range(1, 13, 1)
