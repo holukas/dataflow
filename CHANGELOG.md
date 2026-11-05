@@ -6,6 +6,9 @@
   `dataflow.main.DataFlow._loop_file_dataframes`). Only dataframes where *all* values are missing
   are skipped. Using the `dropna` default (`how='any'`) would skip the complete file if it contains
   at least one all-NaN column, because then every row has a missing value.
+- Removed a duplicate, unreachable `elif self.access == 'mount'` branch in
+  `dataflow.main.DataFlow._set_outdir`. No change in behavior: `mount` still writes to
+  `out_dataflow_mount`, all other access types to `out_dataflow`.
 
 ## v0.22.0 | 19 Jun 2026
 

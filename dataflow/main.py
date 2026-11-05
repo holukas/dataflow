@@ -1178,12 +1178,8 @@ class DataFlow:
 
     def _set_outdir(self) -> Path:
         """Set the output folder for run results"""
-        if self.access == 'mount':
-            _key = 'out_dataflow_mount'
-        elif self.access == 'mount':
-            _key = 'out_dataflow'
-        else:
-            _key = 'out_dataflow'
+        # 'mount' runs on gl-calcs, all other access types ('server', 'local') run off-server
+        _key = 'out_dataflow_mount' if self.access == 'mount' else 'out_dataflow'
         return Path(self.conf_dirs[_key]) / 'runs'
 
     def _setdirs(self):
