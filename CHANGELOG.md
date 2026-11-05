@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.23.0 | XX XXX 2026
+## v0.23.0 | 5 Nov 2026
 
 ### New filetype settings: priority and reuse of `data_vars`
 
