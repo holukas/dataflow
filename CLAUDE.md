@@ -14,8 +14,9 @@ The project is part of `POET`. It is installed in production via `pipx` from a `
 
 ## Commands
 
-Dependency management is via **uv** (Python **3.12**, pinned in `.python-version` and
-`requires-python`). Deps are locked in `uv.lock`; uv auto-downloads Python 3.12 if missing.
+Dependency management is via **uv** (Python **3.12**, pinned via `requires-python` in
+`pyproject.toml`; `.python-version` is gitignored and not part of the repo). Deps are locked in
+`uv.lock`; uv auto-downloads Python 3.12 if missing.
 
 ```bash
 uv sync                   # create .venv and install all (locked) deps
