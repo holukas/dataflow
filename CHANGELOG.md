@@ -1,6 +1,28 @@
 # Changelog
 
-## v0.22.1 | XX XXX 2026
+## v0.23.0 | XX XXX 2026
+
+### New filetype settings: priority and reuse of `data_vars`
+
+Needed for sites with more than one EddyPro output file of the same type, e.g. CH-LS2: the open-path
+IRGA and the MGA4 laser (COS and N2O) are calculated in separate EddyPro runs. All these files match
+the generic filetype `PROC-EDDYPRO-FLUXNET-CSV-L0-30MIN`, so variables with the same name (e.g. `FC`)
+overwrite each other in the database. All new settings are optional, existing filetypes are not
+affected (in `dataflow.filetypereader.funcs.get_conf_filetypes`).
+
+- `filetype_priority` (default `0`): filetypes with a higher priority are checked first. The
+  filescanner assigns the *first* matching filetype to a file, so a specific filetype (e.g. one
+  EddyPro run of one site) must be checked before a generic filetype that also matches the file.
+- `data_vars_from`: name of another filetype in the same folder, its `data_vars` are used as base.
+- `data_vars_select`: list of patterns (e.g. `['FC', 'FC_*', 'CO2*']`), only base variables that
+  match one of the patterns are kept.
+- `data_vars_field_suffix`: appended to the variable name of all variables without an explicit
+  `field`, e.g. with `_MGA4` the raw variable `FC` is uploaded as `FC_MGA4`.
+- Explicit `data_vars` entries in the same filetype add to or replace the selected base entries.
+- Filetype config files are now read in sorted order. Before, the order depended on the order of
+  `os.walk` and could differ between Windows and Linux.
+
+### Other changes
 
 - Check if dataframe is empty now includes `.dropna(how='all')`, done after formatting the data (in
   `dataflow.main.DataFlow._loop_file_dataframes`). Only dataframes where *all* values are missing
