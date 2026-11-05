@@ -337,7 +337,11 @@ class DataFlow:
         for df_ix, df in enumerate(file_df):
             df = self._format_data(df=df, filetypeconf=filetypeconf)
 
-            if df.empty:
+            # Skip if the dataframe contains no data at all. Note that 'how="all"' is
+            # essential here: with the default 'how="any"' a single all-NaN column (e.g.,
+            # from a dead sensor) would remove all rows and the complete file would be
+            # skipped, although it contains data.
+            if df.dropna(how='all').empty:
                 continue
 
             # Special format -ALTERNATING- has a second set of data_vars
@@ -1174,12 +1178,8 @@ class DataFlow:
 
     def _set_outdir(self) -> Path:
         """Set the output folder for run results"""
-        if self.access == 'mount':
-            _key = 'out_dataflow_mount'
-        elif self.access == 'mount':
-            _key = 'out_dataflow'
-        else:
-            _key = 'out_dataflow'
+        # 'mount' runs on gl-calcs, all other access types ('server', 'local') run off-server
+        _key = 'out_dataflow_mount' if self.access == 'mount' else 'out_dataflow'
         return Path(self.conf_dirs[_key]) / 'runs'
 
     def _setdirs(self):

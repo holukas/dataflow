@@ -31,10 +31,10 @@ from dataflow.local_run.calls import run_dataflow
 # # CH-DAV
 # SITE = 'ch-dav'
 # DATATYPE = 'raw'
-# FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_backup_eth',
-#               '13_meteo_nabel', '15_meteo_snowheight', '17_meteo_profile', '30_profile_ghg',
-#               '40_chambers_ghg']
-# # FILEGROUPS = ['12_meteo_forestfloor']
+# # FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_backup_eth',
+# #               '13_meteo_nabel', '15_meteo_snowheight', '17_meteo_profile', '30_profile_ghg',
+# #               '40_chambers_ghg']
+# FILEGROUPS = ['13_meteo_nabel']
 
 # # CH-FOR
 # SITE = 'ch-for'
@@ -54,11 +54,11 @@ from dataflow.local_run.calls import run_dataflow
 # # FILEGROUPS = ['10_meteo', '13_meteo_pressure']
 # FILEGROUPS = ['10_meteo']
 
-# CH-LAE, CH-LAS, CH-LS2
-SITE = 'ch-lae'
-DATATYPE = 'raw'
-# FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_nabel']
-FILEGROUPS = ['12_meteo_forestfloor']
+# # CH-LAE, CH-LAS, CH-LS2
+# SITE = 'ch-lae'
+# DATATYPE = 'raw'
+# # FILEGROUPS = ['10_meteo', '11_meteo_hut', '12_meteo_forestfloor', '13_meteo_nabel']
+# FILEGROUPS = ['12_meteo_forestfloor']
 
 # # CH-OE2
 # SITE = 'ch-oe2'
@@ -75,20 +75,21 @@ FILEGROUPS = ['12_meteo_forestfloor']
 # DATATYPE = 'raw'
 # FILEGROUPS = ['10_meteo']
 
-# # Processing Level-0
-# # SITE = 'ch-aws'
-# # SITE = 'ch-cha'
-# # SITE = 'ch-dav'
-# # SITE = 'ch-das'
-# # SITE = 'ch-for'
-# # SITE = 'ch-fru'
-# # SITE = 'ch-hon'
-# # SITE = 'ch-lae'
-# # SITE = 'ch-las'
+# Processing Level-0
+# SITE = 'ch-aws'
+# SITE = 'ch-cha'
+# SITE = 'ch-dav'
+# SITE = 'ch-das'
+# SITE = 'ch-for'
+# SITE = 'ch-fru'
+# SITE = 'ch-hon'
+# SITE = 'ch-lae'
+# SITE = 'ch-las'
+SITE = 'ch-ls2'
 # SITE = 'ch-oe2'
-# # SITE = 'ch-tan'
-# DATATYPE = 'processed'  # New name!
-# FILEGROUPS = ['20_ec_fluxes']
+# SITE = 'ch-tan'
+DATATYPE = 'processed'  # New name!
+FILEGROUPS = ['20_ec_fluxes']
 
 # # MeteoScreeningTool files
 # SITE = 'ch-oe2'
@@ -99,7 +100,7 @@ FILEGROUPS = ['12_meteo_forestfloor']
 # MONTH = None
 
 # # FLUXNET files
-# SITE = 'ch-aws'
+# SITE = 'ch-oe2'
 # ACCESS = 'local'  # See configs for local location
 # DATATYPE = 'processed'  # New name!
 # FILEGROUPS = ['20_ec_fluxes']
@@ -127,9 +128,9 @@ FILEGROUPS = ['12_meteo_forestfloor']
 # Common xxx
 ACCESS = 'server'
 DIRCONF = r'F:\dev\poet\configs'
-YEAR = 2025
-MONTH = 6
-# MONTH = None
+YEAR = 2026
+# MONTH = 2
+MONTH = None
 # FILELIMIT = 10
 FILELIMIT = 0
 # NEWESTFILES = 5
@@ -138,8 +139,8 @@ TESTUPLOAD = True
 # TESTUPLOAD = False
 N_ROWS = 100  # Only upload x number of rows of each file
 # N_ROWS = None  # All rows
-# INGEST = False  # If False, VarScanner will run normally, but no data uploaded (faster)
-INGEST = True
+INGEST = False  # If False, VarScanner will run normally, but no data uploaded (faster)
+# INGEST = True
 
 # For parallel processing of months or years
 # MONTHS = range(1, 13, 1)

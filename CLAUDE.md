@@ -14,8 +14,9 @@ The project is part of `POET`. It is installed in production via `pipx` from a `
 
 ## Commands
 
-Dependency management is via **uv** (Python **3.12**, pinned in `.python-version` and
-`requires-python`). Deps are locked in `uv.lock`; uv auto-downloads Python 3.12 if missing.
+Dependency management is via **uv** (Python **3.12**, pinned via `requires-python` in
+`pyproject.toml`; `.python-version` is gitignored and not part of the repo). Deps are locked in
+`uv.lock`; uv auto-downloads Python 3.12 if missing.
 
 ```bash
 uv sync                   # create .venv and install all (locked) deps
@@ -87,6 +88,13 @@ kind of file:
   `{ field: <naming-convention name>, units: <raw units or false>, measurement: <_measurement> }`,
   optionally with `gain`, `offset`, `rawfunc`, `ignore_after`, `ignore_between`, `parse_pos_indices`.
   `data_vars_parse_pos_indices: true` parses hpos/vpos/repl from the trailing `_H_V_R` of `field`.
+- matching order and reuse (since v0.23.0, resolved at load time in `get_conf_filetypes`, so the
+  rest of the pipeline only sees a normal `data_vars`): the filescanner assigns the **first**
+  matching filetype, so `filetype_priority` (default 0, higher = checked first) lets a specific
+  filetype win over a generic one that matches the same files. `data_vars_from: <filetype>` copies
+  another filetype's `data_vars`, `data_vars_select` (fnmatch patterns) keeps only matching vars,
+  `data_vars_field_suffix` appends a suffix to every `field: false` var. Used for CH-LS2, which has
+  three EddyPro L0 runs (`IRGA75` → generic filetype; `MGA4-COS` → `_MGA4` suffix; `MGA4-N2O`).
 
 See `_detect_filetype` in `filescanner.py` and the `FileTypeReader` constructor for the full set of
 keys consumed.
